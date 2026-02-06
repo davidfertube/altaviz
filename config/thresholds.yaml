@@ -1,0 +1,222 @@
+# ===============================================
+# SENSOR THRESHOLDS AND REFERENCE DATA
+# ===============================================
+# Defines normal operating ranges and alert thresholds for all sensor types
+# These values are based on industry standards for natural gas compressor equipment
+
+# Sensor Threshold Definitions
+# Each sensor has:
+# - normal_range: [min, max] for healthy operation
+# - warning_threshold: Value that triggers a warning alert
+# - critical_threshold: Value that triggers a critical alert
+# - unit: Measurement unit for reference
+
+sensor_thresholds:
+  # === VIBRATION MONITORING ===
+  # Vibration is a key indicator of mechanical health
+  # High vibration indicates bearing wear, misalignment, or imbalance
+  vibration_mms:
+    normal_range: [1.5, 4.5]        # Typical range for well-maintained compressors
+    warning_threshold: 6.0          # Noticeable vibration, schedule inspection
+    critical_threshold: 8.0         # Severe vibration, risk of failure
+    unit: "mm/s"
+    description: "Vibration level in millimeters per second (RMS)"
+
+  # === TEMPERATURE MONITORING ===
+  # Discharge temperature indicates compression efficiency and cooling system health
+  # High temps can indicate fouling, inadequate cooling, or excessive compression ratio
+  discharge_temp_f:
+    normal_range: [180, 220]        # Optimal operating temperature
+    warning_threshold: 240          # Elevated temp, check cooling system
+    critical_threshold: 260         # Dangerously high, risk of thermal damage
+    unit: "°F"
+    description: "Discharge gas temperature in Fahrenheit"
+
+  # === SUCTION PRESSURE MONITORING ===
+  # Suction pressure indicates inlet conditions
+  # Low pressure can indicate upstream blockage or insufficient gas supply
+  suction_pressure_psi:
+    normal_range: [40, 80]          # Standard inlet pressure range
+    warning_threshold_low: 30       # Low pressure, check upstream
+    critical_threshold_low: 20      # Critically low, compressor may cavitate
+    unit: "PSI"
+    description: "Inlet/suction pressure in pounds per square inch"
+
+  # === DISCHARGE PRESSURE MONITORING ===
+  # Discharge pressure indicates compression performance and downstream conditions
+  # High pressure can indicate downstream restrictions or over-compression
+  discharge_pressure_psi:
+    normal_range: [900, 1200]       # Standard delivery pressure
+    warning_threshold_high: 1300    # High pressure, check downstream
+    critical_threshold_high: 1400   # Dangerously high, risk of rupture
+    unit: "PSI"
+    description: "Outlet/discharge pressure in pounds per square inch"
+
+  # === HORSEPOWER MONITORING ===
+  # Power consumption indicates compressor load and efficiency
+  # Sudden changes can indicate mechanical problems or process changes
+  horsepower_consumption:
+    normal_range: [1200, 1600]      # Typical power draw for rated capacity
+    warning_threshold_high: 1800    # High load, check for restrictions
+    unit: "HP"
+    description: "Mechanical power consumption in horsepower"
+
+  # === GAS FLOW MONITORING ===
+  # Volumetric flow rate indicates throughput
+  # Low flow can indicate process issues or compressor inefficiency
+  gas_flow_mcf:
+    normal_range: [8000, 12000]     # Standard flow rate
+    warning_threshold_low: 6000     # Low flow, investigate cause
+    unit: "Mcf/day"
+    description: "Gas flow rate in thousand cubic feet per day"
+
+# === DERIVED METRICS THRESHOLDS ===
+# These are calculated from primary sensors
+
+derived_thresholds:
+  # Pressure differential = discharge - suction pressure
+  # Indicates compression ratio
+  pressure_differential:
+    normal_range: [800, 1150]       # Typical compression ratio range
+    warning_threshold_high: 1250    # High diff, compressor working hard
+    unit: "PSI"
+
+  # Temperature rate of change (gradient)
+  # Rapid temperature changes indicate abnormal conditions
+  temp_rate_of_change:
+    warning_threshold: 20.0         # More than 20°F per hour is concerning
+    critical_threshold: 40.0        # Rapid temperature rise, immediate attention
+    unit: "°F/hour"
+
+# ===============================================
+# STATION LOCATIONS
+# ===============================================
+# Geographic coordinates for compressor stations
+# Used for map visualization in dashboard
+
+station_locations:
+  # Station A: Eagle Ford Shale formation (South Texas)
+  STATION-A:
+    name: "Eagle Ford Station A"
+    latitude: 28.9144              # Karnes City, TX area
+    longitude: -98.5242
+    region: "South Texas"
+    city: "Karnes City"
+    state: "TX"
+    basin: "Eagle Ford Shale"
+    elevation_ft: 450              # Above sea level
+    timezone: "America/Chicago"
+
+  # Station B: Permian Basin (West Texas)
+  # One of the most productive oil & gas regions in the US
+  STATION-B:
+    name: "Permian Basin Station B"
+    latitude: 31.9973              # Midland, TX area
+    longitude: -102.0779
+    region: "West Texas"
+    city: "Midland"
+    state: "TX"
+    basin: "Permian Basin"
+    elevation_ft: 2800
+    timezone: "America/Chicago"
+
+  # Station C: Haynesville Shale (East Texas/Louisiana border)
+  STATION-C:
+    name: "Haynesville Station C"
+    latitude: 32.5007              # Carthage, TX area
+    longitude: -93.7465
+    region: "East Texas"
+    city: "Carthage"
+    state: "TX"
+    basin: "Haynesville Shale"
+    elevation_ft: 350
+    timezone: "America/Chicago"
+
+  # Station D: Barnett Shale (North Texas)
+  STATION-D:
+    name: "Barnett Shale Station D"
+    latitude: 32.7555              # Fort Worth, TX area
+    longitude: -97.3308
+    region: "North Texas"
+    city: "Fort Worth"
+    state: "TX"
+    basin: "Barnett Shale"
+    elevation_ft: 650
+    timezone: "America/Chicago"
+
+# ===============================================
+# ALERT CONFIGURATION
+# ===============================================
+# Rules for generating and managing alerts
+
+alert_rules:
+  # Alert priority levels (determines notification urgency)
+  priority_levels:
+    critical:
+      color: "#D62728"             # Red
+      notify: true                 # Send immediate notification
+      escalate_after_minutes: 15   # Escalate if not acknowledged
+
+    warning:
+      color: "#FF7F0E"             # Orange
+      notify: true
+      escalate_after_minutes: 60
+
+    info:
+      color: "#1F77B4"             # Blue
+      notify: false                # Log only, don't notify
+
+  # Alert aggregation rules
+  # Prevent alert fatigue by grouping similar alerts
+  aggregation:
+    enabled: true
+    window_minutes: 30             # Group alerts within 30-minute window
+    max_alerts_per_compressor: 5   # Max 5 alerts per compressor per window
+
+  # Auto-resolve conditions
+  # Alerts that auto-resolve when sensor returns to normal
+  auto_resolve:
+    enabled: true
+    consecutive_normal_readings: 3 # Require 3 consecutive normal readings
+
+# ===============================================
+# COMPRESSOR MODELS
+# ===============================================
+# Reference data for different compressor models in the fleet
+
+compressor_models:
+  "Ajax DPC-360":
+    manufacturer: "Ajax"
+    rated_horsepower: 1340
+    cylinders: 4
+    type: "Reciprocating"
+    year_introduced: 2010
+
+  "Ariel JGK/4":
+    manufacturer: "Ariel"
+    rated_horsepower: 1480
+    cylinders: 4
+    type: "Reciprocating"
+    year_introduced: 2012
+
+  "Caterpillar G3516":
+    manufacturer: "Caterpillar"
+    rated_horsepower: 1775
+    cylinders: 16
+    type: "Gas Engine"
+    year_introduced: 2015
+
+  "Waukesha 7042GSI":
+    manufacturer: "Waukesha"
+    rated_horsepower: 1340
+    cylinders: 12
+    type: "Gas Engine"
+    year_introduced: 2008
+
+# Notes:
+# - Thresholds are based on industry standards (API 618, ISO 10816, etc.)
+# - Warning thresholds allow for preventive maintenance
+# - Critical thresholds indicate imminent failure risk
+# - Geographic coordinates are approximate for demo purposes
+# - In production, thresholds should be calibrated per compressor based on baseline data
+# - Elevation affects compression performance (higher elevation = less dense air)

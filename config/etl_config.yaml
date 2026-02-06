@@ -1,0 +1,135 @@
+# ===============================================
+# ETL PIPELINE CONFIGURATION
+# ===============================================
+# Configuration for PySpark ETL pipeline processing
+# Defines data paths, feature engineering parameters, and Spark settings
+
+# Data Layer Paths (Bronze/Silver/Gold Medallion Architecture)
+data_paths:
+  # Bronze Layer: Raw data as-is from source
+  # Contains unprocessed Parquet files from data simulator
+  raw_data: "data/raw/"
+
+  # Bronze Delta Table: First landing zone in Delta Lake
+  # Raw data with minimal transformations (add load timestamp, etc.)
+  processed_bronze: "data/processed/delta/sensors_bronze/"
+
+  # Silver Layer: Cleaned and validated data
+  # Removed nulls, outliers, duplicates; standardized formats
+  processed_silver: "data/processed/delta/sensors_silver/"
+
+  # Gold Layer: Business-ready data with features
+  # Aggregations, derived metrics, ML features
+  processed_gold: "data/processed/delta/sensors_gold/"
+
+  # Reference data files
+  metadata: "data/raw/compressor_metadata.csv"
+  maintenance_logs: "data/raw/maintenance_logs.csv"
+
+# Feature Engineering Parameters
+feature_engineering:
+  # Time window sizes for rolling aggregations (in seconds)
+  # These create features like "average vibration over last 1 hour"
+  window_sizes:
+    short: 3600      # 1 hour = 3600 seconds (6 readings at 10-min intervals)
+    medium: 14400    # 4 hours = 14400 seconds (24 readings)
+    long: 86400      # 24 hours = 86400 seconds (144 readings)
+
+  # Rate of Change Calculation Settings
+  # Used to detect rapid changes in sensor values (e.g., temperature spike)
+  rate_of_change:
+    # Look back 6 readings (1 hour) to calculate temperature gradient
+    # Example: (current_temp - temp_1hr_ago) / 1 hour = °F per hour
+    temp_lookback_periods: 6
+
+    # Same for pressure change rate
+    pressure_lookback_periods: 6
+
+# Data Quality Thresholds
+data_quality:
+  # Maximum acceptable missing data rate (5%)
+  # If more than 5% of readings are missing, trigger data quality alert
+  max_missing_rate: 0.05
+
+  # Outlier detection threshold (4 standard deviations)
+  # Values beyond 4 std devs are considered anomalies and removed
+  # This is more conservative than typical 3 std devs to avoid false positives
+  outlier_std_threshold: 4.0
+
+  # Data freshness SLA (15 minutes)
+  # Alert if latest reading is older than 15 minutes
+  freshness_sla_minutes: 15
+
+# PySpark Configuration
+spark:
+  # Application name (appears in Spark UI)
+  app_name: "CompressorHealthETL"
+
+  # Master URL - "local[*]" means run locally using all available CPU cores
+  # In production, this would be "spark://master:7077" or YARN/Mesos URL
+  master: "local[*]"
+
+  # Spark configuration properties
+  configs:
+    # Enable Adaptive Query Execution (AQE)
+    # Spark optimizes query plans dynamically based on runtime statistics
+    "spark.sql.adaptive.enabled": "true"
+
+    # Coalesce small partitions after shuffle operations
+    # Improves performance by reducing overhead of many small tasks
+    "spark.sql.adaptive.coalescePartitions.enabled": "true"
+
+    # Delta Lake SQL extensions
+    # Required for using Delta Lake format with Spark SQL
+    "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension"
+
+    # Register Delta Lake catalog
+    # Enables Delta-specific operations (MERGE, time travel, etc.)
+    "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog"
+
+    # Disable retention duration check for testing
+    # In production, Delta Lake enforces minimum retention before VACUUM
+    "spark.databricks.delta.retentionDurationCheck.enabled": "false"
+
+    # Driver memory (runs on local machine)
+    # Increase if you see OutOfMemory errors
+    "spark.driver.memory": "4g"
+
+    # Executor memory (also local in standalone mode)
+    "spark.executor.memory": "4g"
+
+    # Enable Arrow-based columnar data transfer between PySpark and Pandas
+    # Significantly faster than default serialization
+    "spark.sql.execution.arrow.pyspark.enabled": "true"
+
+# Partitioning Strategy
+partitioning:
+  # Partition gold layer by date for efficient time-range queries
+  # Example: data/processed/delta/sensors_gold/date=2024-02-05/
+  # Enables partition pruning: "WHERE date >= '2024-02-01'"
+  gold_layer_partition_by: "date"
+
+  # Process compressors in batches of 5
+  # Helps manage memory when processing large datasets
+  compressor_batch_size: 5
+
+# ETL Pipeline Execution Settings
+execution:
+  # Write mode for Delta Lake tables
+  # 'append' adds new data, 'overwrite' replaces all data
+  write_mode: "append"
+
+  # Enable checkpointing for long-running streaming jobs
+  enable_checkpointing: true
+
+  # Maximum retries on failure
+  max_retries: 3
+
+  # Retry delay in seconds
+  retry_delay_seconds: 60
+
+# Notes:
+# - Window sizes are in seconds to work with PySpark's rangeBetween() function
+# - Outlier threshold of 4 std devs is conservative; 3 is more typical but may have false positives
+# - Spark memory settings (4g) are suitable for development; increase for production
+# - Partition by date enables time-travel and efficient historical queries

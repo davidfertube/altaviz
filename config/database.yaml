@@ -1,0 +1,74 @@
+# ===============================================
+# DATABASE CONFIGURATION
+# ===============================================
+# Configuration for PostgreSQL and Delta Lake connections
+# Environment variables are substituted using ${VAR_NAME:-default_value} syntax
+
+# PostgreSQL Database Connection Settings
+database:
+  # Host where PostgreSQL is running
+  # Reads from DB_HOST environment variable, defaults to 'localhost'
+  host: "${DB_HOST:-localhost}"
+
+  # Port number for PostgreSQL
+  # Standard PostgreSQL port is 5432
+  port: "${DB_PORT:-5432}"
+
+  # Database name
+  # The specific database within PostgreSQL to connect to
+  database: "${DB_NAME:-compressor_health}"
+
+  # Database user credentials
+  # In production, these should NEVER be hardcoded
+  # Always use environment variables from .env file
+  user: "${DB_USER:-postgres}"
+  password: "${DB_PASSWORD:-postgres}"
+
+  # Schema name (default is 'public' in PostgreSQL)
+  schema: "public"
+
+  # Connection Pool Settings
+  # SQLAlchemy manages a pool of database connections for efficiency
+  pool:
+    # Minimum number of connections to keep open
+    min_size: 2
+
+    # Maximum number of connections allowed
+    max_size: 10
+
+    # Timeout in seconds when waiting for a connection from the pool
+    timeout: 30
+
+  # SQLAlchemy-specific settings
+  sqlalchemy:
+    # Echo mode - set to true to log all SQL statements (useful for debugging)
+    echo: false
+
+    # Ping database before using connection from pool
+    # Prevents stale connections
+    pool_pre_ping: true
+
+    # Recycle connections after 1 hour (3600 seconds)
+    # Prevents long-lived connections from becoming stale
+    pool_recycle: 3600
+
+# Delta Lake Configuration
+# Delta Lake provides ACID transactions on top of data lake storage
+delta_lake:
+  # Directory where Delta Lake stores transaction logs and checkpoints
+  # Used for incremental processing and recovery
+  checkpoint_location: "data/processed/checkpoints/"
+
+  # How long to keep transaction history (30 days)
+  # Enables time travel queries: "SELECT * FROM table VERSION AS OF 5"
+  log_retention_duration: "interval 30 days"
+
+  # How long to keep deleted files before permanent deletion
+  # Safety net for accidental deletes
+  deleted_file_retention_duration: "interval 7 days"
+
+# Notes:
+# - This file is loaded by src/etl/utils.py
+# - Environment variables are read from .env file in project root
+# - Never commit database passwords to version control
+# - For production, use secrets management (AWS Secrets Manager, Azure Key Vault, etc.)
