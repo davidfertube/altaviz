@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "postgres": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@bytebase/dbhub@latest",
+        "--transport",
+        "stdio",
+        "--dsn",
+        "postgresql://postgres:postgres@localhost:5432/compressor_health"
+      ]
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/Users/david/Downloads/repos/altaviz/data",
+        "/Users/david/Downloads/repos/altaviz/config",
+        "/Users/david/Downloads/repos/altaviz/infrastructure"
+      ]
+    }
+  }
+}

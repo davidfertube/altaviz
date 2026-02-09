@@ -211,9 +211,9 @@ def create_spark_session(app_name=None) -> SparkSession:
 
     # Create Spark session
     # getOrCreate() returns existing session if one exists, otherwise creates new
-    spark = SparkSession.builder \\
-        .config(conf=conf) \\
-        .enableHiveSupport() \\
+    spark = SparkSession.builder \
+        .config(conf=conf) \
+        .enableHiveSupport() \
         .getOrCreate()
 
     # Set log level to WARN to reduce console noise
@@ -229,9 +229,10 @@ def create_spark_session(app_name=None) -> SparkSession:
 
 def get_database_url() -> str:
     """
-    Build PostgreSQL connection URL from configuration.
+    Build database connection URL from configuration.
 
     Reads database credentials from environment variables via database.yaml.
+    Supports both PostgreSQL and Azure SQL based on db_type config.
 
     Returns:
         str: SQLAlchemy-compatible connection URL
@@ -243,11 +244,14 @@ def get_database_url() -> str:
     """
     # Load database configuration
     db_config = load_config('database.yaml')
-    db = db_config['database']
+    db_type = db_config.get('db_type', 'postgresql')
 
-    # Build connection string
-    # Format: postgresql://user:password@host:port/database
-    url = f"postgresql://{db['user']}:{db['password']}@{db['host']}:{db['port']}/{db['database']}"
+    if db_type == 'azure_sql':
+        db = db_config['azure_sql']
+        url = f"mssql+pyodbc://{db['user']}:{db['password']}@{db['server']}:{db['port']}/{db['database']}"
+    else:
+        db = db_config['postgresql']
+        url = f"postgresql://{db['user']}:{db['password']}@{db['host']}:{db['port']}/{db['database']}"
 
     return url
 

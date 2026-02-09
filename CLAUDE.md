@@ -1,246 +1,239 @@
-# Altaviz - Claude Context
+# Altaviz
 
-## Project Overview
+Multi-tenant SaaS platform for predictive maintenance of natural gas compression equipment.
+Stack: PySpark 3.5 + Delta Lake 3.0 | PostgreSQL 14 / Azure SQL | Next.js 16 + React 19 + Tailwind CSS v4 | NextAuth.js v5 (Azure AD) | Stripe Billing | Azure Container Apps + Terraform
+Status: Full SaaS MVP — ETL pipeline, multi-tenant dashboard, auth, billing, agentic workflows, and Azure IaC implemented. ML model and tests NOT yet built.
 
-This is a **production-ready MLOps platform** for predictive maintenance of natural gas compression equipment. The system monitors 10 compressor units across 4 stations in Texas, processes sensor data through PySpark ETL pipelines, stores aggregated metrics in PostgreSQL, and provides real-time monitoring through a Streamlit dashboard.
+## Critical Rules
+
+- NEVER use `inferSchema`; always use explicit `StructType` schemas from `src/etl/schemas.py`
+- NEVER chain `.withColumn()` calls; use a single `.select()` with all new columns
+- NEVER hardcode database credentials; use `${VAR:-default}` pattern via `config/database.yaml`
+- NEVER commit `.env` files, `.env.local`, or `data/` directory contents
+- Maintain Bronze → Silver → Gold medallion pattern; Bronze is immutable raw data
+- Use `broadcast()` for joins with small tables (metadata, stations = 10 rows)
+- Partition Gold layer by `date` column
+- All sensor thresholds live in `config/thresholds.yaml`, not in application code
+- Frontend: all SQL queries must be parameterized (never string interpolation)
+- Frontend: all queries must be org-scoped via `organization_id` parameter
+- Frontend: use SWR hooks for data fetching with appropriate refresh intervals
+- Prerequisites: Python 3.10+, Java 11+ (for PySpark), Docker, Node.js 18+
+
+## Key Commands
+
+```bash
+docker-compose up -d                                     # Start PostgreSQL + Frontend
+docker-compose ps                                        # Verify containers healthy
+python src/data_simulator/compressor_simulator.py        # Generate 50k+ sensor readings
+python src/etl/pyspark_pipeline.py                       # Run complete PySpark ETL pipeline
+cd frontend && npm run dev                               # Launch frontend (dev mode, localhost:3000)
+cd frontend && npm run build                             # Build frontend for production
+pytest tests/                                            # Run tests (NOT YET BUILT)
+cd infrastructure/terraform && terraform plan            # Preview Azure infrastructure changes
+```
 
 ## Architecture
 
 ```
-Data Simulator → PySpark ETL (Bronze/Silver/Gold) → PostgreSQL → Streamlit Dashboard
-     ↓                    ↓                              ↓              ↓
-  Parquet files    Delta Lake tables          7 normalized tables   4-page UI
-  50k+ readings    Feature engineering        Time-series data      Real-time monitoring
+Data Simulator → PySpark ETL (Bronze/Silver/Gold) → PostgreSQL / Azure SQL
+                                                         ↓
+Landing Page (/) ← Next.js 16 → Dashboard (/dashboard/*) → API Routes → DB (org-scoped)
+                                     ↓
+                    Auth (NextAuth v5 + Azure AD) + Stripe Billing + Agentic Workflows
+                                     ↓
+                    Azure Container Apps ← Terraform IaC → Key Vault + App Insights
 ```
 
-## Key Technical Details
+- Raw Parquet/CSV in `data/raw/`
+- Delta Lake tables in `data/processed/delta/{sensors_bronze,sensors_silver,sensors_gold}/`
+- Database stores hourly aggregates (1hr, 4hr, 24hr windows) in `sensor_readings_agg` table
+- Supports both PostgreSQL (local dev) and Azure SQL Database (cloud) via `DB_TYPE` env var
+- 10 tables (7 original + organizations, users, billing_events) + 3 org-aware views
+- Multi-tenant: all data access filtered by `organization_id`
+- Fabric-ready: Delta Lake tables deploy directly to OneLake Lakehouses
 
-### Technology Stack
-- **Data Processing**: PySpark 3.5.0 with Delta Lake 3.0.0
-- **Database**: PostgreSQL 14+ with SQLAlchemy 2.0.25
-- **Dashboard**: Streamlit 1.31.0 with Plotly 5.18.0 and Folium 0.15.1
-- **ML (Future)**: TensorFlow 2.15.0 for LSTM-based RUL prediction
-- **Infrastructure**: Docker Compose for local development, Terraform for Azure deployment
+## Route Structure
 
-### Data Flow
-1. **Data Generation**: [src/data_simulator/compressor_simulator.py](src/data_simulator/compressor_simulator.py) generates 7 days of 10-minute interval sensor readings for 10 compressors (50,000+ records)
-2. **ETL Pipeline**: PySpark processes raw Parquet → Bronze (raw) → Silver (cleaned) → Gold (feature-engineered) Delta Lake tables
-3. **Database Storage**: Aggregated hourly metrics written to PostgreSQL (1hr, 4hr, 24hr windows)
-4. **Visualization**: Streamlit dashboard reads from PostgreSQL for real-time fleet health monitoring
+```
+/ .......................... Landing page (Aave-inspired dark gradient, glass-morphism)
+/pricing ................... Pricing comparison (Free / Pro $49 / Enterprise $199)
+/login ..................... Auth page (Azure AD + dev credentials)
+/dashboard ................. Fleet Overview (protected, requires auth)
+/dashboard/monitoring ...... Monitoring Grid
+/dashboard/monitoring/[id] . Compressor Detail (radial gauges, time-series charts)
+/dashboard/alerts .......... Alert Management (filterable, acknowledge/resolve)
+/dashboard/data-quality .... Pipeline Health metrics
+/dashboard/settings ........ Organization, profile, billing link
+/dashboard/settings/billing  Subscription management (Stripe checkout/portal)
+```
 
-### Database Schema (7 Tables + 3 Views)
-- **station_locations**: 4 Texas stations with lat/long coordinates
-- **compressor_metadata**: 10 compressor units (Ajax, Ariel, Caterpillar, Waukesha models)
-- **sensor_readings_agg**: Hourly aggregated sensor data (not raw - too large)
-  - Multi-window: 1hr, 4hr, 24hr aggregates in single table
-  - Partitioned by compressor_id and timestamp for fast queries
-- **maintenance_events**: Scheduled maintenance and failure logs
-- **alert_history**: Threshold violation alerts (warning/critical)
-- **data_quality_metrics**: Pipeline monitoring and data freshness
-- **ml_predictions**: Remaining Useful Life (RUL) predictions (future)
+Route groups: `(marketing)` for public pages, `(dashboard)` for authenticated pages, `(auth)` for login.
 
-**Views**:
-- `v_latest_readings`: Most recent 1hr aggregates per compressor
-- `v_active_alerts`: Unresolved alerts with compressor/station context
-- `v_fleet_health_summary`: Complete fleet status with health indicators
+## Authentication & Multi-Tenancy
 
-### Sensor Metrics & Thresholds
-From [src/data_simulator/compressor_simulator.py:49-71](src/data_simulator/compressor_simulator.py#L49-L71):
+- **NextAuth.js v5** with Azure AD (Microsoft Entra ID) + dev Credentials provider
+- JWT strategy enriched with `organizationId`, `organizationName`, `role`, `subscriptionTier`
+- Middleware protects all `/dashboard/*` routes → redirects to `/login`
+- `getAppSession()` / `requireSession()` helpers in `lib/session.ts`
+- Auto-creates org + user on first sign-in (`findOrCreateUser` in `lib/auth.ts`)
+- Roles: `owner`, `admin`, `operator`, `viewer`
+- All 12 query functions in `queries.ts` require `organizationId` parameter
+- All 10+ API routes extract org from session, return 401 if unauthenticated
 
-| Sensor | Normal Range | Warning | Critical | Unit |
-|--------|--------------|---------|----------|------|
-| Vibration | 1.5-4.5 | 6.0 | 8.0 | mm/s |
-| Discharge Temp | 180-220 | 240 | 260 | °F |
-| Suction Pressure | 40-80 | <30 | <20 | PSI |
-| Discharge Pressure | 900-1200 | >1300 | >1400 | PSI |
-| Horsepower | 1200-1600 | - | - | HP |
-| Gas Flow | 8000-12000 | - | - | Mcf/day |
+## Stripe Billing
 
-### PySpark Optimization Patterns
+- Lazy-initialized client in `lib/stripe.ts` (won't crash if STRIPE_SECRET_KEY unset)
+- Plan definitions + feature gates in `lib/plans.ts`
+- Tiers: Free (2 compressors, 1hr window), Pro (20, all windows), Enterprise (unlimited + ML)
+- Feature gate on `/api/compressors/[id]/readings` blocks Free tier from 4hr/24hr windows
+- Webhook handler processes: `checkout.session.completed`, `subscription.updated`, `subscription.deleted`, `invoice.payment_failed`
+- `billing_events` table logs all Stripe events with idempotency (ON CONFLICT DO NOTHING)
 
-**Critical for performance:**
-1. **Explicit Schemas**: Always use explicit StructType schemas (10-100x faster than inferSchema)
-   ```python
-   from pyspark.sql.types import StructType, StructField, StringType, TimestampType, DoubleType
-   SENSOR_SCHEMA = StructType([...])
-   ```
+## Agentic Workflows
 
-2. **Single Select Pattern**: Avoid chained `.withColumn()` calls
-   ```python
-   # BAD - multiple passes
-   df.withColumn("a", ...).withColumn("b", ...).withColumn("c", ...)
+Automated workflows in `lib/workflows.ts`, triggered via `POST /api/workflows/run`:
 
-   # GOOD - single pass
-   df.select(col("*"), expr("...").alias("a"), expr("...").alias("b"), ...)
-   ```
+| Workflow | Action | Trigger |
+|----------|--------|---------|
+| `alert_escalation` | Unacknowledged warnings → critical after 4h | Cron / manual |
+| `alert_auto_resolve` | Resolve alerts when sensor readings return to healthy | Cron / manual |
+| `data_freshness_check` | Create staleness alerts if no data for 3h+ | Cron / manual |
+| `stale_alert_cleanup` | Auto-acknowledge alerts unactioned for 7+ days | Cron / manual |
 
-3. **Broadcast Joins**: Small tables (metadata) should be broadcast
-   ```python
-   from pyspark.sql.functions import broadcast
-   large_df.join(broadcast(small_df), "compressor_id")
-   ```
+Supports session auth (dashboard) and API key auth (`x-api-key` header) for cron/scheduler.
 
-4. **Partitioning**: Gold layer partitioned by date for time-range queries
-   ```python
-   gold_df.write.format("delta").partitionBy("date").save(...)
-   ```
+## Azure Infrastructure (Terraform)
 
-5. **Window Functions**: Define window specs once, reuse for all aggregations
-   ```python
-   window_1hr = Window.partitionBy("compressor_id").orderBy("timestamp").rangeBetween(-3600, 0)
-   ```
+Files in `infrastructure/terraform/`:
 
-## Working with This Project
+| File | Resources |
+|------|-----------|
+| `main.tf` | Provider config, resource group, backend state |
+| `variables.tf` | All input variables (secrets marked sensitive) |
+| `container_app.tf` | Container Apps Environment + App (0.5 CPU, 1Gi, auto-scale 1-5) |
+| `container_registry.tf` | ACR (Basic SKU, admin enabled) |
+| `database.tf` | PostgreSQL Flexible Server (v14, B_Standard_B1ms) |
+| `keyvault.tf` | Key Vault + secrets (DB password, NextAuth, Stripe keys) |
+| `monitoring.tf` | Log Analytics Workspace + Application Insights |
+| `outputs.tf` | App URL, DB FQDN, Key Vault URI, App Insights connection |
 
-### Environment Setup
+CI/CD: `.github/workflows/ci.yml` (lint + build on PR) and `deploy.yml` (build → ACR → Container Apps on push to main).
+
+## Implementation Status
+
+**Done:**
+- `src/data_simulator/compressor_simulator.py` — 7 days of 10-min interval data for 10 compressors
+- `src/etl/` — Complete PySpark pipeline: schemas, data quality (4σ outlier detection), transformations (rolling windows), database writer, orchestrator
+- `config/` — database.yaml, etl_config.yaml, thresholds.yaml
+- `infrastructure/sql/schema.sql` — 10 tables, 3 org-aware views, 15+ indexes, trigger function
+- `infrastructure/sql/migrations/001_add_auth_and_tenancy.sql` — Auth + multi-tenancy migration
+- `infrastructure/terraform/` — 7 Terraform files for full Azure deployment
+- `.github/workflows/` — CI (lint+build) and CD (ACR → Container Apps)
+- `frontend/` — Complete multi-tenant SaaS:
+  - Aave-inspired landing page with glass-morphism cards, animated stats, framer-motion
+  - Dashboard with fleet overview, monitoring, alerts, data quality, settings
+  - Azure AD auth via NextAuth.js v5 + dev credentials provider
+  - Stripe billing with checkout, customer portal, webhooks, feature gates
+  - Agentic workflows (alert escalation, auto-resolve, data freshness, stale cleanup)
+  - SEO (Open Graph, Twitter cards, robots.txt, sitemap.xml)
+  - Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
+  - Error boundaries (global + dashboard-scoped), branded 404 page
+  - PlanBadge in sidebar, UpgradePrompt component for feature gates
+
+**Todo:**
+- `tests/` — pytest test suite for ETL pipeline
+- `src/ml/` — LSTM model training and inference
+- Cron scheduler for agentic workflows (Azure Container Apps scheduled tasks or external)
+- Rate limiting middleware on API routes
+- Team member invite flow in settings
+
+## File Reference
+
+| File | Purpose |
+|------|---------|
+| `config/database.yaml` | DB connection settings for PostgreSQL + Azure SQL |
+| `config/etl_config.yaml` | Window sizes, Spark config, data paths |
+| `config/thresholds.yaml` | Sensor normal/warning/critical ranges, station locations |
+| `.env.example` | All env vars: DB, Auth, Stripe, Azure Monitor, ETL |
+| `infrastructure/sql/schema.sql` | PostgreSQL DDL: 10 tables, 3 views |
+| `infrastructure/sql/migrations/` | Auth + tenancy migration scripts |
+| `infrastructure/terraform/` | Azure IaC (Container Apps, PostgreSQL, Key Vault, ACR, App Insights) |
+| `.github/workflows/` | CI (lint+build) and CD (deploy to Azure) |
+| `frontend/src/lib/auth.ts` | NextAuth.js v5 config (Azure AD + Credentials) |
+| `frontend/src/lib/session.ts` | `getAppSession()` / `requireSession()` helpers |
+| `frontend/src/lib/stripe.ts` | Stripe client (lazy-init), checkout/portal helpers |
+| `frontend/src/lib/plans.ts` | Plan definitions, feature gate functions |
+| `frontend/src/lib/workflows.ts` | Agentic workflow engine (4 automated workflows) |
+| `frontend/src/lib/telemetry.ts` | Application Insights (optional, Azure only) |
+| `frontend/src/lib/queries.ts` | 12 org-scoped parameterized SQL query functions |
+| `frontend/src/lib/db.ts` | node-postgres Pool singleton |
+| `frontend/src/lib/types.ts` | TypeScript interfaces for all tables + auth + billing |
+| `frontend/src/lib/constants.ts` | Sensor thresholds, colors, nav items |
+| `frontend/src/middleware.ts` | Auth middleware protecting /dashboard/* routes |
+| `frontend/src/components/marketing/` | 8 landing page components (Hero, Stats, Features, etc.) |
+| `frontend/src/components/billing/` | PlanBadge, UpgradePrompt |
+| `frontend/src/components/layout/` | Sidebar, Header, UserMenu, ThemeProvider |
+
+## Environment Variables
+
 ```bash
-# 1. Start PostgreSQL
-docker-compose up -d
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=compressor_health
+DB_USER=postgres
+DB_PASSWORD=postgres
 
-# 2. Verify database schema
-psql -h localhost -U postgres -d compressor_health -c "\dt"
+# Authentication (NextAuth.js v5 + Azure AD)
+AUTH_SECRET=                    # openssl rand -base64 32
+AUTH_TRUST_HOST=true
+AZURE_AD_CLIENT_ID=
+AZURE_AD_CLIENT_SECRET=
+AZURE_AD_TENANT_ID=
 
-# 3. Generate sample data
-python src/data_simulator/compressor_simulator.py
+# Stripe Billing
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_ID_PRO=price_...
+STRIPE_PRICE_ID_ENTERPRISE=price_...
 
-# 4. Run ETL pipeline
-python src/etl/pyspark_pipeline.py
+# Agentic Workflows (API key for cron/scheduler)
+WORKFLOW_API_KEY=
 
-# 5. Launch dashboard
-streamlit run src/dashboard/app.py
+# Azure Monitor (optional, for App Insights telemetry)
+APPLICATIONINSIGHTS_CONNECTION_STRING=
+
+# ETL Pipeline
+ETL_ORGANIZATION_ID=           # Default org UUID for pipeline writes
+DB_TYPE=postgresql             # or azure_sql
 ```
 
-### Project Structure
-```
-src/
-├── data_simulator/      # Synthetic data generation (COMPLETED)
-├── etl/                 # PySpark ETL pipeline (6 modules)
-│   ├── schemas.py       # Explicit PySpark schemas
-│   ├── utils.py         # Config loading, Spark session
-│   ├── data_quality.py  # Validation functions
-│   ├── transformations.py  # Feature engineering
-│   ├── database_writer.py  # PostgreSQL writes
-│   └── pyspark_pipeline.py # Main orchestrator
-└── dashboard/           # Streamlit multi-page app
-    ├── app.py          # Main entry point
-    ├── components/     # Reusable UI components (map, gauges, charts)
-    ├── pages/          # 4 pages (Fleet, Monitoring, Alerts, Quality)
-    └── utils/          # DB connections, queries, styling
+## Coding Patterns
 
-config/                  # YAML configs (database, ETL, thresholds)
-infrastructure/sql/      # PostgreSQL schema and seed data
-data/
-├── raw/                # Bronze: Raw Parquet from simulator
-└── processed/delta/    # Silver/Gold: Delta Lake tables
-```
+### PySpark
+- Load with explicit schema: `spark.read.schema(SENSOR_SCHEMA).parquet(path)`
+- Single select for all transforms: `df.select(col("*"), avg("col").over(window).alias("new"))`
+- Broadcast small tables: `large_df.join(broadcast(small_df), "compressor_id")`
 
-### Configuration Files
-- **config/database.yaml**: PostgreSQL connection settings (reads from .env)
-- **config/etl_config.yaml**: ETL parameters (window sizes, data paths, Spark configs)
-- **config/thresholds.yaml**: Sensor thresholds and station locations
-- **.env**: Database credentials and environment variables
+### Database
+- All queries org-scoped: `WHERE organization_id = $1` or via JOIN to org-filtered table
+- Use views for common queries: `v_latest_readings`, `v_active_alerts`, `v_fleet_health_summary`
+- Always parameterized queries (never string interpolation)
 
-### Feature Engineering in ETL
-The gold layer creates:
-- **Rolling window aggregations**: mean, std, max, min for 1hr, 4hr, 24hr windows
-- **Rate of change**: Temperature gradient (lag + delta over 1 hour)
-- **Derived metrics**: Pressure differential (discharge - suction)
-- **Threshold flags**: warning/critical status based on sensor values
-- **Time features**: hour_of_day, day_of_week, is_weekend
+### Frontend (Next.js)
+- Colors: `#1F77B4` (primary), `#2CA02C` (healthy), `#FF7F0E` (warning), `#D62728` (critical)
+- Landing: dark palette `#0A0E17`, gradients `#1F77B4` → `#6C5CE7`, glass cards `bg-white/5 backdrop-blur-xl`
+- Fonts: Inter (body/headings), JetBrains Mono (numbers/metrics)
+- Route groups: `(marketing)` public, `(dashboard)` authenticated, `(auth)` login
+- SWR hooks in `frontend/src/hooks/` — 30s refresh for fleet/alerts, 60s for readings
+- Tailwind CSS v4 with `@theme inline` block in `globals.css`
+- Dark mode via `.dark` class on `<html>`, toggled via ThemeProvider context
+- Session: `useSession()` (client) or `getAppSession()` (server)
+- Feature gates: `canAccessWindowType(tier, windowType)`, `canAccessFeature(tier, feature)`
 
-### Dashboard Design (Clean, Modern Minimalist)
-**Color Palette**:
-- Primary: #1F77B4 (blue)
-- Success: #2CA02C (green - healthy)
-- Warning: #FF7F0E (orange)
-- Critical: #D62728 (red)
-- Background: #F8F9FA (light gray)
+## Simulated Failures
 
-**4 Pages**:
-1. **Fleet Overview**: Interactive map with color-coded markers, metric cards, station summary
-2. **Real-Time Monitoring**: Compressor selector, 4 gauge charts, 24-hour trend plots
-3. **Predictive Alerts**: Filterable alert table, alert history chart
-4. **Data Quality**: Freshness metrics, completeness indicators, missing data alerts
-
-**Performance**: Uses `@st.cache_data(ttl=60)` for database queries, `@st.cache_resource` for connections
-
-## When Working on This Project
-
-### Adding New Features
-- **New sensors**: Update [src/data_simulator/compressor_simulator.py:49-56](src/data_simulator/compressor_simulator.py#L49-L56) ranges, then add columns to ETL schemas
-- **New thresholds**: Update [config/thresholds.yaml](config/thresholds.yaml) and ETL transformation logic
-- **New dashboard pages**: Add to `src/dashboard/pages/` (Streamlit auto-discovers numbered pages)
-- **New database tables**: Add to [infrastructure/sql/schema.sql](infrastructure/sql/schema.sql), then rebuild with `docker-compose down -v && docker-compose up -d`
-
-### Modifying ETL Logic
-- Always maintain Bronze → Silver → Gold pattern for data lineage
-- Use explicit schemas (never inferSchema)
-- Test transformations on small dataset before full pipeline
-- Check Delta Lake table versions: `spark.read.format("delta").option("versionAsOf", 0).load(...)`
-
-### Database Queries
-- Use views (v_latest_readings, v_active_alerts, v_fleet_health_summary) for common patterns
-- Time-series queries: Always filter on `agg_timestamp` and `compressor_id` for index usage
-- Aggregates: Query by `window_type` ('1hr', '4hr', '24hr')
-
-### Testing
-- **ETL**: Generate small test dataset, run pipeline, verify PostgreSQL row counts
-- **Dashboard**: Use `streamlit run --server.headless=true` for CI/CD testing
-- **Data Quality**: Check `data_quality_metrics` table for pipeline health
-
-## Design Decisions
-
-1. **Aggregated Storage**: PostgreSQL stores hourly aggregates (not raw 10-min readings) - reduces volume by 83%
-2. **Bronze/Silver/Gold**: Full medallion architecture with Delta Lake for auditing and reprocessing
-3. **Multi-Window Table**: Single table with 1hr/4hr/24hr windows (discriminator pattern) vs 3 separate tables
-4. **Batch Processing**: Hourly ETL runs (near-real-time) vs streaming (can add Spark Structured Streaming later)
-5. **Hardcoded Thresholds**: Industry-standard equipment specs vs ML-based anomaly detection (Phase 2)
-6. **PostgreSQL vs TimescaleDB**: Stick with PostgreSQL + aggregation (already in stack, sufficient for 10 compressors)
-
-## Simulated Failure Scenarios
-
-The data simulator creates 2 failing compressors (see [src/data_simulator/compressor_simulator.py:74-75](src/data_simulator/compressor_simulator.py#L74-L75)):
 - **COMP-003**: Degradation starts Day 3, failure on Day 6
-- **COMP-007**: Degradation starts Day 5, failure on Day 8 (estimate)
-
-**Degradation patterns**:
-- Vibration: Exponential increase
-- Temperature: Linear increase
-- Pressure: Sinusoidal fluctuations
-
-Dashboard should show these units with warning/critical alerts.
-
-## Future Enhancements (Not Yet Implemented)
-
-1. **ML Model Integration**: LSTM for Remaining Useful Life (RUL) prediction
-2. **Real-time Streaming**: Kafka/Kinesis → Spark Structured Streaming
-3. **Alert Notifications**: Email/Slack webhooks for critical alerts
-4. **User Authentication**: Streamlit authentication for multi-user access
-5. **Azure Deployment**: Terraform for Synapse/Fabric infrastructure
-6. **Data Drift Detection**: Statistical tests (KS test, PSI) for model monitoring
-
-## Important Notes
-
-- **Database credentials**: In `.env` file (gitignored) - never commit to repo
-- **Data files**: `data/raw/*.csv` and `data/processed/*.parquet` are gitignored
-- **Delta Lake**: Requires Spark 3.5+ with Delta extensions configured
-- **Streamlit**: Multi-page apps require files in `pages/` to be named like `1_PageName.py`
-- **PostgreSQL**: Uses Docker volume for persistence - `docker-compose down` keeps data, `docker-compose down -v` deletes it
-
-## Troubleshooting
-
-**PySpark "Delta table not found"**: Initialize Delta table with `.write.format("delta").mode("overwrite").save(...)` first
-**Streamlit "st.cache_data" error**: Upgrade to Streamlit 1.18+ (older versions use `@st.cache`)
-**PostgreSQL connection refused**: Check `docker ps` to verify container is running
-**Dashboard shows no data**: Verify ETL pipeline ran successfully and PostgreSQL tables are populated
-**Delta Lake version conflicts**: Ensure PySpark 3.5.0 matches Delta Spark 3.0.0
-
-## Contact
-
-**Author**: David Fernandez
-**Email**: davidfertube@gmail.com
-**GitHub**: [@davidfertube](https://github.com/davidfertube)
-
----
-
-*This file provides context to Claude Code and other AI assistants working on this project. Keep it updated as the project evolves.*
+- **COMP-007**: Degradation starts Day 5, failure on Day ~8
+- Patterns: vibration → exponential increase, temperature → linear increase, pressure → sinusoidal fluctuations

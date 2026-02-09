@@ -71,6 +71,9 @@ spark:
 
   # Spark configuration properties
   configs:
+    # JDBC driver and Delta Lake packages (auto-downloaded from Maven Central)
+    "spark.jars.packages": "org.postgresql:postgresql:42.7.1,io.delta:delta-spark_2.12:3.0.0"
+
     # Enable Adaptive Query Execution (AQE)
     # Spark optimizes query plans dynamically based on runtime statistics
     "spark.sql.adaptive.enabled": "true"

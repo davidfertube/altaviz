@@ -1,0 +1,179 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* === Altaviz Theme Configuration === */
+@theme inline {
+  /* Altaviz brand colors */
+  --color-primary: #1F77B4;
+  --color-primary-light: #4A9BD9;
+  --color-primary-dark: #15567D;
+  --color-healthy: #2CA02C;
+  --color-healthy-light: #47C747;
+  --color-warning: #FF7F0E;
+  --color-warning-light: #FFB347;
+  --color-critical: #D62728;
+  --color-critical-light: #E85D5E;
+
+  /* Surface colors (custom Altaviz tokens) */
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+
+  /* shadcn semantic colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Chart colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Typography */
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+
+  /* Border radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-card: 12px;
+  --radius-badge: 20px;
+}
+
+/* Light mode (default) — Altaviz branded */
+:root {
+  --radius: 0.625rem;
+  --background: #F8F9FA;
+  --foreground: #1A1A2E;
+  --surface: #FFFFFF;
+  --surface-hover: #F0F1F3;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A2E;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A2E;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F0F1F3;
+  --secondary-foreground: #1A1A2E;
+  --muted: #F0F1F3;
+  --muted-foreground: #6B7280;
+  --accent: #F0F1F3;
+  --accent-foreground: #1A1A2E;
+  --destructive: #D62728;
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #1F77B4;
+  --chart-1: #1F77B4;
+  --chart-2: #2CA02C;
+  --chart-3: #FF7F0E;
+  --chart-4: #D62728;
+  --chart-5: #9467BD;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1A1A2E;
+  --sidebar-primary: #1F77B4;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F0F1F3;
+  --sidebar-accent-foreground: #1A1A2E;
+  --sidebar-border: #E5E7EB;
+  --sidebar-ring: #1F77B4;
+}
+
+/* Dark mode — Altaviz branded */
+.dark {
+  --background: #0D1117;
+  --foreground: #E6EDF3;
+  --surface: #161B22;
+  --surface-hover: #1C2333;
+  --card: #161B22;
+  --card-foreground: #E6EDF3;
+  --popover: #161B22;
+  --popover-foreground: #E6EDF3;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1C2333;
+  --secondary-foreground: #E6EDF3;
+  --muted: #1C2333;
+  --muted-foreground: #8B949E;
+  --accent: #1C2333;
+  --accent-foreground: #E6EDF3;
+  --destructive: #E85D5E;
+  --border: #30363D;
+  --input: #30363D;
+  --ring: #4A9BD9;
+  --chart-1: #4A9BD9;
+  --chart-2: #47C747;
+  --chart-3: #FFB347;
+  --chart-4: #E85D5E;
+  --chart-5: #B07CD8;
+  --sidebar: #161B22;
+  --sidebar-foreground: #E6EDF3;
+  --sidebar-primary: #4A9BD9;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #1C2333;
+  --sidebar-accent-foreground: #E6EDF3;
+  --sidebar-border: #30363D;
+  --sidebar-ring: #4A9BD9;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Leaflet map container fix */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-card);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

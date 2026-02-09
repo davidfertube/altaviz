@@ -22,6 +22,7 @@ wheels/
 
 # Virtual Environment
 venv/
+.venv/
 ENV/
 env/
 
@@ -35,10 +36,8 @@ env/
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Data
-data/raw/*.csv
-data/processed/*.parquet
-data/predictions/*.json
+# Data (all generated/processed data)
+data/
 *.db
 
 # Models
@@ -57,6 +56,11 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
 
 # Terraform
 *.tfstate

@@ -19,13 +19,16 @@ scipy==1.12.0
 # API & Web
 fastapi==0.109.0
 uvicorn==0.27.0
-streamlit==1.31.0
-plotly==5.18.0
-folium==0.15.1
 
-# Database
+# Database - PostgreSQL (local dev)
 psycopg2-binary==2.9.9
 sqlalchemy==2.0.25
+
+# Database - Azure SQL (cloud deployment)
+# Note: JDBC driver (mssql-jdbc-12.4.2.jre11.jar) must be on Spark classpath
+# Download: https://learn.microsoft.com/en-us/sql/connect/jdbc/download-microsoft-jdbc-driver-for-sql-server
+# Place JAR in $SPARK_HOME/jars/ or use --jars flag with spark-submit
+pyodbc==5.1.0
 
 # Data Simulation
 Faker==22.6.0
