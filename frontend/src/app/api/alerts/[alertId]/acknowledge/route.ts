@@ -25,7 +25,7 @@ export async function PATCH(
     }
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Failed to acknowledge alert:', error);
-    return NextResponse.json({ error: 'Failed to acknowledge alert' }, { status: 500 });
+    const { handleApiError } = await import('@/lib/errors');
+    return handleApiError(error, 'Failed to acknowledge alert');
   }
 }

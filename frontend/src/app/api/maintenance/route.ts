@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const data = await getMaintenanceEvents(session.organizationId, compressor);
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Failed to fetch maintenance events:', error);
-    return NextResponse.json({ error: 'Failed to fetch maintenance events' }, { status: 500 });
+    const { handleApiError } = await import('@/lib/errors');
+    return handleApiError(error, 'Failed to fetch maintenance events');
   }
 }

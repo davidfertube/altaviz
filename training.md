@@ -967,6 +967,140 @@ This forces Kunal to articulate his real priorities -- and gives you one more ch
 | `config/thresholds.yaml` | 223 | Sensor thresholds (14-71), stations (97-145), alert rules (149-180), compressor models (187-214) |
 | `config/database.yaml` | 75 | Connection pooling (32-40), SQLAlchemy (43-53), Delta Lake retention (57-68) |
 
----
+I. Openers & Behavioral (The "Hook")
 
-*Generated for David Fernandez's Archrock Cloud/AI Engineer interview preparation. Good luck -- you've got this.*
+1. Tell me about yourself.
+
+
+Answer: "I’m an AI Engineer with 5+ years of experience in Azure architecture and Python development. Recently, I’ve been consulting in the Energy sector, building secure multi-agent workflows. I combine deep technical skills in MLOps with the domain knowledge to solve compliance and data challenges for regulated industries like Archrock."
++1
+
+2. Why Archrock? What interests you about the industry?
+
+Answer: "I want to work where data impacts physical assets. With your acquisition of NGCS growing the fleet to 4.5M horsepower, I see a massive opportunity to use AI for predictive maintenance and optimizing operations in the Permian Basin. I want to help build the systems that support that scale."
+
+3. Describe a time you learned a new technology quickly.
+
+Answer: "As a consultant, a client needed a private Azure Gateway behind a strict firewall. I quickly mastered the networking config and rewrote Python URL validation logic to ensure secure agent deployment. I delivered compliance without sacrificing functionality."
+
+4. How do you handle a risk you identified?
+
+Answer: "At TestMachine, I noticed ML models could drift without detection. I architected a Policy-as-Code engine to validate outputs against audit trails. This automated check flagged compliance risks before deployment, ensuring data integrity."
+
+5. How do you handle vague requirements from stakeholders?
+
+Answer: "I focus on visualization. I built a FastAPI/React dashboard to show stakeholders exactly how agents were reasoning. Seeing the process clarified the requirements instantly and turned complex logic into clear business insights."
+
+II. Core Tech: Python & Data Engineering (The "Bread and Butter")
+6. Walk me through your ETL process. How do you handle failure?
+
+Answer: "I build modular Python pipelines with orchestration like GitHub CI/CD. At my startup, I sanitized heterogeneous data from multiple sources. I always include dead-letter queues for bad data and automated retries, so the pipeline never crashes silently."
+
+7. How do you optimize Python code for performance?
+
+Answer: "I target I/O bottlenecks first. At TestMachine, I used asynchronous processing in FastAPI to handle 10K+ daily requests. For data processing, I refactor loops into vectorized operations using Pandas or NumPy to speed up execution."
+
+8. Experience with Microsoft Fabric & Azure Synapse?
+
+
+Answer: "I use Synapse for granular control over Spark pools and Fabric for unified analytics—both are core skills of mine. In my consulting work, I’ve architected Azure-native retrieval pipelines that feed clean data from these warehouses directly into downstream AI models."
+
+9. How do you ensure data quality in high-volume systems?
+
+Answer: "I validate at the source using Pydantic for schema enforcement. At my startup, I also implemented data lifecycle policies to clean old data, which improved quality and reduced storage costs by 40%."
+
+10. Experience with PySpark and distributed computing?
+
+
+Answer: "I use PySpark for datasets that exceed single-machine memory. My focus is minimizing shuffles and optimizing partitions to keep executor nodes efficient. I’ve used it to process large-scale logs in Azure environments."
+
+III. MLOps & AI (The "Growth" Area)
+11. How do you take a model from notebook to production?
+
+
+Answer: "I containerize with Docker for consistency. Then I use GitHub Actions for CI/CD to run tests and evaluation metrics. Finally, I deploy to Azure Kubernetes Service (AKS) with liveness probes to ensure high availability."
+
+12. How do you monitor models in production?
+
+Answer: "I monitor both system health and model quality. At TestMachine, I built LLM-powered Root Cause Analysis into the pipeline. I track data drift and alert the team if production data deviates from training data."
+
+13. Explain Retrieval Augmented Generation (RAG) and how you optimize it.
+
+
+Answer: "I’ve built RAG pipelines using Azure OpenAI and vector DBs like Pinecone. My key optimization is 'semantic chunking' —breaking text by meaning rather than character count. This drastically improves the relevance of the context retrieved for the LLM."
+
+14. How do you secure AI agents interacting with internal APIs?
+
+
+Answer: "I strictly use private gateways for API access and sanitize all inputs to prevent prompt injection. I also use Azure’s Role-Based Access Control (RBAC) to limit the agent’s permissions to only what is necessary."
+
+15. Have you worked with Agentic Workflows?
+
+
+Answer: "Yes, I use LangGraph for multi-agent orchestration. I decouple tasks—one agent retrieves data, another summarizes it. This separation improves accuracy and makes debugging much easier than a single massive prompt."
+
+IV. Senior Scenarios & "Curveballs" (The "Real World")
+16. How would you predict failure for our 4.5M HP fleet?
+
+Answer: "I’d use an event-driven architecture. IoT sensors feed Azure Event Hubs, processed by PySpark for anomalies. A predictive model on AKS scores this telemetry in real-time, flagging high-risk assets to field techs before they fail."
+
+17. How do you manage Azure cloud costs?
+
+Answer: "I tag all resources for visibility and use auto-scaling on AKS to avoid paying for idle compute. I also use lifecycle policies to move cold data to cheaper storage, which I’ve successfully done to cut costs by 40%."
+
+18. Describe a complex debugging challenge you solved.
+
+Answer: "I fixed a streaming stability bug in Azure AI Client libraries causing drops. I isolated it in staging, analyzed network traces, and applied a patch that restored 99.9% uptime for the production environment."
+
+19. How do you stay updated on AI trends?
+
+Answer: "I experiment constantly. Recently I’ve been using Ragas for model evaluation and LangGraph for agents. I also follow Azure AI Foundry updates to see what new tools can simplify our stack."
+
+20. Do you have questions for me? (The Closer)
+
+Answer: "With the NGCS acquisition, is your priority integrating their data systems into Archrock’s Azure environment, or are you focused on deploying new predictive maintenance models to the existing fleet first?"
+
+21. (Curveball) How do you fix a crashing legacy codebase with no docs?
+
+Answer: "First, stop the bleeding with logging (Sentry). Second, write characterization tests to lock in current behavior. Third, refactor incrementally, adding type hints and docs as I stabilize it."
+
+22. (Curveball) Fabric vs. Synapse: When to use which?
+
+Answer: "I use Fabric for speed and unified SaaS governance ('OneLake'). I use Synapse when I need granular PaaS control or complex custom networking that Fabric doesn’t support yet."
+
+23. (Curveball) A Data Scientist's code works on their laptop but breaks in prod. What do you do?
+
+Answer: "I pair with them to containerize (Docker) their environment. I check for hard-coded paths and optimize memory usage (switching from loading full datasets to batch generators) so it fits the production CI/CD pipeline."
+
+V. Infrastructure & Architecture (The "Plumbing")
+24. How do you manage cloud infrastructure changes? (IaC)
+
+
+Answer: "I use Terraform to define infrastructure as code. This ensures environments (Dev/Staging/Prod) are identical. I store state files remotely with locking to prevent conflicts, and every change goes through a PR review process."
+
+25. When do you choose a Relational Database vs. NoSQL vs. Vector DB?
+
+Answer: "I use SQL for structured, transactional business data. I use NoSQL/Blob Storage for massive telemetry or sensor logs. I use Vector DBs (like Pinecone/ChromaDB) specifically for AI similarity search in RAG apps."
+
+26. How do you handle sensitive data (PII) or corporate secrets?
+
+Answer: "I never hard-code secrets. I use Azure Key Vault to inject credentials at runtime. For PII, I apply masking or hashing at the ingestion layer so sensitive data never enters the analytics logs."
+
+27. What is your strategy for testing data pipelines?
+
+Answer: "I treat data pipelines like software. I write unit tests for transformations and use validation tools (like Great Expectations) to check for nulls or schema changes before loading, ensuring bad data doesn't pollute the warehouse."
+
+VI. Soft Skills & Situational (The "Human Element")
+28. How do you explain technical constraints to non-technical teams?
+
+Answer: "I avoid jargon. Instead of discussing 'latency,' I explain the business impact—e.g., 'the dashboard takes 5 seconds because we are running safety checks.' I make them partners in the trade-off decisions."
+
+29. Prioritize: Production bug, stakeholder request, tech debt fix.
+
+Answer: "Production stability is #1—especially with safety/uptime at stake. I fix the bug first. Next, I unblock the stakeholder. I schedule tech debt for the next sprint unless it’s the direct cause of the bug."
+
+30. Tell me about a time you disagreed with a technical decision.
+
+Answer: "At my startup, a peer wanted a complex framework. I disagreed due to maintenance costs. I prototyped both to compare speed. Data showed the simpler approach was faster, and we moved forward. I focused on the outcome, not the argument."
+
+---

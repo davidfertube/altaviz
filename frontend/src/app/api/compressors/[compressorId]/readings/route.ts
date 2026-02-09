@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCompressorReadings } from '@/lib/queries';
 import { getAppSession } from '@/lib/session';
 import { canAccessWindowType } from '@/lib/plans';
+import { validateInt, validateEnum } from '@/lib/validation';
+import { handleApiError } from '@/lib/errors';
 import type { WindowType } from '@/lib/types';
 
 export async function GET(
@@ -16,8 +18,8 @@ export async function GET(
 
     const { compressorId } = await params;
     const { searchParams } = request.nextUrl;
-    const window = (searchParams.get('window') || '1hr') as WindowType;
-    const hours = parseInt(searchParams.get('hours') || '24');
+    const window = validateEnum<WindowType>(searchParams.get('window'), ['1hr', '4hr', '24hr'], '1hr');
+    const hours = validateInt(searchParams.get('hours'), { min: 1, max: 168, fallback: 24 });
 
     // Feature gate: check if plan allows this window type
     if (!canAccessWindowType(session.subscriptionTier, window)) {
@@ -30,7 +32,6 @@ export async function GET(
     const data = await getCompressorReadings(compressorId, window, hours, session.organizationId);
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Failed to fetch readings:', error);
-    return NextResponse.json({ error: 'Failed to fetch readings' }, { status: 500 });
+    return handleApiError(error, 'Failed to fetch readings');
   }
 }

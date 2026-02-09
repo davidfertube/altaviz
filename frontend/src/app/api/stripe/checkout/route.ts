@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url });
   } catch (error) {
-    console.error('Stripe checkout error:', error);
-    return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
+    const { handleApiError } = await import('@/lib/errors');
+    return handleApiError(error, 'Stripe checkout error');
   }
 }

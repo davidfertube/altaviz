@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAppSession } from '@/lib/session';
 import { runAllWorkflows, runAlertEscalation, runAlertAutoResolve, runDataFreshnessCheck, runStaleAlertCleanup } from '@/lib/workflows';
 import { trackEvent } from '@/lib/telemetry';
+import { safeCompare } from '@/lib/crypto';
 
 const WORKFLOW_MAP: Record<string, (orgId: string) => Promise<unknown>> = {
   all: runAllWorkflows,
@@ -17,12 +18,17 @@ export async function POST(request: NextRequest) {
     const apiKey = request.headers.get('x-api-key');
     let organizationId: string;
 
-    if (apiKey && apiKey === process.env.WORKFLOW_API_KEY) {
+    if (apiKey && process.env.WORKFLOW_API_KEY && safeCompare(apiKey, process.env.WORKFLOW_API_KEY)) {
       // Cron/scheduler auth — requires org ID in body
-      const body = await request.json();
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
+      }
       organizationId = body.organizationId;
-      if (!organizationId) {
-        return NextResponse.json({ error: 'organizationId required' }, { status: 400 });
+      if (!organizationId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(organizationId)) {
+        return NextResponse.json({ error: 'Valid organizationId (UUID) required' }, { status: 400 });
       }
     } else {
       // Session auth — use logged-in user's org

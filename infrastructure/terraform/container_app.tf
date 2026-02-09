@@ -13,15 +13,13 @@ resource "azurerm_container_app" "frontend" {
   revision_mode                = "Single"
   tags                         = var.tags
 
-  registry {
-    server               = azurerm_container_registry.main.login_server
-    username             = azurerm_container_registry.main.admin_username
-    password_secret_name = "acr-password"
+  identity {
+    type = "SystemAssigned"
   }
 
-  secret {
-    name  = "acr-password"
-    value = azurerm_container_registry.main.admin_password
+  registry {
+    server   = azurerm_container_registry.main.login_server
+    identity = "System"
   }
 
   secret {
@@ -52,7 +50,7 @@ resource "azurerm_container_app" "frontend" {
       name   = "frontend"
       image  = var.container_image != "" ? var.container_image : "${azurerm_container_registry.main.login_server}/${var.project_name}-frontend:latest"
       cpu    = 0.5
-      memory = "1Gi"
+      memory = "2Gi"
 
       env {
         name  = "DB_HOST"

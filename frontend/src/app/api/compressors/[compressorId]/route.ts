@@ -27,7 +27,7 @@ export async function GET(
 
     return NextResponse.json({ metadata, latestReading: latestReading || null });
   } catch (error) {
-    console.error('Failed to fetch compressor:', error);
-    return NextResponse.json({ error: 'Failed to fetch compressor' }, { status: 500 });
+    const { handleApiError } = await import('@/lib/errors');
+    return handleApiError(error, 'Failed to fetch compressor');
   }
 }

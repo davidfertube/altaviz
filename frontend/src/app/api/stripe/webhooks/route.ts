@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { query } from '@/lib/db';
 
-const TIER_MAP: Record<string, { tier: string; maxCompressors: number }> = {
-  [process.env.STRIPE_PRICE_ID_PRO || '']: { tier: 'pro', maxCompressors: 20 },
-  [process.env.STRIPE_PRICE_ID_ENTERPRISE || '']: { tier: 'enterprise', maxCompressors: 999999 },
-};
+const TIER_MAP: Record<string, { tier: string; maxCompressors: number }> = {};
+if (process.env.STRIPE_PRICE_ID_PRO) {
+  TIER_MAP[process.env.STRIPE_PRICE_ID_PRO] = { tier: 'pro', maxCompressors: 20 };
+}
+if (process.env.STRIPE_PRICE_ID_ENTERPRISE) {
+  TIER_MAP[process.env.STRIPE_PRICE_ID_ENTERPRISE] = { tier: 'enterprise', maxCompressors: 999999 };
+}
 
 async function updateOrgSubscription(
   stripeCustomerId: string,
@@ -127,12 +130,12 @@ export async function POST(request: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object;
-        await updateOrgSubscription(
-          invoice.customer as string,
-          // Keep current tier but mark as past_due
-          'pro', // will be overridden by subscription.updated event
-          'past_due',
-          20
+        // Only update status to past_due — preserve current tier and compressor limits
+        await query(
+          `UPDATE organizations
+           SET subscription_status = 'past_due', updated_at = NOW()
+           WHERE stripe_customer_id = $1`,
+          [invoice.customer as string]
         );
         await logBillingEvent(
           invoice.customer as string,
@@ -146,7 +149,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Webhook handler error:', error);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Webhook handler error: ${message}`);
     return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
   }
 }

@@ -13,6 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./infrastructure/sql:/docker-entrypoint-initdb.d
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -30,7 +31,7 @@ services:
       DB_NAME: compressor_health
       DB_USER: postgres
       DB_PASSWORD: postgres
-      AUTH_SECRET: ${AUTH_SECRET:-dev-secret-change-in-production-32chars}
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set - run: export AUTH_SECRET=$(openssl rand -base64 32)}
       AUTH_TRUST_HOST: "true"
       AZURE_AD_CLIENT_ID: ${AZURE_AD_CLIENT_ID:-}
       AZURE_AD_CLIENT_SECRET: ${AZURE_AD_CLIENT_SECRET:-}
@@ -39,6 +40,7 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       STRIPE_PRICE_ID_PRO: ${STRIPE_PRICE_ID_PRO:-}
       STRIPE_PRICE_ID_ENTERPRISE: ${STRIPE_PRICE_ID_ENTERPRISE:-}
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy

@@ -19,7 +19,7 @@ export async function PATCH(
     }
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('Failed to resolve alert:', error);
-    return NextResponse.json({ error: 'Failed to resolve alert' }, { status: 500 });
+    const { handleApiError } = await import('@/lib/errors');
+    return handleApiError(error, 'Failed to resolve alert');
   }
 }

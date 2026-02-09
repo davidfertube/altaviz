@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url });
   } catch (error) {
-    console.error('Stripe portal error:', error);
-    return NextResponse.json({ error: 'Failed to create portal session' }, { status: 500 });
+    const { handleApiError } = await import('@/lib/errors');
+    return handleApiError(error, 'Stripe portal error');
   }
 }

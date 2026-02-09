@@ -11,7 +11,7 @@ export async function GET() {
     const data = await getStations(session.organizationId);
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Failed to fetch stations:', error);
-    return NextResponse.json({ error: 'Failed to fetch stations' }, { status: 500 });
+    const { handleApiError } = await import('@/lib/errors');
+    return handleApiError(error, 'Failed to fetch stations');
   }
 }

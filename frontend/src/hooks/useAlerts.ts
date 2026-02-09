@@ -1,9 +1,8 @@
 'use client';
 
 import useSWR from 'swr';
+import { fetcher, swrConfig } from '@/lib/fetcher';
 import type { AlertHistory } from '@/lib/types';
-
-const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 type AlertWithMeta = AlertHistory & { model: string; station_id: string; station_name: string };
 
@@ -22,7 +21,7 @@ export function useAlerts(params: {
   if (params.offset) searchParams.set('offset', String(params.offset));
 
   const url = `/api/alerts?${searchParams.toString()}`;
-  return useSWR<AlertWithMeta[]>(url, fetcher, { refreshInterval: 30000 });
+  return useSWR<AlertWithMeta[]>(url, fetcher, { refreshInterval: 30000, ...swrConfig });
 }
 
 export async function acknowledgeAlertAction(alertId: number) {

@@ -8,7 +8,7 @@ resource "azurerm_postgresql_flexible_server" "main" {
   storage_mb                    = 32768
   sku_name                      = "B_Standard_B1ms"
   zone                          = "1"
-  public_network_access_enabled = true
+  public_network_access_enabled = false
   tags                          = var.tags
 }
 
@@ -20,6 +20,7 @@ resource "azurerm_postgresql_flexible_server_database" "main" {
 }
 
 resource "azurerm_postgresql_flexible_server_firewall_rule" "allow_azure" {
+  count            = var.environment == "prod" ? 0 : 1
   name             = "AllowAzureServices"
   server_id        = azurerm_postgresql_flexible_server.main.id
   start_ip_address = "0.0.0.0"

@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+*.md
+tests
+__tests__
+jest.config.*
+jest.setup.*
+.env*
+coverage
+.vscode
+.idea

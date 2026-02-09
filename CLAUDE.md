@@ -2,7 +2,7 @@
 
 Multi-tenant SaaS platform for predictive maintenance of natural gas compression equipment.
 Stack: PySpark 3.5 + Delta Lake 3.0 | PostgreSQL 14 / Azure SQL | Next.js 16 + React 19 + Tailwind CSS v4 | NextAuth.js v5 (Azure AD) | Stripe Billing | Azure Container Apps + Terraform
-Status: Full SaaS MVP — ETL pipeline, multi-tenant dashboard, auth, billing, agentic workflows, and Azure IaC implemented. ML model and tests NOT yet built.
+Status: Production-hardened SaaS MVP — ETL pipeline, multi-tenant dashboard, auth, billing, agentic workflows, Azure IaC, comprehensive test suite (103 tests), security hardening, and CI/CD pipeline.
 
 ## Critical Rules
 
@@ -19,6 +19,16 @@ Status: Full SaaS MVP — ETL pipeline, multi-tenant dashboard, auth, billing, a
 - Frontend: use SWR hooks for data fetching with appropriate refresh intervals
 - Prerequisites: Python 3.10+, Java 11+ (for PySpark), Docker, Node.js 18+
 
+## Branching Strategy
+
+```
+main      ← production (protected, requires PR + approval)
+staging   ← pre-production validation (protected, requires PR)
+develop   ← active development (default branch for PRs)
+```
+
+PR flow: `feature/xxx` → `develop` → `staging` → `main`
+
 ## Key Commands
 
 ```bash
@@ -28,7 +38,11 @@ python src/data_simulator/compressor_simulator.py        # Generate 50k+ sensor 
 python src/etl/pyspark_pipeline.py                       # Run complete PySpark ETL pipeline
 cd frontend && npm run dev                               # Launch frontend (dev mode, localhost:3000)
 cd frontend && npm run build                             # Build frontend for production
-pytest tests/                                            # Run tests (NOT YET BUILT)
+cd frontend && npm test                                  # Run Jest tests (78 tests, 13 suites)
+cd frontend && npm run test:coverage                     # Jest with coverage report
+pytest tests/ -v                                         # Run pytest ETL tests (25 tests, 5 suites)
+cd frontend && npx tsc --noEmit                          # TypeScript type check
+cd frontend && npx eslint .                              # Lint check
 cd infrastructure/terraform && terraform plan            # Preview Azure infrastructure changes
 ```
 
@@ -73,6 +87,9 @@ Route groups: `(marketing)` for public pages, `(dashboard)` for authenticated pa
 
 - **NextAuth.js v5** with Azure AD (Microsoft Entra ID) + dev Credentials provider
 - JWT strategy enriched with `organizationId`, `organizationName`, `role`, `subscriptionTier`
+- JWT expiry: 8 hours with hourly refresh (`maxAge: 8h`, `updateAge: 1h`)
+- Dev credentials: requires `DEV_CREDENTIALS_ENABLED=true` + email allowlist
+- Rate limiting: 60 req/min per IP on all `/api/*` routes via middleware
 - Middleware protects all `/dashboard/*` routes → redirects to `/login`
 - `getAppSession()` / `requireSession()` helpers in `lib/session.ts`
 - Auto-creates org + user on first sign-in (`findOrCreateUser` in `lib/auth.ts`)
@@ -100,7 +117,8 @@ Automated workflows in `lib/workflows.ts`, triggered via `POST /api/workflows/ru
 | `data_freshness_check` | Create staleness alerts if no data for 3h+ | Cron / manual |
 | `stale_alert_cleanup` | Auto-acknowledge alerts unactioned for 7+ days | Cron / manual |
 
-Supports session auth (dashboard) and API key auth (`x-api-key` header) for cron/scheduler.
+Supports session auth (dashboard) and API key auth (`x-api-key` header with timing-safe comparison) for cron/scheduler.
+Thresholds configurable via env vars: `WORKFLOW_ESCALATION_HOURS`, `WORKFLOW_STALENESS_HOURS`, `WORKFLOW_CLEANUP_DAYS`.
 
 ## Azure Infrastructure (Terraform)
 
@@ -110,14 +128,16 @@ Files in `infrastructure/terraform/`:
 |------|-----------|
 | `main.tf` | Provider config, resource group, backend state |
 | `variables.tf` | All input variables (secrets marked sensitive) |
-| `container_app.tf` | Container Apps Environment + App (0.5 CPU, 1Gi, auto-scale 1-5) |
-| `container_registry.tf` | ACR (Basic SKU, admin enabled) |
-| `database.tf` | PostgreSQL Flexible Server (v14, B_Standard_B1ms) |
-| `keyvault.tf` | Key Vault + secrets (DB password, NextAuth, Stripe keys) |
+| `container_app.tf` | Container Apps Environment + App (0.5 CPU, 2Gi, managed identity, auto-scale 1-5) |
+| `container_registry.tf` | ACR (Basic SKU, admin disabled, managed identity pull) |
+| `database.tf` | PostgreSQL Flexible Server (v14, B_Standard_B1ms, public access disabled in prod) |
+| `keyvault.tf` | Key Vault + secrets (purge protection enabled, 90-day retention) |
 | `monitoring.tf` | Log Analytics Workspace + Application Insights |
 | `outputs.tf` | App URL, DB FQDN, Key Vault URI, App Insights connection |
 
-CI/CD: `.github/workflows/ci.yml` (lint + build on PR) and `deploy.yml` (build → ACR → Container Apps on push to main).
+Env separation: `infrastructure/terraform/envs/` with `staging.tfbackend`, `staging.tfvars`, `prod.tfbackend`, `prod.tfvars`.
+
+CI/CD: `.github/workflows/ci.yml` (multi-job: lint+typecheck, frontend tests, python tests, build, security scan) and `deploy.yml` (staging auto-deploy, production with approval gate).
 
 ## Implementation Status
 
@@ -127,25 +147,31 @@ CI/CD: `.github/workflows/ci.yml` (lint + build on PR) and `deploy.yml` (build �
 - `config/` — database.yaml, etl_config.yaml, thresholds.yaml
 - `infrastructure/sql/schema.sql` — 10 tables, 3 org-aware views, 15+ indexes, trigger function
 - `infrastructure/sql/migrations/001_add_auth_and_tenancy.sql` — Auth + multi-tenancy migration
-- `infrastructure/terraform/` — 7 Terraform files for full Azure deployment
-- `.github/workflows/` — CI (lint+build) and CD (ACR → Container Apps)
+- `infrastructure/sql/migrations/002_add_org_id_to_remaining_tables.sql` — Direct org_id on alert_history, maintenance_events, data_quality_metrics
+- `infrastructure/terraform/` — 8 Terraform files for full Azure deployment + env separation (staging/prod)
+- `.github/workflows/` — CI (multi-job: lint, tests, build, security scan) and CD (staging auto-deploy, prod with approval)
 - `frontend/` — Complete multi-tenant SaaS:
   - Aave-inspired landing page with glass-morphism cards, animated stats, framer-motion
   - Dashboard with fleet overview, monitoring, alerts, data quality, settings
-  - Azure AD auth via NextAuth.js v5 + dev credentials provider
+  - Azure AD auth via NextAuth.js v5 + hardened dev credentials (dual guard + email allowlist)
   - Stripe billing with checkout, customer portal, webhooks, feature gates
-  - Agentic workflows (alert escalation, auto-resolve, data freshness, stale cleanup)
-  - SEO (Open Graph, Twitter cards, robots.txt, sitemap.xml)
-  - Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
+  - Agentic workflows with externalized thresholds and batch INSERT optimization
+  - Security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
+  - Rate limiting (60 req/min per IP), input validation, sanitized error handling
+  - Timing-safe API key comparison, env validation at startup
+  - Shared SWR fetcher with error handling and retry logic
   - Error boundaries (global + dashboard-scoped), branded 404 page
-  - PlanBadge in sidebar, UpgradePrompt component for feature gates
+- `tests/` — 103 total tests:
+  - Frontend: 13 Jest test suites (78 tests) — lib utilities + API routes
+  - Python: 5 pytest test suites (25 tests) — schemas, data quality, transformations, database writer, integration
+- `SECURITY.md`, `CONTRIBUTING.md`, `docs/RUNBOOK.md` — Enterprise documentation
 
 **Todo:**
-- `tests/` — pytest test suite for ETL pipeline
 - `src/ml/` — LSTM model training and inference
 - Cron scheduler for agentic workflows (Azure Container Apps scheduled tasks or external)
-- Rate limiting middleware on API routes
 - Team member invite flow in settings
+- Data retention enforcement (purge old sensor_readings_agg)
+- Redis caching layer for fleet health and latest readings
 
 ## File Reference
 
@@ -156,23 +182,36 @@ CI/CD: `.github/workflows/ci.yml` (lint + build on PR) and `deploy.yml` (build �
 | `config/thresholds.yaml` | Sensor normal/warning/critical ranges, station locations |
 | `.env.example` | All env vars: DB, Auth, Stripe, Azure Monitor, ETL |
 | `infrastructure/sql/schema.sql` | PostgreSQL DDL: 10 tables, 3 views |
-| `infrastructure/sql/migrations/` | Auth + tenancy migration scripts |
+| `infrastructure/sql/migrations/` | Auth + tenancy migration scripts (001, 002) |
 | `infrastructure/terraform/` | Azure IaC (Container Apps, PostgreSQL, Key Vault, ACR, App Insights) |
-| `.github/workflows/` | CI (lint+build) and CD (deploy to Azure) |
-| `frontend/src/lib/auth.ts` | NextAuth.js v5 config (Azure AD + Credentials) |
+| `infrastructure/terraform/envs/` | Environment-specific configs (staging.tfvars, prod.tfvars) |
+| `.github/workflows/ci.yml` | Multi-job CI: lint, typecheck, tests, build, security scan |
+| `.github/workflows/deploy.yml` | CD: staging auto-deploy, production with approval gate |
+| `frontend/src/lib/auth.ts` | NextAuth.js v5 config (Azure AD + hardened dev credentials) |
 | `frontend/src/lib/session.ts` | `getAppSession()` / `requireSession()` helpers |
 | `frontend/src/lib/stripe.ts` | Stripe client (lazy-init), checkout/portal helpers |
 | `frontend/src/lib/plans.ts` | Plan definitions, feature gate functions |
 | `frontend/src/lib/workflows.ts` | Agentic workflow engine (4 automated workflows) |
 | `frontend/src/lib/telemetry.ts` | Application Insights (optional, Azure only) |
 | `frontend/src/lib/queries.ts` | 12 org-scoped parameterized SQL query functions |
-| `frontend/src/lib/db.ts` | node-postgres Pool singleton |
+| `frontend/src/lib/db.ts` | node-postgres Pool singleton (env-driven config) |
+| `frontend/src/lib/validation.ts` | Input validation: `validateInt`, `validateEnum`, `validateUUID` |
+| `frontend/src/lib/rate-limit.ts` | In-memory rate limiter (60 req/min per IP) |
+| `frontend/src/lib/crypto.ts` | Timing-safe comparison utility (`safeCompare`) |
+| `frontend/src/lib/errors.ts` | Sanitized API error responses with `requestId` |
+| `frontend/src/lib/fetcher.ts` | Shared SWR fetcher with `ApiError` and retry config |
+| `frontend/src/lib/env.ts` | Startup env var validation (throws if critical vars missing) |
 | `frontend/src/lib/types.ts` | TypeScript interfaces for all tables + auth + billing |
 | `frontend/src/lib/constants.ts` | Sensor thresholds, colors, nav items |
-| `frontend/src/middleware.ts` | Auth middleware protecting /dashboard/* routes |
+| `frontend/src/middleware.ts` | Auth + rate limiting middleware for /dashboard/* and /api/* |
 | `frontend/src/components/marketing/` | 8 landing page components (Hero, Stats, Features, etc.) |
 | `frontend/src/components/billing/` | PlanBadge, UpgradePrompt |
 | `frontend/src/components/layout/` | Sidebar, Header, UserMenu, ThemeProvider |
+| `frontend/__tests__/` | 13 Jest test suites (78 tests) — lib + API routes |
+| `tests/` | 5 pytest test suites (25 tests) — ETL pipeline |
+| `SECURITY.md` | Security policy, auth model, vulnerability reporting |
+| `CONTRIBUTING.md` | Branch strategy, PR flow, code standards |
+| `docs/RUNBOOK.md` | Deployment, rollback, troubleshooting guide |
 
 ## Environment Variables
 

@@ -1,9 +1,25 @@
 import { auth } from '@/lib/auth';
+import { rateLimit } from '@/lib/rate-limit';
+import { NextResponse } from 'next/server';
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
-  // Only protect dashboard routes
+  // Rate limiting for API routes
+  if (pathname.startsWith('/api/') && pathname !== '/api/health') {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+    if (!rateLimit(ip)) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Too many requests' }),
+        {
+          status: 429,
+          headers: { 'Retry-After': '60', 'Content-Type': 'application/json' },
+        }
+      );
+    }
+  }
+
+  // Protect dashboard routes — redirect to login if unauthenticated
   if (pathname.startsWith('/dashboard')) {
     if (!req.auth) {
       const loginUrl = new URL('/login', req.url);
@@ -14,5 +30,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/dashboard/:path*', '/api/:path*'],
 };
