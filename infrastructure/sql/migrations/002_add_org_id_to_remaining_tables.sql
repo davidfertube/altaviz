@@ -58,7 +58,8 @@ CREATE INDEX IF NOT EXISTS idx_quality_org_timestamp
   ON data_quality_metrics(organization_id, metric_timestamp DESC);
 
 -- 5. Recreate views with direct org_id filtering
-CREATE OR REPLACE VIEW v_active_alerts AS
+DROP VIEW IF EXISTS v_active_alerts;
+CREATE VIEW v_active_alerts AS
 SELECT
   a.id,
   a.compressor_id,
@@ -77,7 +78,7 @@ SELECT
   a.resolved_at,
   c.model AS compressor_model,
   s.station_name,
-  s.location_state
+  s.state
 FROM alert_history a
 JOIN compressor_metadata c ON a.compressor_id = c.compressor_id
 JOIN station_locations s ON c.station_id = s.station_id

@@ -86,6 +86,13 @@ variable "stripe_price_id_enterprise" {
   default     = ""
 }
 
+variable "workflow_api_key" {
+  description = "API key for agentic workflow cron/scheduler authentication"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)

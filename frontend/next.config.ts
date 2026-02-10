@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' js.stripe.com",
+              "script-src 'self' 'unsafe-inline' js.stripe.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: *.tile.openstreetmap.org",
               "font-src 'self'",

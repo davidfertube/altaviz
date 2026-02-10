@@ -23,8 +23,8 @@ resource "azurerm_container_app" "frontend" {
   }
 
   secret {
-    name  = "db-connection"
-    value = "postgresql://${var.db_admin_username}:${var.db_admin_password}@${azurerm_postgresql_flexible_server.main.fqdn}:5432/compressor_health?sslmode=require"
+    name  = "db-password"
+    value = var.db_admin_password
   }
 
   secret {
@@ -40,6 +40,16 @@ resource "azurerm_container_app" "frontend" {
   secret {
     name  = "stripe-webhook-secret"
     value = var.stripe_webhook_secret
+  }
+
+  secret {
+    name  = "azure-ad-client-secret"
+    value = var.azure_ad_client_secret
+  }
+
+  secret {
+    name  = "workflow-api-key"
+    value = var.workflow_api_key
   }
 
   template {
@@ -70,7 +80,15 @@ resource "azurerm_container_app" "frontend" {
       }
       env {
         name        = "DB_PASSWORD"
-        secret_name = "db-connection"
+        secret_name = "db-password"
+      }
+      env {
+        name  = "DB_SSL"
+        value = "true"
+      }
+      env {
+        name  = "DB_SSL_REJECT_UNAUTHORIZED"
+        value = "true"
       }
       env {
         name        = "AUTH_SECRET"
@@ -83,6 +101,10 @@ resource "azurerm_container_app" "frontend" {
       env {
         name  = "AZURE_AD_CLIENT_ID"
         value = var.azure_ad_client_id
+      }
+      env {
+        name        = "AZURE_AD_CLIENT_SECRET"
+        secret_name = "azure-ad-client-secret"
       }
       env {
         name  = "AZURE_AD_TENANT_ID"
@@ -105,8 +127,27 @@ resource "azurerm_container_app" "frontend" {
         value = var.stripe_price_id_enterprise
       }
       env {
+        name        = "WORKFLOW_API_KEY"
+        secret_name = "workflow-api-key"
+      }
+      env {
         name  = "APPLICATIONINSIGHTS_CONNECTION_STRING"
         value = azurerm_application_insights.main.connection_string
+      }
+
+      liveness_probe {
+        transport        = "HTTP"
+        path             = "/api/health"
+        port             = 3000
+        initial_delay    = 10
+        interval_seconds = 30
+      }
+
+      readiness_probe {
+        transport        = "HTTP"
+        path             = "/api/health"
+        port             = 3000
+        interval_seconds = 10
       }
     }
 

@@ -31,7 +31,7 @@ services:
       DB_NAME: compressor_health
       DB_USER: postgres
       DB_PASSWORD: postgres
-      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET must be set - run: export AUTH_SECRET=$(openssl rand -base64 32)}
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET_must_be_set}
       AUTH_TRUST_HOST: "true"
       AZURE_AD_CLIENT_ID: ${AZURE_AD_CLIENT_ID:-}
       AZURE_AD_CLIENT_SECRET: ${AZURE_AD_CLIENT_SECRET:-}

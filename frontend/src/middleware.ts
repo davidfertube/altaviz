@@ -1,6 +1,9 @@
-import { auth } from '@/lib/auth';
+import NextAuth from 'next-auth';
+import authConfig from '@/lib/auth.config';
 import { rateLimit } from '@/lib/rate-limit';
 import { NextResponse } from 'next/server';
+
+const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
