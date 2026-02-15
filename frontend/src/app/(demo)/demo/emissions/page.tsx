@@ -13,7 +13,7 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 interface EmissionsResponse {
   estimates: EmissionsEstimate[];
   fleet_summary: {
-    total_compressors: number;
+    total_pipelines: number;
     total_co2e_tonnes_hr: number;
     annual_projected_co2e: number;
     reporting_threshold: number;
@@ -104,10 +104,10 @@ export default function DemoEmissionsPage() {
           </CardContent>
         </Card>
 
-        {/* Per-Compressor Emissions */}
+        {/* Per-Pipeline Emissions */}
         <Card>
           <CardHeader className="py-3 px-4 sm:px-6">
-            <CardTitle className="text-sm">Per-Compressor Emissions</CardTitle>
+            <CardTitle className="text-sm">Per-Pipeline Emissions</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {isLoading ? (
@@ -117,7 +117,7 @@ export default function DemoEmissionsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-muted/50">
-                      <th className="text-left px-4 py-2 font-medium text-muted-foreground">Compressor</th>
+                      <th className="text-left px-4 py-2 font-medium text-muted-foreground">Pipeline</th>
                       <th className="text-right px-4 py-2 font-medium text-muted-foreground">CH4 (tonnes)</th>
                       <th className="text-right px-4 py-2 font-medium text-muted-foreground">CO2e (tonnes)</th>
                       <th className="text-right px-4 py-2 font-medium text-muted-foreground">Fugitive Rate</th>

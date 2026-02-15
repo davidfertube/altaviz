@@ -11,6 +11,7 @@ export default function SignupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
+  const [company, setCompany] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -22,7 +23,7 @@ export default function SignupPage() {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name: name || undefined }),
+        body: JSON.stringify({ email, password, name: name || undefined, company: company || undefined }),
       });
 
       const data = await res.json();
@@ -75,6 +76,20 @@ export default function SignupPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
+                className="w-full px-3 py-2.5 rounded-xl border border-[#E7E0D5] bg-[#FAF9F6] text-sm text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/50 focus:border-[#C4A77D]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label htmlFor="company" className="text-sm font-medium text-[#1C1917]">
+                Company
+              </label>
+              <input
+                id="company"
+                type="text"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="Your company name"
+                required
                 className="w-full px-3 py-2.5 rounded-xl border border-[#E7E0D5] bg-[#FAF9F6] text-sm text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/50 focus:border-[#C4A77D]"
               />
             </div>

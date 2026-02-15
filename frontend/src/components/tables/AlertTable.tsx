@@ -29,7 +29,7 @@ export default function AlertTable({ alerts, compact = false, onAcknowledge, onR
       <TableHeader>
         <TableRow>
           <TableHead className="text-xs uppercase tracking-wider">Time</TableHead>
-          <TableHead className="text-xs uppercase tracking-wider">Compressor</TableHead>
+          <TableHead className="text-xs uppercase tracking-wider">Pipeline</TableHead>
           {!compact && <TableHead className="text-xs uppercase tracking-wider hidden md:table-cell">Station</TableHead>}
           <TableHead className="text-xs uppercase tracking-wider">Severity</TableHead>
           <TableHead className="text-xs uppercase tracking-wider hidden sm:table-cell">Sensor</TableHead>

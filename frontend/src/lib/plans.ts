@@ -21,7 +21,7 @@ export const PLANS: Record<SubscriptionTier, PlanDefinition> = {
     windowTypes: ['1hr'],
     dataRetentionDays: 7,
     features: [
-      '2 compressors',
+      '2 pipelines',
       '1-hour aggregation window',
       'Basic email alerts',
       '7-day data retention',
@@ -36,7 +36,7 @@ export const PLANS: Record<SubscriptionTier, PlanDefinition> = {
     windowTypes: ['1hr', '4hr', '24hr'],
     dataRetentionDays: 90,
     features: [
-      'Up to 20 compressors',
+      'Up to 20 pipelines',
       'All aggregation windows (1hr, 4hr, 24hr)',
       'Priority + SMS alerts',
       '90-day data retention',
@@ -52,7 +52,7 @@ export const PLANS: Record<SubscriptionTier, PlanDefinition> = {
     windowTypes: ['1hr', '4hr', '24hr'],
     dataRetentionDays: 365,
     features: [
-      'Unlimited compressors',
+      'Unlimited pipelines',
       'All aggregation windows + custom',
       'Priority + SMS + webhook alerts',
       '1-year data retention',

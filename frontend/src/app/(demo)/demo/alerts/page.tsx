@@ -18,7 +18,7 @@ export default function DemoAlertsPage() {
 
   return (
     <div className="min-h-screen">
-      <Header title="Alert Management" subtitle="Monitor and respond to compressor alerts" />
+      <Header title="Alert Management" subtitle="Monitor and respond to pipeline alerts" />
 
       <div className="p-4 sm:p-6 space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

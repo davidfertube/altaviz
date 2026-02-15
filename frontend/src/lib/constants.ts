@@ -32,14 +32,14 @@ export const SENSOR_THRESHOLDS = {
     warning: 240,
     critical: 260,
     unit: '\u00B0F',
-    label: 'Discharge Temp',
+    label: 'Temperature',
   },
   suction_pressure_psi: {
     normal_range: [40, 80] as [number, number],
     warning_low: 30,
     critical_low: 20,
     unit: 'PSI',
-    label: 'Suction Pressure',
+    label: 'Inlet Pressure',
     inverted: true,
   },
   discharge_pressure_psi: {
@@ -47,13 +47,13 @@ export const SENSOR_THRESHOLDS = {
     warning: 1300,
     critical: 1400,
     unit: 'PSI',
-    label: 'Discharge Pressure',
+    label: 'Outlet Pressure',
   },
   horsepower_consumption: {
     normal_range: [1200, 1600] as [number, number],
     warning: 1800,
     unit: 'HP',
-    label: 'Horsepower',
+    label: 'Flow Rate',
   },
   gas_flow_mcf: {
     normal_range: [8000, 12000] as [number, number],

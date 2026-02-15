@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import {
-  useCompressorDetail,
-  useCompressorReadings,
-  useCompressorAlerts,
-  useCompressorMaintenance,
-} from '@/hooks/useCompressorReadings';
+  usePipelineDetail,
+  usePipelineReadings,
+  usePipelineAlerts,
+  usePipelineMaintenance,
+} from '@/hooks/usePipelineReadings';
 import Header from '@/components/layout/Header';
 import GaugeChart from '@/components/charts/GaugeChart';
 import TrendChart from '@/components/charts/TrendChart';
@@ -93,10 +93,10 @@ export default function CompressorDetailPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('24h');
 
   const hours = timeRangeToHours(timeRange);
-  const { data: detail, isLoading: detailLoading } = useCompressorDetail(compressorId);
-  const { data: readings, isLoading: readingsLoading } = useCompressorReadings(compressorId, windowType, hours);
-  const { data: alerts } = useCompressorAlerts(compressorId);
-  const { data: maintenance } = useCompressorMaintenance(compressorId);
+  const { data: detail, isLoading: detailLoading } = usePipelineDetail(compressorId);
+  const { data: readings, isLoading: readingsLoading } = usePipelineReadings(compressorId, windowType, hours);
+  const { data: alerts } = usePipelineAlerts(compressorId);
+  const { data: maintenance } = usePipelineMaintenance(compressorId);
 
   const latest = detail?.latestReading;
   const prediction = detail?.prediction;
@@ -113,7 +113,7 @@ export default function CompressorDetailPage() {
       />
 
       <div className="p-4 sm:p-6 space-y-6">
-        {/* Compressor Info Bar */}
+        {/* Pipeline Info Bar */}
         {detail && (
           <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
             <StatusBadge status={healthStatus} size="md" />
@@ -210,7 +210,7 @@ export default function CompressorDetailPage() {
             <TrendChart
               data={readings}
               sensorKey="discharge_temp_mean"
-              label="Discharge Temperature"
+              label="Temperature"
               unit={SENSOR_THRESHOLDS.discharge_temp_f.unit}
               warningThreshold={SENSOR_THRESHOLDS.discharge_temp_f.warning}
               criticalThreshold={SENSOR_THRESHOLDS.discharge_temp_f.critical}
@@ -219,14 +219,14 @@ export default function CompressorDetailPage() {
             <TrendChart
               data={readings}
               sensorKey="suction_pressure_mean"
-              label="Suction Pressure"
+              label="Inlet Pressure"
               unit="PSI"
               color={COLORS.healthy}
             />
             <TrendChart
               data={readings}
               sensorKey="discharge_pressure_mean"
-              label="Discharge Pressure"
+              label="Outlet Pressure"
               unit="PSI"
               warningThreshold={SENSOR_THRESHOLDS.discharge_pressure_psi.warning}
               criticalThreshold={SENSOR_THRESHOLDS.discharge_pressure_psi.critical}

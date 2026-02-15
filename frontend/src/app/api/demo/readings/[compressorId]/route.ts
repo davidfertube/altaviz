@@ -9,7 +9,7 @@ export async function GET(
   const readings = DEMO_READINGS[compressorId];
 
   if (!readings) {
-    return NextResponse.json({ error: 'Compressor not found' }, { status: 404 });
+    return NextResponse.json({ error: 'Pipeline not found' }, { status: 404 });
   }
 
   return NextResponse.json(readings);

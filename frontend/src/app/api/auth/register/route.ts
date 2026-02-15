@@ -5,7 +5,7 @@ import { query } from '@/lib/db';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name } = body;
+    const { email, password, name, company } = body;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 12);
 
     const orgSlug = normalizedEmail.split('@')[0].replace(/[^a-z0-9-]/g, '-');
-    const orgName = name ? `${name}'s Organization` : `${orgSlug} org`;
+    const orgName = company?.trim() || (name ? `${name}'s Organization` : `${orgSlug} org`);
     const uniqueSlug = orgSlug + '-' + Date.now().toString(36);
 
     const orgs = await query<{ id: string }>(

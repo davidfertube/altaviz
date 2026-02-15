@@ -17,9 +17,9 @@ const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 // Demo ML prediction for degrading units
 const DEMO_PREDICTIONS: Record<string, MlPrediction> = {
-  'COMP-003': {
+  'PL-003': {
     id: 1,
-    compressor_id: 'COMP-003',
+    compressor_id: 'PL-003',
     prediction_timestamp: new Date().toISOString(),
     rul_days: 3.2,
     failure_probability: 0.87,
@@ -28,9 +28,9 @@ const DEMO_PREDICTIONS: Record<string, MlPrediction> = {
     features_used: { vibration_mean: 7.8, discharge_temp_mean: 248, pressure_ratio: 21.5 },
     created_at: new Date().toISOString(),
   },
-  'COMP-007': {
+  'PL-007': {
     id: 2,
-    compressor_id: 'COMP-007',
+    compressor_id: 'PL-007',
     prediction_timestamp: new Date().toISOString(),
     rul_days: 8.5,
     failure_probability: 0.42,
@@ -179,15 +179,15 @@ export default function DemoCompressorDetailPage() {
         ) : readings && readings.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <TrendChart data={readings} sensorKey="vibration_mean" label="Vibration" unit="mm/s" warningThreshold={SENSOR_THRESHOLDS.vibration_mms.warning} criticalThreshold={SENSOR_THRESHOLDS.vibration_mms.critical} color={COLORS.primary} />
-            <TrendChart data={readings} sensorKey="discharge_temp_mean" label="Discharge Temperature" unit={SENSOR_THRESHOLDS.discharge_temp_f.unit} warningThreshold={SENSOR_THRESHOLDS.discharge_temp_f.warning} criticalThreshold={SENSOR_THRESHOLDS.discharge_temp_f.critical} color={COLORS.warning} />
-            <TrendChart data={readings} sensorKey="suction_pressure_mean" label="Suction Pressure" unit="PSI" color={COLORS.healthy} />
-            <TrendChart data={readings} sensorKey="discharge_pressure_mean" label="Discharge Pressure" unit="PSI" warningThreshold={SENSOR_THRESHOLDS.discharge_pressure_psi.warning} criticalThreshold={SENSOR_THRESHOLDS.discharge_pressure_psi.critical} color={COLORS.critical} />
+            <TrendChart data={readings} sensorKey="discharge_temp_mean" label="Temperature" unit={SENSOR_THRESHOLDS.discharge_temp_f.unit} warningThreshold={SENSOR_THRESHOLDS.discharge_temp_f.warning} criticalThreshold={SENSOR_THRESHOLDS.discharge_temp_f.critical} color={COLORS.warning} />
+            <TrendChart data={readings} sensorKey="suction_pressure_mean" label="Inlet Pressure" unit="PSI" color={COLORS.healthy} />
+            <TrendChart data={readings} sensorKey="discharge_pressure_mean" label="Outlet Pressure" unit="PSI" warningThreshold={SENSOR_THRESHOLDS.discharge_pressure_psi.warning} criticalThreshold={SENSOR_THRESHOLDS.discharge_pressure_psi.critical} color={COLORS.critical} />
           </div>
         ) : (
           <div className="text-center py-12 text-sm text-muted-foreground">No readings available</div>
         )}
 
-        {/* Alerts for this compressor */}
+        {/* Alerts for this pipeline */}
         {alerts.length > 0 && (
           <Card className="py-0 gap-0">
             <div className="px-4 sm:px-6 py-3 border-b">

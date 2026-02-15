@@ -1,8 +1,7 @@
 import Link from 'next/link';
-import { Separator } from '@/components/ui/separator';
 import AltavizLogo from '@/components/brand/AltavizLogo';
 
-const PRODUCT_LINKS = [
+const NAV_LINKS = [
   { label: 'Platform', href: '/#platform' },
   { label: 'Pricing', href: '/pricing' },
   { label: 'Live Demo', href: '/demo' },
@@ -11,52 +10,32 @@ const PRODUCT_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="relative border-t border-[#E7E0D5] bg-white">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#C4A77D]/30 to-transparent" />
+    <footer className="border-t border-[#E7E0D5]/60 bg-[#FAF9F6]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-[#C4A77D] flex items-center justify-center">
+              <AltavizLogo size={16} variant="white" />
+            </div>
+            <span className="text-sm font-semibold text-[#1C1917]">Altaviz</span>
+          </Link>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row justify-between gap-8 py-12 sm:py-16">
-          {/* Brand */}
-          <div className="max-w-xs">
-            <Link href="/" className="flex items-center gap-2.5 mb-4">
-              <div className="w-8 h-8 rounded-lg bg-[#C4A77D] flex items-center justify-center text-[#C4A77D]">
-                <AltavizLogo size={20} variant="white" />
-              </div>
-              <span className="text-lg font-bold text-[#1C1917]">Altaviz</span>
-            </Link>
-            <p className="text-sm text-[#78716C] leading-relaxed">
-              Pipeline integrity management for midstream operators.
-              PHMSA-compliant monitoring, ML predictions, and automated compliance reporting.
-            </p>
-          </div>
+          {/* Nav */}
+          <nav className="flex items-center gap-6">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="text-xs text-[#78716C] hover:text-[#1C1917] transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
-          {/* Product links */}
-          <div>
-            <h4 className="text-xs font-semibold text-[#1C1917] uppercase tracking-wider mb-4">
-              Product
-            </h4>
-            <ul className="space-y-2.5">
-              {PRODUCT_LINKS.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-[#78716C] hover:text-[#1C1917] transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <Separator className="bg-[#E7E0D5]" />
-
-        <div className="py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-[#A8A29E]">
-            &copy; {new Date().getFullYear()} Altaviz, Inc. All rights reserved.
-          </p>
-          <div className="flex items-center gap-1.5 text-[10px] text-[#C4A77D]">
+          {/* Compliance badges */}
+          <div className="flex items-center gap-1.5 text-[10px] text-[#C4A77D]/80">
             <span>49 CFR 192</span>
             <span>&middot;</span>
             <span>API 618</span>
@@ -65,6 +44,12 @@ export default function Footer() {
             <span>&middot;</span>
             <span>EPA Subpart W</span>
           </div>
+        </div>
+
+        <div className="mt-6 pt-5 border-t border-[#E7E0D5]/40 text-center">
+          <p className="text-[11px] text-[#A8A29E]">
+            &copy; {new Date().getFullYear()} Altaviz, Inc.
+          </p>
         </div>
       </div>
     </footer>

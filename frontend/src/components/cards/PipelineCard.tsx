@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import StatusBadge from '@/components/indicators/StatusBadge';
 import { formatNumber, formatTimeAgo } from '@/lib/utils';
 
-export default function CompressorCard({ data, linkPrefix = '/dashboard/monitoring' }: { data: FleetHealthSummary; linkPrefix?: string }) {
+export default function PipelineCard({ data, linkPrefix = '/dashboard/monitoring' }: { data: FleetHealthSummary; linkPrefix?: string }) {
   return (
     <Link href={`${linkPrefix}/${data.compressor_id}`} className="block group">
       <Card className="hover:shadow-md hover:border-primary/30 transition-all py-4 gap-3">

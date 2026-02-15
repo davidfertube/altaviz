@@ -1,6 +1,6 @@
 /**
  * Demo data for /demo route — no auth, no database required.
- * Pre-seeded data that simulates a live fleet of 10 compressors
+ * Pre-seeded data that simulates a live fleet of 10 pipelines
  * across 4 Texas stations with realistic sensor readings.
  */
 
@@ -14,8 +14,8 @@ import type {
 
 export const DEMO_FLEET: FleetHealthSummary[] = [
   {
-    compressor_id: 'COMP-001',
-    model: 'Ariel JGK/4',
+    compressor_id: 'PL-001',
+    model: '24in Transmission',
     station_id: 'STN-001',
     station_name: 'Permian Basin Station',
     latitude: 31.9686,
@@ -28,8 +28,8 @@ export const DEMO_FLEET: FleetHealthSummary[] = [
     health_status: 'healthy',
   },
   {
-    compressor_id: 'COMP-002',
-    model: 'Ariel JGK/4',
+    compressor_id: 'PL-002',
+    model: '24in Transmission',
     station_id: 'STN-001',
     station_name: 'Permian Basin Station',
     latitude: 31.9686,
@@ -42,8 +42,8 @@ export const DEMO_FLEET: FleetHealthSummary[] = [
     health_status: 'healthy',
   },
   {
-    compressor_id: 'COMP-003',
-    model: 'Dresser-Rand DATUM',
+    compressor_id: 'PL-003',
+    model: '20in Lateral',
     station_id: 'STN-002',
     station_name: 'Eagle Ford Station',
     latitude: 28.7041,
@@ -56,8 +56,8 @@ export const DEMO_FLEET: FleetHealthSummary[] = [
     health_status: 'critical',
   },
   {
-    compressor_id: 'COMP-004',
-    model: 'Caterpillar G3616',
+    compressor_id: 'PL-004',
+    model: '16in Gathering',
     station_id: 'STN-002',
     station_name: 'Eagle Ford Station',
     latitude: 28.7041,
@@ -70,8 +70,8 @@ export const DEMO_FLEET: FleetHealthSummary[] = [
     health_status: 'healthy',
   },
   {
-    compressor_id: 'COMP-005',
-    model: 'Waukesha APG 36GL',
+    compressor_id: 'PL-005',
+    model: '30in Mainline',
     station_id: 'STN-003',
     station_name: 'Corpus Christi Station',
     latitude: 27.8006,
@@ -84,8 +84,8 @@ export const DEMO_FLEET: FleetHealthSummary[] = [
     health_status: 'healthy',
   },
   {
-    compressor_id: 'COMP-006',
-    model: 'Ariel JGK/4',
+    compressor_id: 'PL-006',
+    model: '24in Transmission',
     station_id: 'STN-003',
     station_name: 'Corpus Christi Station',
     latitude: 27.8006,
@@ -98,8 +98,8 @@ export const DEMO_FLEET: FleetHealthSummary[] = [
     health_status: 'healthy',
   },
   {
-    compressor_id: 'COMP-007',
-    model: 'Dresser-Rand DATUM',
+    compressor_id: 'PL-007',
+    model: '20in Lateral',
     station_id: 'STN-003',
     station_name: 'Corpus Christi Station',
     latitude: 27.8006,
@@ -112,8 +112,8 @@ export const DEMO_FLEET: FleetHealthSummary[] = [
     health_status: 'warning',
   },
   {
-    compressor_id: 'COMP-008',
-    model: 'Caterpillar G3616',
+    compressor_id: 'PL-008',
+    model: '16in Gathering',
     station_id: 'STN-004',
     station_name: 'Houston Hub Station',
     latitude: 29.7604,
@@ -126,8 +126,8 @@ export const DEMO_FLEET: FleetHealthSummary[] = [
     health_status: 'healthy',
   },
   {
-    compressor_id: 'COMP-009',
-    model: 'Waukesha APG 36GL',
+    compressor_id: 'PL-009',
+    model: '30in Mainline',
     station_id: 'STN-004',
     station_name: 'Houston Hub Station',
     latitude: 29.7604,
@@ -140,8 +140,8 @@ export const DEMO_FLEET: FleetHealthSummary[] = [
     health_status: 'healthy',
   },
   {
-    compressor_id: 'COMP-010',
-    model: 'Ariel JGK/4',
+    compressor_id: 'PL-010',
+    model: '24in Transmission',
     station_id: 'STN-004',
     station_name: 'Houston Hub Station',
     latitude: 29.7604,
@@ -160,87 +160,87 @@ export const DEMO_FLEET: FleetHealthSummary[] = [
 export const DEMO_ALERTS: ActiveAlert[] = [
   {
     id: 1001,
-    compressor_id: 'COMP-003',
+    compressor_id: 'PL-003',
     alert_timestamp: new Date(Date.now() - 2 * 3600_000).toISOString(),
     alert_type: 'threshold_critical',
     severity: 'critical',
     sensor_name: 'vibration_mms',
     sensor_value: 7.8,
     threshold_value: 8.0,
-    message: 'Vibration approaching critical threshold — possible bearing degradation detected',
+    message: 'Vibration approaching critical threshold — possible wall thinning detected',
     acknowledged: false,
     acknowledged_by: null,
     acknowledged_at: null,
     resolved: false,
     resolved_at: null,
     created_at: new Date(Date.now() - 2 * 3600_000).toISOString(),
-    model: 'Dresser-Rand DATUM',
+    model: '20in Lateral',
     station_id: 'STN-002',
     station_name: 'Eagle Ford Station',
   },
   {
     id: 1002,
-    compressor_id: 'COMP-003',
+    compressor_id: 'PL-003',
     alert_timestamp: new Date(Date.now() - 1.5 * 3600_000).toISOString(),
     alert_type: 'threshold_warning',
     severity: 'warning',
     sensor_name: 'discharge_temp_f',
     sensor_value: 248,
     threshold_value: 240,
-    message: 'Discharge temperature exceeds warning threshold — check cooling system',
+    message: 'Outlet temperature exceeds warning threshold — check thermal insulation',
     acknowledged: true,
     acknowledged_by: 'operator@altaviz.com',
     acknowledged_at: new Date(Date.now() - 1 * 3600_000).toISOString(),
     resolved: false,
     resolved_at: null,
     created_at: new Date(Date.now() - 1.5 * 3600_000).toISOString(),
-    model: 'Dresser-Rand DATUM',
+    model: '20in Lateral',
     station_id: 'STN-002',
     station_name: 'Eagle Ford Station',
   },
   {
     id: 1003,
-    compressor_id: 'COMP-003',
+    compressor_id: 'PL-003',
     alert_timestamp: new Date(Date.now() - 1 * 3600_000).toISOString(),
     alert_type: 'prediction',
     severity: 'critical',
     sensor_name: null,
     sensor_value: null,
     threshold_value: null,
-    message: 'ML model predicts failure within 72 hours — RUL estimate: 3.2 days (confidence: 0.87)',
+    message: 'ML model predicts integrity failure within 72 hours — RUL estimate: 3.2 days (confidence: 0.87)',
     acknowledged: false,
     acknowledged_by: null,
     acknowledged_at: null,
     resolved: false,
     resolved_at: null,
     created_at: new Date(Date.now() - 1 * 3600_000).toISOString(),
-    model: 'Dresser-Rand DATUM',
+    model: '20in Lateral',
     station_id: 'STN-002',
     station_name: 'Eagle Ford Station',
   },
   {
     id: 1004,
-    compressor_id: 'COMP-007',
+    compressor_id: 'PL-007',
     alert_timestamp: new Date(Date.now() - 4 * 3600_000).toISOString(),
     alert_type: 'threshold_warning',
     severity: 'warning',
     sensor_name: 'discharge_temp_f',
     sensor_value: 235,
     threshold_value: 240,
-    message: 'Discharge temperature trending upward — early degradation pattern detected',
+    message: 'Outlet temperature trending upward — early corrosion pattern detected',
     acknowledged: false,
     acknowledged_by: null,
     acknowledged_at: null,
     resolved: false,
     resolved_at: null,
     created_at: new Date(Date.now() - 4 * 3600_000).toISOString(),
-    model: 'Dresser-Rand DATUM',
+    model: '20in Lateral',
     station_id: 'STN-003',
     station_name: 'Corpus Christi Station',
   },
   {
     id: 1005,
-    compressor_id: 'COMP-007',
+    compressor_id: 'PL-007',
     alert_timestamp: new Date(Date.now() - 3 * 3600_000).toISOString(),
     alert_type: 'anomaly',
     severity: 'warning',
@@ -254,7 +254,7 @@ export const DEMO_ALERTS: ActiveAlert[] = [
     resolved: false,
     resolved_at: null,
     created_at: new Date(Date.now() - 3 * 3600_000).toISOString(),
-    model: 'Dresser-Rand DATUM',
+    model: '20in Lateral',
     station_id: 'STN-003',
     station_name: 'Corpus Christi Station',
   },
@@ -308,7 +308,7 @@ export const DEMO_EMISSIONS: EmissionsEstimate[] = DEMO_FLEET.map((c) => {
   };
 });
 
-// === Time-series readings (24 hours of 1hr aggregates for COMP-003) ===
+// === Time-series readings (24 hours of 1hr aggregates for PL-003) ===
 
 function generateReadings(compressorId: string, baseVibration: number, baseTemp: number, basePressure: number, degrading: boolean): SensorReadingAgg[] {
   const readings: SensorReadingAgg[] = [];
@@ -355,14 +355,14 @@ function generateReadings(compressorId: string, baseVibration: number, baseTemp:
 }
 
 export const DEMO_READINGS: Record<string, SensorReadingAgg[]> = {
-  'COMP-001': generateReadings('COMP-001', 3.0, 200, 1040, false),
-  'COMP-002': generateReadings('COMP-002', 3.5, 205, 1070, false),
-  'COMP-003': generateReadings('COMP-003', 3.2, 210, 1050, true),  // Degrading unit
-  'COMP-004': generateReadings('COMP-004', 2.8, 195, 1010, false),
-  'COMP-005': generateReadings('COMP-005', 3.8, 212, 1090, false),
-  'COMP-006': generateReadings('COMP-006', 3.3, 203, 1050, false),
-  'COMP-007': generateReadings('COMP-007', 3.5, 208, 1060, true),  // Early degradation
-  'COMP-008': generateReadings('COMP-008', 2.8, 192, 1000, false),
-  'COMP-009': generateReadings('COMP-009', 2.5, 188, 980, false),
-  'COMP-010': generateReadings('COMP-010', 3.1, 200, 1035, false),
+  'PL-001': generateReadings('PL-001', 3.0, 200, 1040, false),
+  'PL-002': generateReadings('PL-002', 3.5, 205, 1070, false),
+  'PL-003': generateReadings('PL-003', 3.2, 210, 1050, true),  // Degrading segment
+  'PL-004': generateReadings('PL-004', 2.8, 195, 1010, false),
+  'PL-005': generateReadings('PL-005', 3.8, 212, 1090, false),
+  'PL-006': generateReadings('PL-006', 3.3, 203, 1050, false),
+  'PL-007': generateReadings('PL-007', 3.5, 208, 1060, true),  // Early corrosion
+  'PL-008': generateReadings('PL-008', 2.8, 192, 1000, false),
+  'PL-009': generateReadings('PL-009', 2.5, 188, 980, false),
+  'PL-010': generateReadings('PL-010', 3.1, 200, 1035, false),
 };

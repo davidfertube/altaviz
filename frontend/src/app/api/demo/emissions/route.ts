@@ -8,7 +8,7 @@ export async function GET() {
   return NextResponse.json({
     estimates: DEMO_EMISSIONS,
     fleet_summary: {
-      total_compressors: DEMO_FLEET.length,
+      total_pipelines: DEMO_FLEET.length,
       total_co2e_tonnes_hr: +totalCo2e.toFixed(4),
       annual_projected_co2e: +annualProjected.toFixed(2),
       reporting_threshold: 25000,

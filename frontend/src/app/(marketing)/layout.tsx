@@ -7,9 +7,11 @@ export default function MarketingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#0A0E17] min-h-screen">
+    <div className="min-h-screen flex flex-col items-center overflow-x-hidden bg-[#0A0E17]">
       <Navbar />
-      {children}
+      <main className="flex-1 w-full">
+        {children}
+      </main>
       <Footer />
     </div>
   );

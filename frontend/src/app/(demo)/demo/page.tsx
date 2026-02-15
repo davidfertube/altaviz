@@ -3,7 +3,7 @@
 import useSWR from 'swr';
 import Header from '@/components/layout/Header';
 import MetricCard from '@/components/cards/MetricCard';
-import CompressorCard from '@/components/cards/CompressorCard';
+import PipelineCard from '@/components/cards/PipelineCard';
 import FleetMap from '@/components/maps/FleetMap';
 import AlertTable from '@/components/tables/AlertTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,7 +69,7 @@ export default function DemoFleetPage() {
             </>
           ) : (
             <>
-              <MetricCard label="Compressors Online" value={totalCompressors} subtitle={`${healthyCount} healthy`} status="healthy" />
+              <MetricCard label="Pipelines Online" value={totalCompressors} subtitle={`${healthyCount} healthy`} status="healthy" />
               <MetricCard label="Active Alerts" value={activeAlertCount} subtitle={criticalAlertCount > 0 ? `${criticalAlertCount} critical` : 'All clear'} status={criticalAlertCount > 0 ? 'critical' : activeAlertCount > 0 ? 'warning' : 'healthy'} />
               <MetricCard label="Fleet Health" value={`${healthPct}%`} subtitle={`${healthyCount}/${totalCompressors} healthy`} status={healthPct >= 80 ? 'healthy' : healthPct >= 50 ? 'warning' : 'critical'} />
               <MetricCard label="Stations Active" value={new Set(fleet?.map(c => c.station_id)).size} subtitle="4 Texas locations" />
@@ -89,7 +89,7 @@ export default function DemoFleetPage() {
             <div className="xl:col-span-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 {fleet.map(c => (
-                  <CompressorCard key={c.compressor_id} data={c} linkPrefix="/demo/monitoring" />
+                  <PipelineCard key={c.compressor_id} data={c} linkPrefix="/demo/monitoring" />
                 ))}
               </div>
             </div>

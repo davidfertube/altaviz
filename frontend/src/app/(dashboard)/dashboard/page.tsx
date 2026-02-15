@@ -3,7 +3,7 @@
 import { useFleetHealth, useActiveAlerts } from '@/hooks/useFleetHealth';
 import Header from '@/components/layout/Header';
 import MetricCard from '@/components/cards/MetricCard';
-import CompressorCard from '@/components/cards/CompressorCard';
+import PipelineCard from '@/components/cards/PipelineCard';
 import FleetMap from '@/components/maps/FleetMap';
 import AlertTable from '@/components/tables/AlertTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,7 +69,7 @@ export default function FleetOverviewPage() {
           ) : (
             <>
               <MetricCard
-                label="Compressors Online"
+                label="Pipelines Online"
                 value={totalCompressors}
                 subtitle={`${healthyCount} healthy`}
                 status="healthy"
@@ -100,7 +100,7 @@ export default function FleetOverviewPage() {
           <FleetHealthSparkline fleet={fleet} />
         )}
 
-        {/* Map + Compressor Grid */}
+        {/* Map + Pipeline Grid */}
         {fleet && fleet.length > 0 ? (
           <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
             {/* Map */}
@@ -108,11 +108,11 @@ export default function FleetOverviewPage() {
               <FleetMap fleet={fleet} />
             </div>
 
-            {/* Compressor Grid */}
+            {/* Pipeline Grid */}
             <div className="xl:col-span-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 {fleet.map(c => (
-                  <CompressorCard key={c.compressor_id} data={c} />
+                  <PipelineCard key={c.compressor_id} data={c} />
                 ))}
               </div>
             </div>

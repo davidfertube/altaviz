@@ -4,7 +4,7 @@ import useSWR from 'swr';
 import { fetcher, swrConfig } from '@/lib/fetcher';
 import type { SensorReadingAgg, CompressorMetadata, LatestReading, WindowType, AlertHistory, MaintenanceEvent, MlPrediction } from '@/lib/types';
 
-export function useCompressorDetail(compressorId: string) {
+export function usePipelineDetail(compressorId: string) {
   return useSWR<{ metadata: CompressorMetadata & { station_name: string }; latestReading: LatestReading | null; prediction: MlPrediction | null }>(
     `/api/compressors/${compressorId}`,
     fetcher,
@@ -12,7 +12,7 @@ export function useCompressorDetail(compressorId: string) {
   );
 }
 
-export function useCompressorReadings(compressorId: string, windowType: WindowType, hours: number) {
+export function usePipelineReadings(compressorId: string, windowType: WindowType, hours: number) {
   return useSWR<SensorReadingAgg[]>(
     `/api/compressors/${compressorId}/readings?window=${windowType}&hours=${hours}`,
     fetcher,
@@ -20,7 +20,7 @@ export function useCompressorReadings(compressorId: string, windowType: WindowTy
   );
 }
 
-export function useCompressorAlerts(compressorId: string) {
+export function usePipelineAlerts(compressorId: string) {
   return useSWR<(AlertHistory & { model: string; station_id: string; station_name: string })[]>(
     `/api/alerts?compressor=${compressorId}&limit=20`,
     fetcher,
@@ -28,7 +28,7 @@ export function useCompressorAlerts(compressorId: string) {
   );
 }
 
-export function useCompressorMaintenance(compressorId: string) {
+export function usePipelineMaintenance(compressorId: string) {
   return useSWR<MaintenanceEvent[]>(
     `/api/maintenance?compressor=${compressorId}`,
     fetcher,

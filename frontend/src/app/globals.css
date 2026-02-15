@@ -169,9 +169,10 @@
   border-radius: var(--radius-card);
 }
 
-/* Smooth scroll for anchor navigation */
+/* Smooth scroll for anchor navigation + prevent horizontal overflow misalignment */
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 @layer base {
