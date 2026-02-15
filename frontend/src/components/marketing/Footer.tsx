@@ -12,9 +12,9 @@ export default function Footer() {
   return (
     <footer className="border-t border-[#E7E0D5]/60 bg-[#FAF9F6]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-6">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2 justify-center sm:justify-start">
             <div className="w-7 h-7 rounded-lg bg-[#C4A77D] flex items-center justify-center">
               <AltavizLogo size={16} variant="white" />
             </div>
@@ -22,7 +22,7 @@ export default function Footer() {
           </Link>
 
           {/* Nav */}
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center justify-center gap-6">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.label}
@@ -35,7 +35,7 @@ export default function Footer() {
           </nav>
 
           {/* Compliance badges */}
-          <div className="flex items-center gap-1.5 text-[10px] text-[#C4A77D]/80">
+          <div className="flex items-center justify-center sm:justify-end gap-1.5 text-[10px] text-[#C4A77D]/80">
             <span>49 CFR 192</span>
             <span>&middot;</span>
             <span>API 618</span>

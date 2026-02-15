@@ -61,16 +61,16 @@ export default function Navbar() {
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center h-16 sm:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2.5 justify-self-start">
             <div className="w-9 h-9 rounded-xl bg-[#C4A77D] flex items-center justify-center text-[#C4A77D]">
               <AltavizLogo size={22} variant="white" />
             </div>
             <span className="text-xl font-bold text-[#1C1917] tracking-tight">Altaviz</span>
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Nav — true center */}
           <div className="hidden md:flex items-center gap-8">
             {NAV_LINKS.map((link) => (
               <NavLink key={link.href} href={link.href} label={link.label} />
@@ -78,7 +78,7 @@ export default function Navbar() {
           </div>
 
           {/* CTAs */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3 justify-self-end">
             <motion.div whileHover={{ y: -1 }} transition={{ duration: 0.2 }}>
               <Link
                 href="/login"
@@ -100,7 +100,7 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden text-[#78716C] hover:text-[#1C1917] p-2"
+            className="md:hidden text-[#78716C] hover:text-[#1C1917] p-2 justify-self-end"
           >
             {mobileOpen ? <X className="size-6" /> : <Menu className="size-6" />}
           </button>
