@@ -26,7 +26,7 @@ random.seed(42)
 class CompressorSimulator:
     """Simulates sensor data for natural gas compressor units"""
 
-    def __init__(self, n_compressors: int = 10, days: int = 7, interval_minutes: int = 10):
+    def __init__(self, n_compressors: int = 10, days: int = 10, interval_minutes: int = 10):
         """
         Initialize simulator
 
@@ -70,9 +70,13 @@ class CompressorSimulator:
             'discharge_pressure_psi': 1400,
         }
 
-        # Compressors that will experience failures
-        self.failure_compressors = random.sample(range(n_compressors), 2)
+        # Compressors that will experience failures/warnings
+        # COMP-003 (idx 2), COMP-007 (idx 6), COMP-009 (idx 8)
+        self.failure_compressors = [2, 6]  # Critical failures
         self.failure_start_days = [3, 5]  # Start degradation on day 3 and 5
+        self.near_miss_compressor = 8  # COMP-009 - warning but prevented failure
+        self.near_miss_start_day = 5
+        self.near_miss_maintenance_day = 7
 
     def generate_compressor_metadata(self) -> pd.DataFrame:
         """Generate compressor fleet metadata"""
@@ -140,6 +144,7 @@ class CompressorSimulator:
         for comp_idx in range(self.n_compressors):
             compressor_id = f'COMP-{str(comp_idx+1).zfill(3)}'
             is_failing = comp_idx in self.failure_compressors
+            is_near_miss = comp_idx == self.near_miss_compressor
             failure_day = self.failure_start_days[self.failure_compressors.index(comp_idx)] if is_failing else None
 
             # Generate baseline values for this compressor
@@ -159,6 +164,27 @@ class CompressorSimulator:
                     # Apply degradation if this compressor is failing
                     if is_failing and failure_day is not None:
                         value = self._simulate_degradation(current_day, failure_day, baseline, sensor)
+                    # COMP-009 near-miss: warning level but no critical failure
+                    elif is_near_miss:
+                        if current_day >= self.near_miss_start_day and current_day < self.near_miss_maintenance_day:
+                            # Degrading trend to warning level before maintenance
+                            days_degrading = current_day - self.near_miss_start_day
+                            if sensor == 'vibration_mms':
+                                value = baseline + (days_degrading * 0.4)  # Reaches ~5.7 mm/s (warning)
+                            elif sensor == 'discharge_temp_f':
+                                value = baseline + (days_degrading * 3)  # Slight temp increase
+                            else:
+                                value = baseline
+                        elif current_day >= self.near_miss_maintenance_day:
+                            # After proactive maintenance: metrics return to healthy
+                            if sensor == 'vibration_mms':
+                                value = 3.8  # Back to healthy range
+                            elif sensor == 'discharge_temp_f':
+                                value = 180  # Back to normal
+                            else:
+                                value = baseline
+                        else:
+                            value = baseline
                     else:
                         value = baseline
 
@@ -186,36 +212,71 @@ class CompressorSimulator:
         return df
 
     def generate_maintenance_logs(self) -> pd.DataFrame:
-        """Generate synthetic maintenance event logs"""
+        """Generate synthetic maintenance event logs with cost data"""
+        import uuid
         logs = []
-        event_types = ['scheduled', 'unscheduled', 'inspection', 'failure']
+        start_date = datetime.now() - timedelta(days=self.days)
 
         for comp_idx in range(self.n_compressors):
             compressor_id = f'COMP-{str(comp_idx+1).zfill(3)}'
             is_failing = comp_idx in self.failure_compressors
+            is_near_miss = comp_idx == self.near_miss_compressor
 
-            # Scheduled maintenance (quarterly)
-            for quarter in range(self.days // 90 + 1):
-                event_date = datetime.now() - timedelta(days=self.days) + timedelta(days=quarter * 90)
-                if event_date <= datetime.now():
-                    logs.append({
-                        'compressor_id': compressor_id,
-                        'event_date': event_date.date(),
-                        'event_type': 'scheduled',
-                        'description': 'Quarterly preventive maintenance',
-                        'downtime_hours': random.uniform(2, 4)
-                    })
-
-            # Failure event if applicable
-            if is_failing:
-                failure_day_idx = self.failure_compressors.index(comp_idx)
-                failure_date = datetime.now() - timedelta(days=self.days) + timedelta(days=self.failure_start_days[failure_day_idx] + 3)
+            # Skip scheduled maintenance for failing units and near-miss
+            if not is_failing and not is_near_miss:
+                # Scheduled quarterly maintenance (low cost)
+                scheduled_date = start_date + timedelta(days=random.randint(1, self.days-1))
                 logs.append({
+                    'maintenance_id': str(uuid.uuid4()),
                     'compressor_id': compressor_id,
-                    'event_date': failure_date.date(),
-                    'event_type': 'failure',
-                    'description': 'Bearing failure detected - high vibration levels',
-                    'downtime_hours': random.uniform(12, 24)
+                    'maintenance_type': 'scheduled',
+                    'description': 'Quarterly preventive maintenance - oil change, filter replacement, bearing inspection',
+                    'performed_at': scheduled_date,
+                    'cost_usd': 2000 + random.randint(-500, 500),  # $1,500-$2,500
+                    'performed_by': random.choice(['Tech-A', 'Tech-B', 'Tech-C']),
+                    'notes': 'All metrics within normal range post-maintenance'
+                })
+
+            # COMP-003 failure (high cost - unscheduled emergency)
+            if comp_idx == 2:  # COMP-003
+                failure_date = start_date + timedelta(days=6, hours=14)
+                logs.append({
+                    'maintenance_id': str(uuid.uuid4()),
+                    'compressor_id': compressor_id,
+                    'maintenance_type': 'failure',
+                    'description': 'Emergency bearing replacement due to critical vibration levels',
+                    'performed_at': failure_date,
+                    'cost_usd': 18500,  # Emergency dispatch + parts + downtime
+                    'performed_by': 'Emergency-Team-1',
+                    'notes': 'Catastrophic bearing failure. Required emergency shutdown and expedited parts delivery. 12 hours downtime.'
+                })
+
+            # COMP-007 failure (high cost)
+            if comp_idx == 6:  # COMP-007
+                failure_date = start_date + timedelta(days=8, hours=10)
+                logs.append({
+                    'maintenance_id': str(uuid.uuid4()),
+                    'compressor_id': compressor_id,
+                    'maintenance_type': 'failure',
+                    'description': 'Cooling system failure - temperature critical',
+                    'performed_at': failure_date,
+                    'cost_usd': 22000,  # Higher cost due to cooling system replacement
+                    'performed_by': 'Emergency-Team-2',
+                    'notes': 'Cooling system compressor failed. Required full system replacement. 16 hours downtime.'
+                })
+
+            # COMP-009 near-miss (predicted failure, scheduled early maintenance)
+            if comp_idx == 8:  # COMP-009
+                proactive_date = start_date + timedelta(days=7, hours=8)
+                logs.append({
+                    'maintenance_id': str(uuid.uuid4()),
+                    'compressor_id': compressor_id,
+                    'maintenance_type': 'scheduled',
+                    'description': 'Proactive maintenance based on early warning indicators - bearing replacement',
+                    'performed_at': proactive_date,
+                    'cost_usd': 3200,  # Slightly higher than normal scheduled, but WAY less than emergency
+                    'performed_by': 'Tech-A',
+                    'notes': 'Vibration trending upward. Replaced bearings before critical threshold. Prevented $15K+ emergency repair.'
                 })
 
         return pd.DataFrame(logs)
@@ -295,7 +356,7 @@ def main():
     # Create simulator instance
     simulator = CompressorSimulator(
         n_compressors=10,
-        days=7,
+        days=10,
         interval_minutes=10
     )
 

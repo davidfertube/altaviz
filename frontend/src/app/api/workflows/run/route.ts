@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAppSession } from '@/lib/session';
 import { runAllWorkflows, runAlertEscalation, runAlertAutoResolve, runDataFreshnessCheck, runStaleAlertCleanup } from '@/lib/workflows';
-import { trackEvent } from '@/lib/telemetry';
 import { safeCompare } from '@/lib/crypto';
 
 const WORKFLOW_MAP: Record<string, (orgId: string) => Promise<unknown>> = {
@@ -18,7 +17,12 @@ export async function POST(request: NextRequest) {
     const apiKey = request.headers.get('x-api-key');
     let organizationId: string;
 
-    if (apiKey && process.env.WORKFLOW_API_KEY && safeCompare(apiKey, process.env.WORKFLOW_API_KEY)) {
+    const isValidApiKey = apiKey && (
+      (process.env.WORKFLOW_API_KEY && safeCompare(apiKey, process.env.WORKFLOW_API_KEY)) ||
+      (process.env.WORKFLOW_API_KEY_OLD && safeCompare(apiKey, process.env.WORKFLOW_API_KEY_OLD))
+    );
+
+    if (isValidApiKey) {
       // Cron/scheduler auth — requires org ID in body
       let body;
       try {
@@ -55,15 +59,9 @@ export async function POST(request: NextRequest) {
 
     const results = await runner(organizationId);
 
-    trackEvent('workflow_executed', {
-      workflow,
-      organizationId,
-      resultCount: String(Array.isArray(results) ? results.length : 1),
-    });
-
     return NextResponse.json({ success: true, results });
   } catch (error) {
-    console.error('Workflow execution error:', error);
-    return NextResponse.json({ error: 'Workflow execution failed' }, { status: 500 });
+    const { handleApiError } = await import('@/lib/errors');
+    return handleApiError(error, 'Workflow execution failed');
   }
 }

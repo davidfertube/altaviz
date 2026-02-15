@@ -108,20 +108,29 @@ METADATA_SCHEMA = StructType([
 # Schema for maintenance event records
 
 MAINTENANCE_SCHEMA = StructType([
+    # UUID for maintenance record
+    StructField("maintenance_id", StringType(), nullable=False),
+
     # Compressor identifier
     StructField("compressor_id", StringType(), nullable=False),
 
-    # Date of maintenance event
-    StructField("event_date", DateType(), nullable=False),
-
     # Event type: 'scheduled', 'unscheduled', 'inspection', 'failure'
-    StructField("event_type", StringType(), nullable=False),
+    StructField("maintenance_type", StringType(), nullable=False),
 
     # Human-readable description of event
     StructField("description", StringType(), nullable=True),
 
-    # Duration of downtime in hours
-    StructField("downtime_hours", DoubleType(), nullable=True),
+    # Timestamp when performed
+    StructField("performed_at", TimestampType(), nullable=True),
+
+    # Cost in USD
+    StructField("cost_usd", DoubleType(), nullable=True),
+
+    # Technician who performed
+    StructField("performed_by", StringType(), nullable=True),
+
+    # Additional notes
+    StructField("notes", StringType(), nullable=True),
 ])
 
 
@@ -196,6 +205,22 @@ GOLD_SCHEMA = StructType([
 
 
 # ============================================================================
+# EMISSIONS ESTIMATES SCHEMA
+# ============================================================================
+# Schema for EPA-based emissions estimates written to emissions_estimates table
+
+EMISSIONS_SCHEMA = StructType([
+    StructField("compressor_id", StringType(), False),
+    StructField("estimate_timestamp", TimestampType(), False),
+    StructField("methane_tonnes", DoubleType(), True),
+    StructField("co2e_tonnes", DoubleType(), True),
+    StructField("emission_rate_scfh", DoubleType(), True),
+    StructField("estimation_method", StringType(), True),
+    StructField("organization_id", StringType(), True),
+])
+
+
+# ============================================================================
 # SCHEMA VALIDATION FUNCTIONS
 # ============================================================================
 
@@ -261,6 +286,7 @@ def get_schema_by_name(schema_name):
         'metadata': METADATA_SCHEMA,
         'maintenance': MAINTENANCE_SCHEMA,
         'gold': GOLD_SCHEMA,
+        'emissions': EMISSIONS_SCHEMA,
     }
 
     if schema_name not in schemas:
@@ -310,7 +336,7 @@ if __name__ == "__main__":
     print("COMPRESSOR HEALTH ETL - SCHEMA DEFINITIONS")
     print("=" * 80)
 
-    for schema_name in ['sensor', 'metadata', 'maintenance', 'gold']:
+    for schema_name in ['sensor', 'metadata', 'maintenance', 'gold', 'emissions']:
         print_schema_info(schema_name)
         print()
 

@@ -73,11 +73,8 @@ SQL
 docker exec -i altaviz-postgres psql -U postgres -d compressor_health \
   < infrastructure/sql/migrations/NNN_description.sql
 
-# Azure SQL
-az sql db execute --name compressor_health \
-  --server altaviz-server \
-  --resource-group altaviz-rg \
-  --query "$(cat infrastructure/sql/migrations/NNN_description.sql)"
+# Supabase (cloud)
+psql "$DATABASE_URL" < infrastructure/sql/migrations/NNN_description.sql
 ```
 
 ## ETL Pipeline

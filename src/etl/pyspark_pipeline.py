@@ -2,13 +2,14 @@
 PySpark ETL Pipeline Orchestrator
 
 Main entry point for the Altaviz ETL pipeline.
-Orchestrates data flow through Bronze → Silver → Gold → PostgreSQL/Azure SQL.
+Orchestrates data flow through Bronze -> Silver -> Gold -> ML -> Database.
 
 Pipeline stages:
 1. Bronze: Load raw Parquet data, write to Delta Lake (immutable)
 2. Silver: Data quality checks, cleaning, validation
 3. Gold: Feature engineering, aggregations, ML-ready data
-4. Database: Write aggregates, alerts, metadata, and quality metrics
+4. ML Inference: Anomaly detection, temperature drift, emissions, RUL prediction
+5. Database: Write aggregates, alerts, predictions, emissions, and quality metrics
 
 Usage:
     python src/etl/pyspark_pipeline.py
@@ -35,6 +36,8 @@ from src.etl.database_writer import (
     generate_alerts,
     write_alerts,
     write_quality_metrics,
+    write_ml_predictions,
+    write_emissions_estimates,
     test_connection,
     get_db_display_name
 )
@@ -273,6 +276,208 @@ def read_gold_layer(spark: SparkSession):
 
 
 # ============================================================================
+# ML INFERENCE STAGE
+# ============================================================================
+
+def run_ml_inference(spark: SparkSession, gold_df, metadata_df=None):
+    """
+    Run ML inference models on Gold layer data.
+
+    Runs four models in sequence, logging results for each:
+    1. Anomaly detection (Isolation Forest on vibration patterns)
+    2. Temperature drift prediction (linear regression on temp trends)
+    3. Emissions estimation (EPA Subpart W emission factors)
+    4. RUL prediction (rate-of-change heuristic)
+
+    Each model is wrapped in its own try/except so a failure in one
+    does not prevent the others from running.
+
+    Args:
+        spark: Active SparkSession
+        gold_df: Gold layer DataFrame with ML-ready features
+        metadata_df: Optional compressor metadata DataFrame
+
+    Returns:
+        dict: Results from each model (may contain None for failed models)
+    """
+    logger.info("=" * 80)
+    logger.info("ML INFERENCE STAGE: Running predictive models")
+    logger.info("=" * 80)
+
+    results = {
+        'anomaly_scores': None,
+        'temp_drift': None,
+        'emissions': None,
+        'rul_predictions': None,
+    }
+
+    with Timer("ML inference stage"):
+        # Aggregate Gold layer for ML models (same format as dashboard export)
+        logger.info("Aggregating Gold layer for ML models...")
+        agg_df = aggregate_for_dashboard(gold_df, window_type='1hr')
+
+        # --- 1. Anomaly Detection ---
+        try:
+            from src.ml.anomaly_detector import score_readings, train_anomaly_detector, load_model
+
+            logger.info("[ML 1/4] Running anomaly detection (Isolation Forest)...")
+
+            # Train model if not already saved
+            model = load_model()
+            if model is None:
+                logger.info("No trained anomaly model found, training on current data...")
+                model = train_anomaly_detector(agg_df)
+
+            if model is not None:
+                anomaly_results = score_readings(agg_df, model=model)
+                results['anomaly_scores'] = anomaly_results
+
+                anomaly_count = sum(1 for r in anomaly_results if r.get('is_anomaly'))
+                logger.info(
+                    f"[ML 1/4] Anomaly detection complete: "
+                    f"{anomaly_count}/{len(anomaly_results)} compressors flagged as anomalous"
+                )
+                for r in anomaly_results:
+                    if r.get('is_anomaly'):
+                        logger.warning(
+                            f"  ANOMALY: {r['compressor_id']} "
+                            f"(score={r.get('anomaly_score', 0):.4f}, "
+                            f"prob={r.get('anomaly_probability', 0):.2%})"
+                        )
+            else:
+                logger.warning("[ML 1/4] Anomaly detection skipped: no model available")
+
+        except Exception as e:
+            logger.error(f"[ML 1/4] Anomaly detection failed (non-fatal): {e}")
+
+        # --- 2. Temperature Drift Prediction ---
+        try:
+            from src.ml.temp_drift_predictor import predict_fleet_temp_drift
+
+            logger.info("[ML 2/4] Running temperature drift prediction...")
+            temp_drift_results = predict_fleet_temp_drift(agg_df)
+            results['temp_drift'] = temp_drift_results
+
+            drifting = [p for p in temp_drift_results if p.get('drift_status') != 'stable']
+            logger.info(
+                f"[ML 2/4] Temperature drift complete: "
+                f"{len(drifting)}/{len(temp_drift_results)} compressors showing drift"
+            )
+            for p in drifting:
+                logger.warning(
+                    f"  DRIFT: {p['compressor_id']} "
+                    f"status={p['drift_status']}, "
+                    f"rate={p.get('drift_rate_f_per_hour', 0):.3f} F/hr, "
+                    f"hours_to_warning={p.get('hours_to_warning')}, "
+                    f"hours_to_critical={p.get('hours_to_critical')}"
+                )
+
+        except Exception as e:
+            logger.error(f"[ML 2/4] Temperature drift prediction failed (non-fatal): {e}")
+
+        # --- 3. Emissions Estimation ---
+        try:
+            from src.ml.emissions_estimator import estimate_fleet_emissions
+
+            logger.info("[ML 3/4] Running emissions estimation (EPA Subpart W)...")
+            emissions_results = estimate_fleet_emissions(agg_df)
+            results['emissions'] = emissions_results
+
+            total_ch4 = sum(e.get('methane_tonnes', 0) for e in emissions_results)
+            total_co2e = sum(e.get('co2e_tonnes', 0) for e in emissions_results)
+            logger.info(
+                f"[ML 3/4] Emissions estimation complete: "
+                f"{len(emissions_results)} compressors, "
+                f"total CH4={total_ch4:.6f} tonnes/hr, "
+                f"total CO2e={total_co2e:.4f} tonnes/hr"
+            )
+
+            # Write emissions to database
+            if test_connection():
+                write_emissions_estimates(spark, emissions_results)
+            else:
+                logger.warning("[ML 3/4] Skipping emissions DB write: no database connection")
+
+        except Exception as e:
+            logger.error(f"[ML 3/4] Emissions estimation failed (non-fatal): {e}")
+
+        # --- 4. RUL Prediction (fleet-level) ---
+        try:
+            from src.ml.rul_predictor import calculate_rul
+            from pyspark.sql import functions as F
+
+            logger.info("[ML 4/4] Running fleet RUL prediction...")
+
+            # Get latest and baseline readings per compressor
+            latest_times = agg_df.groupBy("compressor_id").agg(
+                F.max("agg_timestamp").alias("latest_time")
+            )
+            latest_df = agg_df.alias("a").join(
+                latest_times.alias("b"),
+                (F.col("a.compressor_id") == F.col("b.compressor_id")) &
+                (F.col("a.agg_timestamp") == F.col("b.latest_time"))
+            ).select("a.*")
+
+            baseline_times = agg_df.groupBy("compressor_id").agg(
+                F.min("agg_timestamp").alias("baseline_time")
+            )
+            baseline_df = agg_df.alias("a").join(
+                baseline_times.alias("b"),
+                (F.col("a.compressor_id") == F.col("b.compressor_id")) &
+                (F.col("a.agg_timestamp") == F.col("b.baseline_time"))
+            ).select("a.*")
+
+            readings_latest = {row['compressor_id']: row.asDict() for row in latest_df.collect()}
+            readings_baseline = {row['compressor_id']: row.asDict() for row in baseline_df.collect()}
+
+            def remap_rul_columns(row_dict):
+                """Map aggregate column names (_mean) to RUL predictor column names (_avg)."""
+                if not row_dict:
+                    return None
+                return {
+                    'vibration_avg': row_dict.get('vibration_mean', 0),
+                    'discharge_temp_avg': row_dict.get('discharge_temp_mean', 0),
+                    'discharge_pressure_avg': row_dict.get('discharge_pressure_mean', 0),
+                }
+
+            rul_predictions = []
+            all_ids = sorted(set(readings_latest.keys()) | set(readings_baseline.keys()))
+            for comp_id in all_ids:
+                pred = calculate_rul(
+                    comp_id,
+                    remap_rul_columns(readings_latest.get(comp_id)),
+                    remap_rul_columns(readings_baseline.get(comp_id))
+                )
+                rul_predictions.append(pred)
+
+            results['rul_predictions'] = rul_predictions
+
+            at_risk = [p for p in rul_predictions if p.get('predicted_rul_hours') is not None]
+            logger.info(
+                f"[ML 4/4] RUL prediction complete: "
+                f"{len(at_risk)}/{len(rul_predictions)} compressors with finite RUL"
+            )
+            for p in at_risk:
+                rul_h = p.get('predicted_rul_hours')
+                rul_d = round(rul_h / 24.0, 1) if rul_h is not None else None
+                logger.warning(
+                    f"  AT RISK: {p['compressor_id']} "
+                    f"RUL={rul_h}h ({rul_d}d), "
+                    f"failure_prob={p.get('failure_probability', 0):.1%}, "
+                    f"sensor={p.get('primary_risk_sensor')}"
+                )
+
+        except Exception as e:
+            logger.error(f"[ML 4/4] RUL prediction failed (non-fatal): {e}")
+
+    # Summary
+    completed = sum(1 for v in results.values() if v is not None)
+    logger.info(f"ML inference stage complete: {completed}/4 models ran successfully")
+
+    return results
+
+
+# ============================================================================
 # DATABASE EXPORT
 # ============================================================================
 
@@ -326,6 +531,10 @@ def export_to_database(spark, gold_df, metadata_df=None, maintenance_df=None, qu
         else:
             logger.info("No alerts to write (all sensors normal)")
 
+        # Generate and write ML predictions
+        logger.info("Generating ML predictions...")
+        write_ml_predictions(spark, agg_df)
+
         # Write data quality metrics
         if quality_metrics is not None:
             logger.info("Writing data quality metrics...")
@@ -342,6 +551,7 @@ def run_pipeline(
     skip_bronze: bool = False,
     skip_silver: bool = False,
     skip_gold: bool = False,
+    skip_ml: bool = False,
     skip_db: bool = False
 ):
     """
@@ -351,6 +561,7 @@ def run_pipeline(
         skip_bronze: If True, read existing Bronze layer instead of loading raw data
         skip_silver: If True, read existing Silver layer instead of processing
         skip_gold: If True, read existing Gold layer instead of processing
+        skip_ml: If True, skip ML inference stage
         skip_db: If True, skip database export
     """
     pipeline_start = datetime.now()
@@ -393,6 +604,12 @@ def run_pipeline(
         else:
             gold_df = read_gold_layer(spark)
 
+        # ML INFERENCE
+        if not skip_ml:
+            ml_results = run_ml_inference(spark, gold_df, metadata_df)
+        else:
+            logger.info("Skipping ML inference stage (--skip-ml)")
+
         # DATABASE EXPORT
         if not skip_db:
             export_to_database(spark, gold_df, metadata_df, maintenance_df, quality_metrics)
@@ -434,6 +651,7 @@ def main():
     Usage:
         python src/etl/pyspark_pipeline.py                    # Full pipeline
         python src/etl/pyspark_pipeline.py --skip-bronze      # Skip Bronze
+        python src/etl/pyspark_pipeline.py --skip-ml          # Skip ML inference
         python src/etl/pyspark_pipeline.py --skip-db          # Skip DB export
     """
     import argparse
@@ -445,6 +663,8 @@ def main():
                        help='Skip Silver layer (read existing)')
     parser.add_argument('--skip-gold', action='store_true',
                        help='Skip Gold layer (read existing)')
+    parser.add_argument('--skip-ml', action='store_true',
+                       help='Skip ML inference stage')
     parser.add_argument('--skip-db', '--skip-postgres', action='store_true',
                        dest='skip_db',
                        help='Skip database export')
@@ -456,6 +676,7 @@ def main():
         skip_bronze=args.skip_bronze,
         skip_silver=args.skip_silver,
         skip_gold=args.skip_gold,
+        skip_ml=args.skip_ml,
         skip_db=args.skip_db
     )
 

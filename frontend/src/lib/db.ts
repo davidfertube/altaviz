@@ -1,40 +1,36 @@
-import { Pool, PoolConfig } from 'pg';
+import { Pool } from 'pg';
 
-const poolConfig: PoolConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'compressor_health',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  max: parseInt(process.env.DB_POOL_MAX || '20'),
-  idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
-  connectionTimeoutMillis: parseInt(process.env.DB_CONNECT_TIMEOUT || '10000'),
-  statement_timeout: parseInt(process.env.DB_STATEMENT_TIMEOUT || '30000'),
-  application_name: 'altaviz-frontend',
-  ...(process.env.DB_SSL === 'true' && {
-    ssl: { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false' },
-  }),
-};
+let pool: Pool | null = null;
 
-const pool = new Pool(poolConfig);
+function getPool(): Pool {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: parseInt(process.env.DB_POOL_MAX || '10'),
+      idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT || '30000'),
+      connectionTimeoutMillis: parseInt(process.env.DB_STATEMENT_TIMEOUT || '30000'),
+      ssl: process.env.DATABASE_SSL === 'false'
+        ? false
+        : { rejectUnauthorized: true },
+    });
 
-pool.on('error', (err) => {
-  console.error('Unexpected database pool error:', err.message);
-});
-
-if (typeof process !== 'undefined') {
-  process.on('SIGTERM', () => pool.end());
-  process.on('SIGINT', () => pool.end());
+    pool.on('error', (err) => {
+      console.error('Unexpected pool error:', err.message);
+    });
+  }
+  return pool;
 }
-
-export default pool;
 
 export async function query<T>(text: string, params?: unknown[]): Promise<T[]> {
-  const client = await pool.connect();
-  try {
-    const result = await client.query(text, params);
-    return result.rows as T[];
-  } finally {
-    client.release();
+  const result = await getPool().query(text, params);
+  return result.rows as T[];
+}
+
+export async function closePool(): Promise<void> {
+  if (pool) {
+    await pool.end();
+    pool = null;
   }
 }
+
+export default { query, closePool };

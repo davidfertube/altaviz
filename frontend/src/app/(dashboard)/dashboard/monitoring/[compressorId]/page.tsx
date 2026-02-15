@@ -22,7 +22,70 @@ import StatusBadge from '@/components/indicators/StatusBadge';
 import { MetricCardSkeleton, ChartSkeleton } from '@/components/ui/Skeleton';
 import { SENSOR_THRESHOLDS, COLORS } from '@/lib/constants';
 import { timeRangeToHours, formatTimestamp } from '@/lib/utils';
-import type { WindowType, TimeRange, HealthStatus } from '@/lib/types';
+import type { WindowType, TimeRange, HealthStatus, MlPrediction } from '@/lib/types';
+
+function RulBadge({ prediction }: { prediction: MlPrediction }) {
+  const rulDays = prediction.rul_days != null ? Number(prediction.rul_days) : null;
+  const failProb = prediction.failure_probability != null ? Number(prediction.failure_probability) : 0;
+  const confidence = prediction.confidence_score != null ? Number(prediction.confidence_score) : 0;
+
+  const isUrgent = rulDays != null && rulDays < 3;
+  const isWarning = rulDays != null && rulDays < 7;
+
+  const bgColor = isUrgent ? 'bg-red-500/10 border-red-500/30' : isWarning ? 'bg-amber-500/10 border-amber-500/30' : 'bg-emerald-500/10 border-emerald-500/30';
+  const textColor = isUrgent ? 'text-red-600 dark:text-red-400' : isWarning ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400';
+
+  return (
+    <Card className={`p-4 border ${bgColor}`}>
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">ML Prediction</p>
+          <p className={`text-2xl font-bold font-mono ${textColor}`}>
+            {rulDays != null ? `${rulDays.toFixed(1)}d` : 'N/A'}
+          </p>
+          <p className="text-xs text-muted-foreground">Remaining Useful Life</p>
+        </div>
+        <Badge variant={isUrgent ? 'destructive' : isWarning ? 'secondary' : 'outline'} className="text-xs">
+          {prediction.model_version || 'heuristic-v1.0'}
+        </Badge>
+      </div>
+      <div className="grid grid-cols-2 gap-3 text-xs">
+        <div>
+          <p className="text-muted-foreground">Failure Probability</p>
+          <p className={`font-mono font-semibold ${failProb > 0.5 ? 'text-red-500' : failProb > 0.2 ? 'text-amber-500' : 'text-emerald-500'}`}>
+            {(failProb * 100).toFixed(1)}%
+          </p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Confidence</p>
+          <p className="font-mono font-semibold text-foreground">{(confidence * 100).toFixed(0)}%</p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function CostSavingsBadge({ prediction }: { prediction: MlPrediction }) {
+  const failProb = prediction.failure_probability != null ? Number(prediction.failure_probability) : 0;
+
+  // Unplanned downtime costs ~$15k/hr for gas compression; early detection saves ~80% of that
+  const hourlyDowntimeCost = 15000;
+  const avgDowntimeHours = 8;
+  const preventionRate = 0.80;
+  const estimatedSavings = Math.round(hourlyDowntimeCost * avgDowntimeHours * failProb * preventionRate);
+
+  if (estimatedSavings < 100) return null;
+
+  return (
+    <Card className="p-4 border bg-blue-500/5 border-blue-500/20">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Estimated Savings</p>
+      <p className="text-2xl font-bold font-mono text-blue-600 dark:text-blue-400">
+        ${estimatedSavings.toLocaleString()}
+      </p>
+      <p className="text-xs text-muted-foreground">from early failure detection</p>
+    </Card>
+  );
+}
 
 export default function CompressorDetailPage() {
   const { compressorId } = useParams<{ compressorId: string }>();
@@ -36,6 +99,7 @@ export default function CompressorDetailPage() {
   const { data: maintenance } = useCompressorMaintenance(compressorId);
 
   const latest = detail?.latestReading;
+  const prediction = detail?.prediction;
 
   let healthStatus: HealthStatus = 'healthy';
   if (alerts && alerts.some(a => a.severity === 'critical' && !a.resolved)) healthStatus = 'critical';
@@ -59,6 +123,14 @@ export default function CompressorDetailPage() {
             {latest && (
               <span className="text-sm text-muted-foreground hidden md:inline">Last: <span className="text-foreground font-mono">{formatTimestamp(latest.agg_timestamp)}</span></span>
             )}
+          </div>
+        )}
+
+        {/* ML Prediction + Cost Savings Row */}
+        {prediction && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <RulBadge prediction={prediction} />
+            <CostSavingsBadge prediction={prediction} />
           </div>
         )}
 

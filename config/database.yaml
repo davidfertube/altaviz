@@ -2,65 +2,23 @@
 # DATABASE CONFIGURATION
 # ===============================================
 # Configuration for database and Delta Lake connections
-# Supports both PostgreSQL (local dev) and Azure SQL Database (cloud)
+# Uses PostgreSQL (Supabase free tier) with connection string auth
 # Environment variables are substituted using ${VAR_NAME:-default_value} syntax
 
 # -----------------------------------------------
 # DATABASE TYPE SELECTOR
 # -----------------------------------------------
-# Set DB_TYPE environment variable to switch between databases:
-#   DB_TYPE=postgresql  → Local PostgreSQL (default, for development)
-#   DB_TYPE=azure_sql   → Azure SQL Database (for cloud deployment)
-db_type: "${DB_TYPE:-postgresql}"
+db_type: "postgresql"
 
 # -----------------------------------------------
-# POSTGRESQL SETTINGS (local development)
+# POSTGRESQL SETTINGS (Supabase)
 # -----------------------------------------------
-# Used when db_type=postgresql
-# Start with: docker-compose up -d
 postgresql:
-  host: "${DB_HOST:-localhost}"
-  port: "${DB_PORT:-5432}"
-  database: "${DB_NAME:-compressor_health}"
-  user: "${DB_USER:-postgres}"
-  password: "${DB_PASSWORD:-postgres}"
+  connection_url: "${DATABASE_URL}"
   schema: "public"
-  # JDBC settings
+  # JDBC settings for PySpark writes
   jdbc_url_template: "jdbc:postgresql://{host}:{port}/{database}"
   jdbc_driver: "org.postgresql.Driver"
-
-# -----------------------------------------------
-# AZURE SQL DATABASE SETTINGS (cloud deployment)
-# -----------------------------------------------
-# Used when db_type=azure_sql
-# Free tier: 100,000 vCore seconds/month (32 GB storage)
-# Setup guide: AZURE_SETUP_GUIDE.md
-azure_sql:
-  # Azure SQL server name (e.g., "altaviz-server.database.windows.net")
-  server: "${AZURE_SQL_SERVER:-altaviz-server.database.windows.net}"
-  database: "${AZURE_SQL_DATABASE:-compressor_health}"
-  user: "${AZURE_SQL_USER:-altaviz_admin}"
-  password: "${AZURE_SQL_PASSWORD}"
-  port: "${AZURE_SQL_PORT:-1433}"
-  schema: "dbo"
-  # JDBC settings for Azure SQL
-  jdbc_url_template: "jdbc:sqlserver://{server}:{port};databaseName={database};encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;"
-  jdbc_driver: "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-
-# -----------------------------------------------
-# AZURE STORAGE SETTINGS (for Delta Lake on Azure)
-# -----------------------------------------------
-# Used when deploying Delta Lake tables to Azure Blob Storage / ADLS Gen2
-azure_storage:
-  # Storage account name
-  account_name: "${AZURE_STORAGE_ACCOUNT:-altavizstorage}"
-  # Container for Delta Lake tables
-  container_name: "${AZURE_STORAGE_CONTAINER:-datalake}"
-  # Access key (use Azure Key Vault in production)
-  access_key: "${AZURE_STORAGE_KEY}"
-  # ABFS path template for Delta Lake
-  # abfs://<container>@<account>.dfs.core.windows.net/<path>
-  abfs_path_template: "abfss://{container}@{account}.dfs.core.windows.net/"
 
 # -----------------------------------------------
 # CONNECTION POOL SETTINGS
@@ -71,17 +29,8 @@ pool:
   timeout: 30
 
 # -----------------------------------------------
-# SQLALCHEMY SETTINGS
-# -----------------------------------------------
-sqlalchemy:
-  echo: false
-  pool_pre_ping: true
-  pool_recycle: 3600
-
-# -----------------------------------------------
 # DELTA LAKE CONFIGURATION
 # -----------------------------------------------
-# Delta Lake provides ACID transactions on top of data lake storage
 delta_lake:
   checkpoint_location: "data/processed/checkpoints/"
   log_retention_duration: "interval 30 days"
@@ -92,7 +41,6 @@ delta_lake:
 # -----------------------------------------------
 # - This file is loaded by src/etl/utils.py
 # - Environment variables are read from .env file in project root
-# - Never commit database passwords to version control
-# - For Azure: use Azure Key Vault for secrets management
+# - Never commit database credentials to version control
+# - Auth uses DATABASE_URL connection string
 # - For local dev: use .env file (gitignored)
-# - To switch databases: set DB_TYPE=azure_sql in .env

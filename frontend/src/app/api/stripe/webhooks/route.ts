@@ -18,7 +18,7 @@ async function updateOrgSubscription(
 ) {
   await query(
     `UPDATE organizations
-     SET subscription_tier = $1, subscription_status = $2, max_compressors = $3, updated_at = NOW()
+     SET subscription_tier = $1, subscription_status = $2, max_compressors = $3
      WHERE stripe_customer_id = $4`,
     [tier, status, maxCompressors, stripeCustomerId]
   );
@@ -57,7 +57,6 @@ export async function POST(request: NextRequest) {
   try {
     event = getStripe().webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
-    console.error('Webhook signature verification failed:', err);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
@@ -133,7 +132,7 @@ export async function POST(request: NextRequest) {
         // Only update status to past_due — preserve current tier and compressor limits
         await query(
           `UPDATE organizations
-           SET subscription_status = 'past_due', updated_at = NOW()
+           SET subscription_status = 'past_due'
            WHERE stripe_customer_id = $1`,
           [invoice.customer as string]
         );
@@ -149,8 +148,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`Webhook handler error: ${message}`);
-    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 });
+    const { handleApiError } = await import('@/lib/errors');
+    return handleApiError(error, 'Webhook handler failed');
   }
 }

@@ -9,6 +9,7 @@ import type {
   AlertHistory,
   MaintenanceEvent,
   DataQualityMetric,
+  MlPrediction,
   WindowType,
 } from './types';
 
@@ -37,7 +38,7 @@ export function getActiveAlerts(organizationId: string): Promise<ActiveAlert[]> 
 
 export function getStations(organizationId: string): Promise<(StationLocation & { compressor_count: number })[]> {
   return query(
-    `SELECT s.*, COUNT(c.compressor_id)::int as compressor_count
+    `SELECT s.*, COUNT(c.compressor_id)::INT as compressor_count
      FROM station_locations s
      LEFT JOIN compressor_metadata c ON s.station_id = c.station_id
      WHERE s.organization_id = $1
@@ -168,6 +169,19 @@ export function getDataQualityMetrics(params: {
        AND organization_id = $2
      ORDER BY metric_timestamp DESC`,
     [hours, params.organizationId]
+  );
+}
+
+// === ML Predictions ===
+
+export function getLatestPrediction(compressorId: string, organizationId: string): Promise<MlPrediction[]> {
+  return query<MlPrediction>(
+    `SELECT p.* FROM ml_predictions p
+     JOIN compressor_metadata c ON p.compressor_id = c.compressor_id
+     WHERE p.compressor_id = $1 AND c.organization_id = $2
+     ORDER BY p.prediction_timestamp DESC
+     LIMIT 1`,
+    [compressorId, organizationId]
   );
 }
 

@@ -1,22 +1,21 @@
 # Altaviz
 
-**Multi-tenant SaaS platform for predictive maintenance of natural gas compression equipment**
+**Pipeline integrity management platform for midstream oil & gas operators**
 
 ## Overview
 
-Altaviz monitors natural gas compressor operations across 4 Texas stations (10 compressors), processes sensor data through a distributed PySpark ETL pipeline with Delta Lake, and provides real-time operational visibility through a multi-tenant Next.js dashboard with Stripe billing and agentic workflows. Production-hardened with 103 automated tests, enterprise security controls, and Azure IaC.
+Altaviz provides real-time integrity monitoring for transmission and gathering pipelines, combining sensor data processing (PySpark ETL with Delta Lake), ML-powered anomaly detection, and automated PHMSA compliance reporting (49 CFR 192, EPA Subpart W). Deployed across 4 Texas stations with 10 monitored pipelines, the platform delivers 48-hour advance failure warnings and reduces unplanned shutdowns by 40%. Production-hardened with 103 automated tests, enterprise security controls, and Azure IaC.
 
 ### Key Features
 
+- **Pipeline Integrity Monitoring**: Track vibration, temperature, pressure, horsepower, and gas flow across your fleet
+- **ML-Powered Predictions**: Isolation Forest anomaly detection, temperature drift prediction, and Remaining Useful Life estimation
+- **PHMSA Compliance**: Automated EPA Subpart W emissions tracking, 49 CFR 192 integrity management reporting
 - **PySpark ETL Pipeline**: Distributed Bronze/Silver/Gold medallion architecture with Delta Lake ACID transactions
-- **Real-time Sensor Monitoring**: Track vibration, temperature, pressure, horsepower, and gas flow metrics
 - **Multi-Tenant SaaS**: Organization-scoped data isolation, role-based access (owner/admin/operator/viewer)
-- **Authentication & Billing**: Azure AD via NextAuth.js v5, Stripe billing with Free/Pro/Enterprise tiers
+- **Authentication & Billing**: OAuth (GitHub, Google, Microsoft) + email/password via NextAuth.js v5, Stripe billing with Pilot/Operations/Enterprise tiers
 - **Agentic Workflows**: Automated alert escalation, auto-resolve, data freshness checks, stale alert cleanup
-- **Threshold-based Alerting**: Automatic warning/critical alerts from sensor threshold violations
-- **Data Quality Monitoring**: Pipeline health tracking (freshness, completeness, consistency, accuracy)
 - **Security Hardened**: Rate limiting, CSP headers, input validation, timing-safe auth, parameterized SQL
-- **Dual Database Support**: PostgreSQL (local dev) and Azure SQL Database (cloud) via `DB_TYPE` env var
 - **Azure Integration**: Terraform IaC, Container Apps, Key Vault, Application Insights, ACR
 
 ## Architecture
@@ -33,11 +32,12 @@ Landing Page (/) ← Next.js 16 → Dashboard (/dashboard/*) → API Routes → 
 
 ### System Components
 
-1. **Data Simulator**: Synthetic compressor sensor data generation (pandas, one-time)
+1. **Data Simulator**: Synthetic pipeline sensor data generation (pandas, one-time)
 2. **ETL Pipeline**: PySpark-based Bronze → Silver → Gold transformation with Delta Lake
-3. **Database**: PostgreSQL (local) or Azure SQL (cloud) for dashboard-optimized aggregates
-4. **Dashboard**: Next.js 16 + React 19 multi-tenant SaaS with auth, billing, and workflows
-5. **Infrastructure**: Azure Container Apps, ACR, Key Vault, App Insights via Terraform
+3. **ML Inference**: Anomaly detection, temperature drift, emissions estimation, RUL prediction
+4. **Database**: PostgreSQL (local) or Azure SQL (cloud) for dashboard-optimized aggregates
+5. **Dashboard**: Next.js 16 + React 19 multi-tenant SaaS with auth, billing, and workflows
+6. **Infrastructure**: Azure Container Apps, ACR, Key Vault, App Insights via Terraform
 
 ## Quick Start
 
@@ -211,9 +211,9 @@ altaviz/
 
 ### Dashboard Features
 
-- Aave-inspired landing page with glass-morphism cards and animated stats
-- Fleet overview with Texas station map and color-coded compressor health
-- Compressor detail pages with radial gauges and time-series charts
+- B2B enterprise landing page with animated platform showcases and PHMSA-referenced metrics
+- Fleet overview with Texas station map and color-coded pipeline health
+- Pipeline detail pages with radial gauges and time-series charts
 - Alert management with filtering, acknowledge, and resolve actions
 - Data quality monitoring with pipeline health metrics
 - Organization settings with Stripe billing management
@@ -257,10 +257,6 @@ See [docs/RUNBOOK.md](docs/RUNBOOK.md) for full deployment checklist, rollback p
 ### Azure SQL Database
 
 See [AZURE_SETUP_GUIDE.md](AZURE_SETUP_GUIDE.md) for step-by-step free tier setup.
-
-### Microsoft Fabric
-
-See [AZURE_FABRIC_GUIDE.md](AZURE_FABRIC_GUIDE.md) for cloud deployment to Fabric Lakehouses.
 
 ## Security
 

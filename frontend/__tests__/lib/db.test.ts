@@ -3,18 +3,12 @@
  */
 
 // Mock pg before importing db module
-const mockQuery = jest.fn();
-const mockRelease = jest.fn();
-const mockConnect = jest.fn().mockResolvedValue({
-  query: mockQuery,
-  release: mockRelease,
-});
+const mockQuery = jest.fn().mockResolvedValue({ rows: [] });
 const mockOn = jest.fn();
 const mockEnd = jest.fn();
 
 jest.mock('pg', () => ({
   Pool: jest.fn().mockImplementation(() => ({
-    connect: mockConnect,
     on: mockOn,
     end: mockEnd,
     query: mockQuery,
@@ -27,58 +21,55 @@ describe('db module', () => {
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...originalEnv };
-    mockQuery.mockReset();
-    mockRelease.mockReset();
-    mockConnect.mockReset().mockResolvedValue({
-      query: mockQuery,
-      release: mockRelease,
-    });
+    mockQuery.mockReset().mockResolvedValue({ rows: [] });
+    mockOn.mockReset();
+    mockEnd.mockReset();
   });
 
   afterAll(() => {
     process.env = originalEnv;
   });
 
-  it('creates pool with default config values', () => {
+  it('creates pool with connectionString and default config', async () => {
+    process.env.DATABASE_URL = 'postgresql://user:pass@myhost:5432/mydb';
+
     const { Pool } = require('pg');
-    require('../../src/lib/db');
+    const { query } = require('../../src/lib/db');
+
+    // Trigger lazy pool creation
+    await query('SELECT 1');
 
     expect(Pool).toHaveBeenCalledWith(
       expect.objectContaining({
-        host: 'localhost',
-        port: 5432,
-        database: 'compressor_health',
-        user: 'postgres',
-        max: 20,
-        application_name: 'altaviz-frontend',
+        connectionString: 'postgresql://user:pass@myhost:5432/mydb',
+        max: 10,
       })
     );
   });
 
-  it('uses env vars for pool config', () => {
-    process.env.DB_HOST = 'custom-host';
-    process.env.DB_PORT = '5433';
+  it('uses env vars for pool config', async () => {
+    process.env.DATABASE_URL = 'postgresql://user:pass@myhost:5432/mydb';
     process.env.DB_POOL_MAX = '50';
-    process.env.DB_STATEMENT_TIMEOUT = '60000';
+    process.env.DB_IDLE_TIMEOUT = '60000';
 
     const { Pool } = require('pg');
-    require('../../src/lib/db');
+    const { query } = require('../../src/lib/db');
+    await query('SELECT 1');
 
     expect(Pool).toHaveBeenCalledWith(
       expect.objectContaining({
-        host: 'custom-host',
-        port: 5433,
         max: 50,
-        statement_timeout: 60000,
+        idleTimeoutMillis: 60000,
       })
     );
   });
 
-  it('enables SSL when DB_SSL=true', () => {
-    process.env.DB_SSL = 'true';
+  it('enables SSL by default with rejectUnauthorized: true', async () => {
+    process.env.DATABASE_URL = 'postgresql://user:pass@myhost:5432/mydb';
 
     const { Pool } = require('pg');
-    require('../../src/lib/db');
+    const { query } = require('../../src/lib/db');
+    await query('SELECT 1');
 
     expect(Pool).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -87,21 +78,34 @@ describe('db module', () => {
     );
   });
 
-  it('query function releases client after success', async () => {
+  it('disables SSL when DATABASE_SSL=false', async () => {
+    process.env.DATABASE_URL = 'postgresql://user:pass@myhost:5432/mydb';
+    process.env.DATABASE_SSL = 'false';
+
+    const { Pool } = require('pg');
+    const { query } = require('../../src/lib/db');
+    await query('SELECT 1');
+
+    expect(Pool).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ssl: false,
+      })
+    );
+  });
+
+  it('query function returns rows', async () => {
     mockQuery.mockResolvedValue({ rows: [{ id: 1 }] });
 
     const { query } = require('../../src/lib/db');
     const result = await query('SELECT 1');
 
     expect(result).toEqual([{ id: 1 }]);
-    expect(mockRelease).toHaveBeenCalled();
   });
 
-  it('query function releases client after error', async () => {
+  it('query function propagates errors', async () => {
     mockQuery.mockRejectedValue(new Error('DB error'));
 
     const { query } = require('../../src/lib/db');
     await expect(query('BAD SQL')).rejects.toThrow('DB error');
-    expect(mockRelease).toHaveBeenCalled();
   });
 });

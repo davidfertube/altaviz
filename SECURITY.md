@@ -11,7 +11,7 @@ If you discover a security vulnerability, please report it responsibly:
 
 ## Authentication Model
 
-- **Provider**: NextAuth.js v5 (beta) with Azure AD (Microsoft Entra ID)
+- **Provider**: NextAuth.js v5 (beta) with GitHub + Google OAuth
 - **Strategy**: JWT with 8-hour expiry and hourly token refresh
 - **Session enrichment**: `organizationId`, `role`, `subscriptionTier` embedded in JWT
 - **Dev credentials**: Disabled by default; requires both `NODE_ENV=development` AND `DEV_CREDENTIALS_ENABLED=true`
@@ -26,7 +26,8 @@ If you discover a security vulnerability, please report it responsibly:
 
 ## API Security
 
-- **Rate limiting**: 60 requests per minute per IP on all API routes (in-memory, Map-based)
+- **Rate limiting**: 60 requests per minute per IP on general API routes; 10/min on auth endpoints (in-memory, Map-based)
+- **CORS**: Origin validation on all API routes; configure `ALLOWED_ORIGINS` env var for additional origins
 - **Input validation**: All query parameters validated with `validateInt()` (bounds-checked), `validateEnum()` (allowlist), `validateUUID()` (format check)
 - **Error handling**: Sanitized error responses with `requestId` for correlation; no stack traces or internal details leaked to clients
 - **SQL injection prevention**: All queries use parameterized statements (`$1`, `$2`, ...) — no string interpolation in SQL
@@ -38,19 +39,18 @@ If you discover a security vulnerability, please report it responsibly:
 Applied via `next.config.ts`:
 
 - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
-- `Content-Security-Policy`: Restricts script/connect/frame sources to self + Stripe + Azure
+- `Content-Security-Policy`: Restricts script/connect/frame sources to self + Stripe
 - `X-Frame-Options: DENY`
 - `X-Content-Type-Options: nosniff`
 - `Referrer-Policy: strict-origin-when-cross-origin`
-- `Permissions-Policy`: Camera, microphone, geolocation disabled
+- `Permissions-Policy`: Camera, microphone, geolocation, accelerometer, gyroscope, magnetometer disabled
 
 ## Infrastructure Security
 
-- **Database**: Public network access disabled in production (Terraform)
-- **Key Vault**: Purge protection enabled, 90-day soft delete retention
+- **Database**: PostgreSQL on Supabase free tier with SSL enforcement
+- **SSL**: `rejectUnauthorized: true` by default; set `DATABASE_SSL=false` only for local dev
 - **Container Registry**: Admin access disabled; managed identity for ACR pull
-- **Container Apps**: System-assigned managed identity, 2Gi memory limit
-- **Secrets**: All sensitive values in Azure Key Vault; never committed to git
+- **Secrets**: All sensitive values in environment variables; never committed to git
 
 ## Environment Variables
 
@@ -59,10 +59,7 @@ Required in production (validated at startup via `lib/env.ts`):
 | Variable | Purpose |
 |----------|---------|
 | `AUTH_SECRET` | JWT signing key (min 32 chars) |
-| `DB_PASSWORD` | Database password |
-| `STRIPE_SECRET_KEY` | Stripe API key |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signature verification |
-| `WORKFLOW_API_KEY` | Cron/scheduler authentication |
+| `DATABASE_URL` | PostgreSQL connection string |
 
 ## Dependency Management
 
@@ -74,5 +71,6 @@ Required in production (validated at startup via `lib/env.ts`):
 ## Known Limitations
 
 - Rate limiting is in-memory (per-instance); not distributed across replicas. For multi-instance deployments, use Redis-based rate limiting.
+- CORS origin validation relies on the `Origin` header which is not sent by all clients (e.g., server-side requests, Postman).
 - NextAuth.js v5 is still in beta (v5.0.0-beta.30). Monitor for stable release.
 - Dev credentials provider relies on `NODE_ENV` which must be correctly set in all environments.

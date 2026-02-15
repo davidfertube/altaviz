@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCompressor } from '@/lib/queries';
+import { getCompressor, getLatestPrediction } from '@/lib/queries';
 import { query } from '@/lib/db';
 import { getAppSession } from '@/lib/session';
 import type { LatestReading } from '@/lib/types';
@@ -15,17 +15,27 @@ export async function GET(
     }
 
     const { compressorId } = await params;
+    if (!/^COMP-\d{3}$/.test(compressorId)) {
+      return NextResponse.json({ error: 'Invalid compressor ID format' }, { status: 400 });
+    }
     const [metadata] = await getCompressor(compressorId, session.organizationId);
     if (!metadata) {
       return NextResponse.json({ error: 'Compressor not found' }, { status: 404 });
     }
 
-    const [latestReading] = await query<LatestReading>(
-      'SELECT * FROM v_latest_readings WHERE compressor_id = $1 AND organization_id = $2',
-      [compressorId, session.organizationId]
-    );
+    const [readingsResult, predictions] = await Promise.all([
+      query<LatestReading>(
+        'SELECT * FROM v_latest_readings WHERE compressor_id = $1 AND organization_id = $2',
+        [compressorId, session.organizationId]
+      ),
+      getLatestPrediction(compressorId, session.organizationId),
+    ]);
 
-    return NextResponse.json({ metadata, latestReading: latestReading || null });
+    return NextResponse.json({
+      metadata,
+      latestReading: readingsResult[0] || null,
+      prediction: predictions[0] || null,
+    });
   } catch (error) {
     const { handleApiError } = await import('@/lib/errors');
     return handleApiError(error, 'Failed to fetch compressor');

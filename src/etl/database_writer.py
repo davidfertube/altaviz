@@ -1,13 +1,11 @@
 """
 Database Writer Module
 
-Handles writing Gold layer data to the configured database.
-Supports both PostgreSQL (local dev) and Azure SQL Database (cloud).
-
+Handles writing Gold layer data to PostgreSQL.
 Uses PySpark's JDBC connector for efficient bulk writes.
-Database type is controlled by DB_TYPE environment variable:
-  DB_TYPE=postgresql  -> Local PostgreSQL (default)
-  DB_TYPE=azure_sql   -> Azure SQL Database
+
+Connection is configured via DATABASE_URL environment variable:
+  DATABASE_URL=postgresql://user:pass@host:port/database
 
 Tables written:
 - compressor_metadata: Fleet metadata (must be first — FK dependency)
@@ -24,7 +22,9 @@ from pyspark.sql.functions import col, lit, current_timestamp, when
 from pyspark.sql.types import StructType, StructField, StringType, TimestampType, DoubleType, BooleanType
 from typing import Dict
 from datetime import datetime
+from urllib.parse import urlparse
 import logging
+import os
 
 from src.etl.utils import load_config
 
@@ -32,7 +32,6 @@ from src.etl.utils import load_config
 logger = logging.getLogger('CompressorHealthETL')
 
 # Load configurations
-db_config = load_config('database.yaml')
 thresholds_config = load_config('thresholds.yaml')
 
 
@@ -40,83 +39,55 @@ thresholds_config = load_config('thresholds.yaml')
 # JDBC CONNECTION FACTORY
 # ============================================================================
 
-def get_db_type() -> str:
+def _parse_database_url() -> dict:
     """
-    Get the configured database type.
+    Parse DATABASE_URL environment variable into connection components.
+
+    Expected format: postgresql://user:pass@host:port/database
 
     Returns:
-        str: 'postgresql' or 'azure_sql'
+        dict with keys: host, port, database, user, password
     """
-    return db_config.get('db_type', 'postgresql')
+    database_url = os.environ.get('DATABASE_URL')
+    if not database_url:
+        raise ValueError(
+            "DATABASE_URL environment variable is not set. "
+            "Expected format: postgresql://user:pass@host:port/database"
+        )
+
+    parsed = urlparse(database_url)
+
+    return {
+        'host': parsed.hostname or 'localhost',
+        'port': parsed.port or 5432,
+        'database': (parsed.path or '/postgres').lstrip('/'),
+        'user': parsed.username or 'postgres',
+        'password': parsed.password or '',
+    }
 
 
 def get_jdbc_url() -> str:
-    """
-    Construct JDBC URL based on configured database type.
-
-    Returns:
-        str: JDBC connection URL
-    """
-    db_type = get_db_type()
-
-    if db_type == 'azure_sql':
-        config = db_config['azure_sql']
-        jdbc_url = config['jdbc_url_template'].format(
-            server=config['server'],
-            port=config['port'],
-            database=config['database']
-        )
-        logger.info(f"Using Azure SQL Database: {config['server']}")
-    else:
-        config = db_config['postgresql']
-        jdbc_url = config['jdbc_url_template'].format(
-            host=config['host'],
-            port=config['port'],
-            database=config['database']
-        )
-        logger.info(f"Using PostgreSQL: {config['host']}:{config['port']}")
-
+    """Construct JDBC URL for PostgreSQL."""
+    conn = _parse_database_url()
+    jdbc_url = f"jdbc:postgresql://{conn['host']}:{conn['port']}/{conn['database']}"
+    logger.info(f"Using PostgreSQL: {conn['host']}:{conn['port']}/{conn['database']}")
     return jdbc_url
 
 
 def get_jdbc_properties() -> Dict[str, str]:
-    """
-    Get JDBC connection properties based on configured database type.
-
-    Returns:
-        dict: Connection properties (user, password, driver)
-    """
-    db_type = get_db_type()
-
-    if db_type == 'azure_sql':
-        config = db_config['azure_sql']
-        properties = {
-            "user": config['user'],
-            "password": config['password'],
-            "driver": config['jdbc_driver'],
-            "encrypt": "true",
-            "trustServerCertificate": "false",
-            "hostNameInCertificate": "*.database.windows.net",
-            "loginTimeout": "30"
-        }
-    else:
-        config = db_config['postgresql']
-        properties = {
-            "user": config['user'],
-            "password": config['password'],
-            "driver": config['jdbc_driver'],
-            "stringtype": "unspecified"  # Allow implicit casts (varchar → JSONB, etc.)
-        }
-
-    return properties
+    """Get JDBC connection properties for PostgreSQL."""
+    conn = _parse_database_url()
+    return {
+        "driver": "org.postgresql.Driver",
+        "user": conn['user'],
+        "password": conn['password'],
+    }
 
 
 def get_db_display_name() -> str:
     """Get human-readable database name for logging."""
-    db_type = get_db_type()
-    if db_type == 'azure_sql':
-        return f"Azure SQL ({db_config['azure_sql']['server']})"
-    return f"PostgreSQL ({db_config['postgresql']['host']}:{db_config['postgresql']['port']})"
+    conn = _parse_database_url()
+    return f"PostgreSQL ({conn['host']}:{conn['port']}/{conn['database']})"
 
 
 # ============================================================================
@@ -179,7 +150,6 @@ def write_compressor_metadata(metadata_df: DataFrame, mode: str = "overwrite") -
             enriched_df.write \
                 .mode("overwrite") \
                 .option("truncate", "true") \
-                .option("cascadeTruncate", "true") \
                 .jdbc(
                     url=jdbc_url,
                     table="compressor_metadata",
@@ -534,8 +504,11 @@ def write_maintenance_events(events_df: DataFrame, mode: str = "append") -> None
     """
     Write maintenance events to maintenance_events table.
 
+    Maps CSV columns (maintenance_type, performed_at, cost_usd) to DB columns
+    (event_type, event_date, cost_usd).
+
     Args:
-        events_df: Maintenance events DataFrame
+        events_df: Maintenance events DataFrame from CSV
         mode: Write mode ('append' or 'overwrite')
     """
     db_name = get_db_display_name()
@@ -544,20 +517,29 @@ def write_maintenance_events(events_df: DataFrame, mode: str = "append") -> None
     jdbc_url = get_jdbc_url()
     properties = get_jdbc_properties()
 
+    # Remap CSV columns to match maintenance_events table schema
+    mapped_df = events_df.select(
+        col("compressor_id"),
+        col("performed_at").cast("date").alias("event_date"),
+        col("maintenance_type").alias("event_type"),
+        col("description"),
+        lit(None).cast("double").alias("downtime_hours"),
+        lit(None).cast("string").alias("severity"),
+        col("cost_usd"),
+    )
+
     try:
-        # Use truncate with CASCADE for overwrite to preserve table schema
         if mode == 'overwrite':
-            events_df.write \
+            mapped_df.write \
                 .mode("overwrite") \
                 .option("truncate", "true") \
-                .option("cascadeTruncate", "true") \
                 .jdbc(
                     url=jdbc_url,
                     table="maintenance_events",
                     properties=properties
                 )
         else:
-            events_df.write \
+            mapped_df.write \
                 .jdbc(
                     url=jdbc_url,
                     table="maintenance_events",
@@ -565,7 +547,7 @@ def write_maintenance_events(events_df: DataFrame, mode: str = "append") -> None
                     properties=properties
                 )
 
-        row_count = events_df.count()
+        row_count = mapped_df.count()
         logger.info(f"Successfully wrote {row_count} maintenance events")
 
     except Exception as e:
@@ -580,8 +562,6 @@ def write_maintenance_events(events_df: DataFrame, mode: str = "append") -> None
 def test_connection() -> bool:
     """
     Test database connection using JDBC.
-
-    Works with both PostgreSQL and Azure SQL Database.
 
     Returns:
         bool: True if connection successful, False otherwise
@@ -653,3 +633,203 @@ def get_table_row_count(table_name: str) -> int:
     except Exception as e:
         logger.error(f"Failed to get row count for '{table_name}': {e}")
         return -1
+
+
+# ============================================================================
+# ML PREDICTIONS
+# ============================================================================
+
+def write_ml_predictions(spark: SparkSession, aggregated_df: DataFrame) -> None:
+    """
+    Generate and write ML predictions for RUL (Remaining Useful Life).
+
+    Uses latest vs 24hr-ago 1hr-window readings to compute rate-of-change,
+    then feeds into the heuristic RUL predictor.
+
+    Args:
+        spark: Active Spark session
+        aggregated_df: Gold layer aggregated sensor readings (1hr window)
+    """
+    import json
+    from pyspark.sql import functions as F
+    from pyspark.sql.types import StructType, StructField, StringType, TimestampType, DoubleType
+    from src.ml.rul_predictor import calculate_rul
+
+    db_name = get_db_display_name()
+    logger.info(f"Generating and writing ML predictions to {db_name}...")
+
+    jdbc_url = get_jdbc_url()
+    properties = get_jdbc_properties()
+
+    # Get latest reading per compressor (most recent 1hr aggregate)
+    latest_times = aggregated_df.groupBy("compressor_id") \
+        .agg(F.max("agg_timestamp").alias("latest_time"))
+
+    latest_df = aggregated_df.alias("a").join(
+        latest_times.alias("b"),
+        (F.col("a.compressor_id") == F.col("b.compressor_id")) &
+        (F.col("a.agg_timestamp") == F.col("b.latest_time"))
+    ).select("a.*")
+
+    # Get reading from ~24hrs ago per compressor (baseline for rate-of-change)
+    baseline_times = aggregated_df.groupBy("compressor_id") \
+        .agg(F.min("agg_timestamp").alias("baseline_time"))
+
+    baseline_df = aggregated_df.alias("a").join(
+        baseline_times.alias("b"),
+        (F.col("a.compressor_id") == F.col("b.compressor_id")) &
+        (F.col("a.agg_timestamp") == F.col("b.baseline_time"))
+    ).select("a.*")
+
+    # Collect to driver (small dataset: 10 compressors)
+    readings_latest = {row['compressor_id']: row.asDict() for row in latest_df.collect()}
+    readings_baseline = {row['compressor_id']: row.asDict() for row in baseline_df.collect()}
+
+    def remap_columns(row_dict):
+        """Map aggregate column names (_mean) to predictor column names (_avg)."""
+        if not row_dict:
+            return None
+        return {
+            'vibration_avg': row_dict.get('vibration_mean', 0),
+            'discharge_temp_avg': row_dict.get('discharge_temp_mean', 0),
+            'discharge_pressure_avg': row_dict.get('discharge_pressure_mean', 0),
+        }
+
+    # Generate predictions
+    predictions = []
+    all_compressor_ids = set(readings_latest.keys()) | set(readings_baseline.keys())
+
+    for comp_id in sorted(all_compressor_ids):
+        pred = calculate_rul(
+            comp_id,
+            remap_columns(readings_latest.get(comp_id)),
+            remap_columns(readings_baseline.get(comp_id))
+        )
+        predictions.append(pred)
+
+    if not predictions:
+        logger.warning("No predictions generated")
+        return
+
+    # Map predictor output to ml_predictions table schema
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    db_rows = []
+    for p in predictions:
+        rul_hours = p.get('predicted_rul_hours')
+        rul_days = round(rul_hours / 24.0, 2) if rul_hours is not None else None
+        features = json.dumps({
+            'primary_risk_sensor': p.get('primary_risk_sensor'),
+            'model_version': p.get('model_version', 'heuristic-v1.0'),
+        })
+        db_rows.append((
+            p['compressor_id'],
+            now,
+            rul_days,
+            p.get('failure_probability', 0.0),
+            p.get('confidence_score', 0.0),
+            p.get('model_version', 'heuristic-v1.0'),
+            features,
+        ))
+
+    schema = StructType([
+        StructField("compressor_id", StringType(), False),
+        StructField("prediction_timestamp", StringType(), False),
+        StructField("rul_days", DoubleType(), True),
+        StructField("failure_probability", DoubleType(), True),
+        StructField("confidence_score", DoubleType(), True),
+        StructField("model_version", StringType(), True),
+        StructField("features_used", StringType(), True),
+    ])
+
+    predictions_df = spark.createDataFrame(db_rows, schema=schema)
+
+    # Cast prediction_timestamp string to timestamp for JDBC
+    predictions_df = predictions_df.withColumn(
+        "prediction_timestamp",
+        F.col("prediction_timestamp").cast("timestamp")
+    )
+
+    try:
+        predictions_df.write \
+            .jdbc(jdbc_url, "ml_predictions", mode="append", properties=properties)
+
+        logger.info(f"Successfully wrote {len(predictions)} ML predictions")
+
+    except Exception as e:
+        logger.error(f"Failed to write ML predictions: {e}")
+        raise
+
+
+# ============================================================================
+# EMISSIONS ESTIMATES
+# ============================================================================
+
+def write_emissions_estimates(
+    spark: SparkSession,
+    emissions: list,
+    organization_id: str = None,
+) -> None:
+    """
+    Write emissions estimates to the emissions_estimates table.
+
+    Args:
+        spark: Active Spark session
+        emissions: List of emission estimate dicts from estimate_fleet_emissions()
+        organization_id: Organization ID to tag rows with (from ETL_ORGANIZATION_ID env)
+    """
+    from pyspark.sql import functions as F
+    from pyspark.sql.types import StructType, StructField, StringType, DoubleType
+
+    db_name = get_db_display_name()
+    logger.info(f"Writing emissions estimates to {db_name}...")
+
+    if not emissions:
+        logger.warning("No emissions estimates to write")
+        return
+
+    jdbc_url = get_jdbc_url()
+    properties = get_jdbc_properties()
+
+    org_id = organization_id or os.environ.get('ETL_ORGANIZATION_ID')
+
+    # Build rows for DataFrame
+    rows = []
+    for e in emissions:
+        rows.append((
+            e['compressor_id'],
+            e.get('estimate_timestamp', datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
+            e.get('methane_tonnes'),
+            e.get('co2e_tonnes'),
+            e.get('emission_rate_scfh'),
+            e.get('estimation_method', 'epa_subpart_w'),
+            org_id,
+        ))
+
+    schema = StructType([
+        StructField("compressor_id", StringType(), False),
+        StructField("estimate_timestamp", StringType(), False),
+        StructField("methane_tonnes", DoubleType(), True),
+        StructField("co2e_tonnes", DoubleType(), True),
+        StructField("emission_rate_scfh", DoubleType(), True),
+        StructField("estimation_method", StringType(), True),
+        StructField("organization_id", StringType(), True),
+    ])
+
+    emissions_df = spark.createDataFrame(rows, schema=schema)
+
+    # Cast estimate_timestamp string to timestamp for JDBC write
+    emissions_df = emissions_df.withColumn(
+        "estimate_timestamp",
+        F.col("estimate_timestamp").cast("timestamp")
+    )
+
+    try:
+        emissions_df.write.jdbc(
+            jdbc_url, "emissions_estimates", mode="append", properties=properties
+        )
+
+        logger.info(f"Successfully wrote {len(emissions)} emissions estimates")
+
+    except Exception as e:
+        logger.error(f"Failed to write emissions estimates: {e}")
+        raise

@@ -11,6 +11,36 @@ import { Button } from '@/components/ui/button';
 import { MetricCardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import Link from 'next/link';
+import { COLORS } from '@/lib/constants';
+
+function FleetHealthSparkline({ fleet }: { fleet: { compressor_id: string; health_status: string }[] }) {
+  // Build a mini sparkline: bar per compressor colored by status
+  const statusColor = (s: string) =>
+    s === 'critical' ? COLORS.critical : s === 'warning' ? COLORS.warning : COLORS.healthy;
+
+  return (
+    <Card className="p-4">
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Fleet Health by Unit</p>
+      <div className="flex items-end gap-1 h-16">
+        {fleet.map((c) => {
+          const h = c.health_status === 'healthy' ? 100 : c.health_status === 'warning' ? 60 : 30;
+          return (
+            <div
+              key={c.compressor_id}
+              className="flex-1 rounded-t transition-all"
+              style={{ height: `${h}%`, backgroundColor: statusColor(c.health_status), opacity: 0.85 }}
+              title={`${c.compressor_id}: ${c.health_status}`}
+            />
+          );
+        })}
+      </div>
+      <div className="flex justify-between mt-2">
+        <span className="text-[10px] text-muted-foreground">{fleet[0]?.compressor_id}</span>
+        <span className="text-[10px] text-muted-foreground">{fleet[fleet.length - 1]?.compressor_id}</span>
+      </div>
+    </Card>
+  );
+}
 
 export default function FleetOverviewPage() {
   const { data: fleet, isLoading: fleetLoading } = useFleetHealth();
@@ -64,6 +94,11 @@ export default function FleetOverviewPage() {
             </>
           )}
         </div>
+
+        {/* Fleet Health Sparkline */}
+        {fleet && fleet.length > 0 && (
+          <FleetHealthSparkline fleet={fleet} />
+        )}
 
         {/* Map + Compressor Grid */}
         {fleet && fleet.length > 0 ? (

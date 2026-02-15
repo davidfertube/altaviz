@@ -7,9 +7,9 @@
 /* === Altaviz Theme Configuration === */
 @theme inline {
   /* Altaviz brand colors */
-  --color-primary: #1F77B4;
-  --color-primary-light: #4A9BD9;
-  --color-primary-dark: #15567D;
+  --color-primary: #C4A77D;
+  --color-primary-light: #D4C5A9;
+  --color-primary-dark: #A68B5B;
   --color-healthy: #2CA02C;
   --color-healthy-light: #47C747;
   --color-warning: #FF7F0E;
@@ -76,38 +76,38 @@
 /* Light mode (default) — Altaviz branded */
 :root {
   --radius: 0.625rem;
-  --background: #F8F9FA;
-  --foreground: #1A1A2E;
+  --background: #FAF9F6;
+  --foreground: #1C1917;
   --surface: #FFFFFF;
-  --surface-hover: #F0F1F3;
+  --surface-hover: #F5F0E8;
   --card: #FFFFFF;
-  --card-foreground: #1A1A2E;
+  --card-foreground: #1C1917;
   --popover: #FFFFFF;
-  --popover-foreground: #1A1A2E;
+  --popover-foreground: #1C1917;
   --primary-foreground: #FFFFFF;
-  --secondary: #F0F1F3;
-  --secondary-foreground: #1A1A2E;
-  --muted: #F0F1F3;
-  --muted-foreground: #6B7280;
-  --accent: #F0F1F3;
-  --accent-foreground: #1A1A2E;
+  --secondary: #F5F0E8;
+  --secondary-foreground: #1C1917;
+  --muted: #F5F0E8;
+  --muted-foreground: #78716C;
+  --accent: #F5F0E8;
+  --accent-foreground: #1C1917;
   --destructive: #D62728;
-  --border: #E5E7EB;
-  --input: #E5E7EB;
-  --ring: #1F77B4;
-  --chart-1: #1F77B4;
+  --border: #E7E0D5;
+  --input: #E7E0D5;
+  --ring: #C4A77D;
+  --chart-1: #C4A77D;
   --chart-2: #2CA02C;
   --chart-3: #FF7F0E;
   --chart-4: #D62728;
-  --chart-5: #9467BD;
+  --chart-5: #A68B5B;
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #1A1A2E;
-  --sidebar-primary: #1F77B4;
+  --sidebar-foreground: #1C1917;
+  --sidebar-primary: #C4A77D;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F0F1F3;
-  --sidebar-accent-foreground: #1A1A2E;
-  --sidebar-border: #E5E7EB;
-  --sidebar-ring: #1F77B4;
+  --sidebar-accent: #F5F0E8;
+  --sidebar-accent-foreground: #1C1917;
+  --sidebar-border: #E7E0D5;
+  --sidebar-ring: #C4A77D;
 }
 
 /* Dark mode — Altaviz branded */
@@ -169,6 +169,11 @@
   border-radius: var(--radius-card);
 }
 
+/* Smooth scroll for anchor navigation */
+html {
+  scroll-behavior: smooth;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -176,4 +181,13 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Full-viewport marketing sections */
+.section-viewport {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  scroll-margin-top: 5rem;
 }

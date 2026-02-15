@@ -7,53 +7,53 @@ import { cn } from '@/lib/utils';
 
 const PLANS = [
   {
-    name: 'Free',
+    name: 'Pilot',
     price: '$0',
-    period: 'forever',
-    description: 'Perfect for evaluating Altaviz with a small fleet.',
+    period: '30-day trial',
+    description: 'Evaluate Altaviz on a small segment of your network.',
     features: [
-      'Up to 2 compressors',
+      'Up to 5 pipelines',
       '1-hour aggregation window',
-      'Basic threshold alerts',
+      'Threshold-based alerts',
       'Fleet overview dashboard',
-      '7-day data retention',
-      'Community support',
+      '30-day data retention',
+      'Email support',
     ],
-    cta: 'Start Free',
+    cta: 'Start Pilot',
     highlighted: false,
   },
   {
-    name: 'Pro',
-    price: '$49',
+    name: 'Operations',
+    price: '$499',
     period: '/month',
-    description: 'For growing operations that need deeper monitoring.',
+    description: 'Full monitoring with ML predictions for growing operations.',
     features: [
-      'Up to 20 compressors',
+      'Up to 50 pipelines',
       '1hr, 4hr, 24hr windows',
-      'Priority alerts + SMS',
-      'Full analytics dashboard',
-      '90-day data retention',
+      'ML failure predictions',
+      'SMS + webhook alerts',
+      '1-year data retention',
       'API access',
-      'Email support',
+      'Priority support',
     ],
-    cta: 'Start Pro Trial',
+    cta: 'Start Trial',
     highlighted: true,
     badge: 'Most Popular',
   },
   {
     name: 'Enterprise',
-    price: '$199',
-    period: '/month',
-    description: 'For large fleets with ML-powered predictions.',
+    price: 'Custom',
+    period: 'annual contract',
+    description: 'Unlimited scale with SSO, SLA, and dedicated support.',
     features: [
-      'Unlimited compressors',
+      'Unlimited pipelines',
       'All aggregation windows',
-      'Priority + SMS + webhooks',
-      'ML failure predictions',
-      '1-year data retention',
-      'Bulk export API',
+      'Everything in Operations',
+      'SSO / SAML integration',
       'Custom integrations',
-      'Dedicated support',
+      'SLA + dedicated CSM',
+      'Bulk export API',
+      'On-prem deployment option',
     ],
     cta: 'Contact Sales',
     highlighted: false,
@@ -62,9 +62,8 @@ const PLANS = [
 
 export default function PricingTable() {
   return (
-    <section id="pricing" className="relative py-24 sm:py-32">
-      <div className="absolute inset-0 bg-[#0A0E17]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#6C5CE7]/5 to-transparent" />
+    <section id="pricing" className="section-viewport relative py-24 sm:py-32">
+      <div className="absolute inset-0 bg-[#FAF9F6]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -74,11 +73,11 @@ export default function PricingTable() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Simple, transparent pricing
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
+            Plans that scale with your fleet
           </h2>
-          <p className="text-lg text-white/40 max-w-xl mx-auto">
-            Start free and scale as your fleet grows. No hidden fees.
+          <p className="text-lg text-[#78716C] max-w-xl mx-auto">
+            Start with a pilot. Scale to enterprise.
           </p>
         </motion.div>
 
@@ -89,8 +88,8 @@ export default function PricingTable() {
               className={cn(
                 'relative rounded-2xl border p-6 lg:p-8 flex flex-col',
                 plan.highlighted
-                  ? 'border-[#1F77B4]/50 bg-gradient-to-b from-[#1F77B4]/10 to-transparent shadow-xl shadow-[#1F77B4]/10'
-                  : 'border-white/10 bg-white/[0.02]'
+                  ? 'border-[#C4A77D]/50 bg-white shadow-xl shadow-[#C4A77D]/10'
+                  : 'border-[#E7E0D5] bg-white'
               )}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -99,37 +98,37 @@ export default function PricingTable() {
             >
               {plan.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="text-xs font-semibold text-white bg-gradient-to-r from-[#1F77B4] to-[#6C5CE7] rounded-full px-4 py-1">
+                  <span className="text-xs font-semibold text-white bg-[#C4A77D] rounded-full px-4 py-1">
                     {plan.badge}
                   </span>
                 </div>
               )}
 
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white mb-1">{plan.name}</h3>
-                <p className="text-sm text-white/40 mb-4">{plan.description}</p>
+                <h3 className="text-lg font-semibold text-[#1C1917] mb-1">{plan.name}</h3>
+                <p className="text-sm text-[#78716C] mb-4">{plan.description}</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-white">{plan.price}</span>
-                  <span className="text-sm text-white/40">{plan.period}</span>
+                  <span className="text-4xl font-bold text-[#1C1917]">{plan.price}</span>
+                  <span className="text-sm text-[#A8A29E]">{plan.period}</span>
                 </div>
               </div>
 
               <ul className="space-y-3 mb-8 flex-1">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3">
-                    <Check className="size-4 text-[#2CA02C] mt-0.5 shrink-0" />
-                    <span className="text-sm text-white/60">{feature}</span>
+                    <Check className="size-4 text-[#C4A77D] mt-0.5 shrink-0" />
+                    <span className="text-sm text-[#78716C]">{feature}</span>
                   </li>
                 ))}
               </ul>
 
               <Link
-                href="/dashboard"
+                href="/signup"
                 className={cn(
                   'block text-center text-sm font-semibold py-3 rounded-full transition-all',
                   plan.highlighted
-                    ? 'text-white bg-gradient-to-r from-[#1F77B4] to-[#6C5CE7] hover:opacity-90 shadow-lg shadow-[#1F77B4]/25'
-                    : 'text-white/70 border border-white/20 hover:border-white/40 hover:text-white'
+                    ? 'text-white bg-[#1C1917] hover:bg-[#2D2D2D] shadow-lg shadow-[#1C1917]/15'
+                    : 'text-[#78716C] border border-[#E7E0D5] hover:border-[#C4A77D] hover:text-[#1C1917]'
                 )}
               >
                 {plan.cta}

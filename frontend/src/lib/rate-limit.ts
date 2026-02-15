@@ -14,17 +14,32 @@ function cleanup() {
   }
 }
 
+export interface RateLimitResult {
+  allowed: boolean;
+  limit: number;
+  remaining: number;
+  resetTime: number;
+}
+
 export function rateLimit(identifier: string, maxRequests = 60, windowMs = 60_000): boolean {
+  const result = rateLimitWithInfo(identifier, maxRequests, windowMs);
+  return result.allowed;
+}
+
+export function rateLimitWithInfo(identifier: string, maxRequests = 60, windowMs = 60_000): RateLimitResult {
   cleanup();
   const now = Date.now();
   const entry = requestCounts.get(identifier);
 
   if (!entry || now > entry.resetTime) {
     requestCounts.set(identifier, { count: 1, resetTime: now + windowMs });
-    return true;
+    return { allowed: true, limit: maxRequests, remaining: maxRequests - 1, resetTime: now + windowMs };
   }
 
-  if (entry.count >= maxRequests) return false;
+  if (entry.count >= maxRequests) {
+    return { allowed: false, limit: maxRequests, remaining: 0, resetTime: entry.resetTime };
+  }
+
   entry.count++;
-  return true;
+  return { allowed: true, limit: maxRequests, remaining: maxRequests - entry.count, resetTime: entry.resetTime };
 }

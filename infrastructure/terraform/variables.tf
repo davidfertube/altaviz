@@ -19,7 +19,6 @@ variable "location" {
 variable "db_admin_username" {
   description = "PostgreSQL admin username"
   type        = string
-  default     = "altaviz_admin"
   sensitive   = true
 }
 
@@ -41,23 +40,30 @@ variable "nextauth_secret" {
   sensitive   = true
 }
 
-variable "azure_ad_client_id" {
-  description = "Azure AD application client ID"
+variable "github_client_id" {
+  description = "GitHub OAuth application client ID"
   type        = string
   default     = ""
 }
 
-variable "azure_ad_client_secret" {
-  description = "Azure AD application client secret"
+variable "github_client_secret" {
+  description = "GitHub OAuth application client secret"
   type        = string
   default     = ""
   sensitive   = true
 }
 
-variable "azure_ad_tenant_id" {
-  description = "Azure AD tenant ID"
+variable "google_client_id" {
+  description = "Google OAuth client ID"
   type        = string
   default     = ""
+}
+
+variable "google_client_secret" {
+  description = "Google OAuth client secret"
+  type        = string
+  default     = ""
+  sensitive   = true
 }
 
 variable "stripe_secret_key" {
@@ -99,5 +105,8 @@ variable "tags" {
   default = {
     project     = "altaviz"
     managed_by  = "terraform"
+    environment = "prod"
+    cost_center = "engineering"
+    owner       = "platform-team"
   }
 }

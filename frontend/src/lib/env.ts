@@ -1,7 +1,6 @@
 const REQUIRED_PRODUCTION_VARS = [
   'AUTH_SECRET',
-  'DB_HOST',
-  'DB_PASSWORD',
+  'DATABASE_URL',
 ] as const;
 
 export function validateEnvironment(): void {
@@ -16,4 +15,12 @@ export function validateEnvironment(): void {
       `Missing required environment variables in production: ${missing.join(', ')}`
     );
   }
+
+  // Stripe webhook secret must be set if Stripe is configured
+  if (process.env.STRIPE_SECRET_KEY && !process.env.STRIPE_WEBHOOK_SECRET) {
+    throw new Error(
+      'STRIPE_WEBHOOK_SECRET is required when STRIPE_SECRET_KEY is set'
+    );
+  }
+
 }

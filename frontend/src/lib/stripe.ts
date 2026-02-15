@@ -41,7 +41,7 @@ export async function getOrCreateStripeCustomer(
 
   // Save customer ID to org
   await query(
-    'UPDATE organizations SET stripe_customer_id = $1, updated_at = NOW() WHERE id = $2',
+    'UPDATE organizations SET stripe_customer_id = $1 WHERE id = $2',
     [customer.id, organizationId]
   );
 

@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import PlanBadge from '@/components/billing/PlanBadge';
+import AltavizLogo from '@/components/brand/AltavizLogo';
 
 const ICONS: Record<string, React.ReactNode> = {
   grid: <LayoutGrid className="size-5" />,
@@ -26,8 +27,8 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       {/* Logo */}
       <div className="h-16 flex items-center px-6">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-white font-bold text-sm">A</span>
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary">
+            <AltavizLogo size={20} variant="white" />
           </div>
           <span className="text-lg font-semibold tracking-tight">Altaviz</span>
         </div>

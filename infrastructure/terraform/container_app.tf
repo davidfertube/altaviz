@@ -43,8 +43,13 @@ resource "azurerm_container_app" "frontend" {
   }
 
   secret {
-    name  = "azure-ad-client-secret"
-    value = var.azure_ad_client_secret
+    name  = "github-client-secret"
+    value = var.github_client_secret
+  }
+
+  secret {
+    name  = "google-client-secret"
+    value = var.google_client_secret
   }
 
   secret {
@@ -63,32 +68,8 @@ resource "azurerm_container_app" "frontend" {
       memory = "2Gi"
 
       env {
-        name  = "DB_HOST"
-        value = azurerm_postgresql_flexible_server.main.fqdn
-      }
-      env {
-        name  = "DB_PORT"
-        value = "5432"
-      }
-      env {
-        name  = "DB_NAME"
-        value = "compressor_health"
-      }
-      env {
-        name  = "DB_USER"
-        value = var.db_admin_username
-      }
-      env {
-        name        = "DB_PASSWORD"
-        secret_name = "db-password"
-      }
-      env {
-        name  = "DB_SSL"
-        value = "true"
-      }
-      env {
-        name  = "DB_SSL_REJECT_UNAUTHORIZED"
-        value = "true"
+        name  = "DATABASE_URL"
+        value = "postgresql://${var.db_admin_username}:${var.db_admin_password}@${azurerm_postgresql_flexible_server.main.fqdn}:5432/compressor_health?sslmode=require"
       }
       env {
         name        = "AUTH_SECRET"
@@ -99,16 +80,20 @@ resource "azurerm_container_app" "frontend" {
         value = "true"
       }
       env {
-        name  = "AZURE_AD_CLIENT_ID"
-        value = var.azure_ad_client_id
+        name  = "GITHUB_CLIENT_ID"
+        value = var.github_client_id
       }
       env {
-        name        = "AZURE_AD_CLIENT_SECRET"
-        secret_name = "azure-ad-client-secret"
+        name        = "GITHUB_CLIENT_SECRET"
+        secret_name = "github-client-secret"
       }
       env {
-        name  = "AZURE_AD_TENANT_ID"
-        value = var.azure_ad_tenant_id
+        name  = "GOOGLE_CLIENT_ID"
+        value = var.google_client_id
+      }
+      env {
+        name        = "GOOGLE_CLIENT_SECRET"
+        secret_name = "google-client-secret"
       }
       env {
         name        = "STRIPE_SECRET_KEY"

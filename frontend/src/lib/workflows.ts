@@ -6,28 +6,17 @@ export interface WorkflowResult {
   details: string[];
 }
 
-/**
- * Agentic Workflow Engine
- *
- * Automated workflows that act on data without human intervention:
- * 1. Alert auto-escalation: Unacknowledged warnings -> critical after threshold
- * 2. Alert auto-resolution: Sensor readings returned to normal -> resolve alert
- * 3. Data freshness monitoring: No data for X hours -> create staleness alert
- * 4. Stale alert cleanup: Resolved alerts older than retention period -> archive
- */
-
 const WORKFLOW_CONFIG = {
   escalateAfterHours: parseInt(process.env.WORKFLOW_ESCALATION_HOURS || '4'),
   staleAfterHours: parseInt(process.env.WORKFLOW_STALENESS_HOURS || '3'),
   cleanupAfterDays: parseInt(process.env.WORKFLOW_CLEANUP_DAYS || '7'),
 };
 
-// Auto-escalate: Unacknowledged warning alerts older than escalation window -> critical
 export async function runAlertEscalation(organizationId: string, escalateAfterHours = WORKFLOW_CONFIG.escalateAfterHours): Promise<WorkflowResult> {
   const escalated = await query<{ id: number; compressor_id: string }>(
     `UPDATE alert_history
      SET severity = 'critical',
-         message = COALESCE(message, '') || ' [Auto-escalated from warning after ' || $2::text || 'h]'
+         message = COALESCE(message, '') || ' [Auto-escalated from warning after ' || $2::TEXT || 'h]'
      WHERE organization_id = $1
        AND severity = 'warning'
        AND acknowledged = FALSE
@@ -44,7 +33,6 @@ export async function runAlertEscalation(organizationId: string, escalateAfterHo
   };
 }
 
-// Auto-resolve: If a compressor's latest readings are within normal thresholds, resolve its active alerts
 export async function runAlertAutoResolve(organizationId: string): Promise<WorkflowResult> {
   const resolved = await query<{ id: number; compressor_id: string }>(
     `UPDATE alert_history
@@ -52,7 +40,7 @@ export async function runAlertAutoResolve(organizationId: string): Promise<Workf
          message = COALESCE(message, '') || ' [Auto-resolved: readings returned to normal]'
      WHERE organization_id = $1
        AND resolved = FALSE
-       AND alert_timestamp < NOW() - INTERVAL '2 hours'
+       AND alert_timestamp < NOW() - make_interval(hours => 2)
        AND compressor_id IN (
          SELECT fh.compressor_id
          FROM v_fleet_health_summary fh
@@ -70,7 +58,6 @@ export async function runAlertAutoResolve(organizationId: string): Promise<Workf
   };
 }
 
-// Data freshness: Check for compressors with no new readings in the expected window
 export async function runDataFreshnessCheck(organizationId: string, staleAfterHours = WORKFLOW_CONFIG.staleAfterHours): Promise<WorkflowResult> {
   const staleCompressors = await query<{ compressor_id: string; last_reading_time: string }>(
     `SELECT fh.compressor_id, fh.last_reading_time
@@ -88,25 +75,15 @@ export async function runDataFreshnessCheck(organizationId: string, staleAfterHo
     [organizationId, staleAfterHours]
   );
 
-  // Batch insert staleness alerts (avoids N+1)
-  if (staleCompressors.length > 0) {
-    const valuePlaceholders = staleCompressors.map((_, i) => {
-      const base = i * 2 + 3;
-      return `($${base}, $1, NOW(), 'anomaly', 'warning', 'data_freshness', $${base + 1})`;
-    }).join(', ');
-
-    const params: unknown[] = [organizationId, staleAfterHours];
-    for (const comp of staleCompressors) {
-      params.push(
-        comp.compressor_id,
-        `Data staleness detected: no new readings since ${comp.last_reading_time}. Last data is over ${staleAfterHours} hours old.`
-      );
-    }
-
+  for (const comp of staleCompressors) {
     await query(
       `INSERT INTO alert_history (compressor_id, organization_id, alert_timestamp, alert_type, severity, sensor_name, message)
-       VALUES ${valuePlaceholders}`,
-      params
+       VALUES ($1, $2, NOW(), 'anomaly', 'warning', 'data_freshness', $3)`,
+      [
+        comp.compressor_id,
+        organizationId,
+        `Data staleness detected: no new readings since ${comp.last_reading_time}. Last data is over ${staleAfterHours} hours old.`,
+      ]
     );
   }
 
@@ -117,7 +94,6 @@ export async function runDataFreshnessCheck(organizationId: string, staleAfterHo
   };
 }
 
-// Stale alert cleanup: Auto-acknowledge very old unacknowledged alerts
 export async function runStaleAlertCleanup(organizationId: string, staleAfterDays = WORKFLOW_CONFIG.cleanupAfterDays): Promise<WorkflowResult> {
   const cleaned = await query<{ id: number; compressor_id: string }>(
     `UPDATE alert_history
@@ -138,7 +114,6 @@ export async function runStaleAlertCleanup(organizationId: string, staleAfterDay
   };
 }
 
-// Run all workflows in sequence
 export async function runAllWorkflows(organizationId: string): Promise<WorkflowResult[]> {
   const results: WorkflowResult[] = [];
 

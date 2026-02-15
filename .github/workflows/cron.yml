@@ -1,0 +1,35 @@
+name: Workflow Automation
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-workflows:
+    name: Execute Agentic Workflows
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Run all workflows
+        env:
+          WORKFLOW_API_KEY: ${{ secrets.WORKFLOW_API_KEY }}
+          DEFAULT_ORG_ID: ${{ secrets.DEFAULT_ORG_ID }}
+          VERCEL_URL: ${{ secrets.VERCEL_URL }}
+        run: |
+          response=$(curl -sf -w "\n%{http_code}" -X POST \
+            -H "x-api-key: ${WORKFLOW_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{\"organizationId\": \"${DEFAULT_ORG_ID}\"}" \
+            "${VERCEL_URL}/api/workflows/run?workflow=all")
+
+          http_code=$(echo "$response" | tail -1)
+          body=$(echo "$response" | head -n -1)
+
+          echo "Status: ${http_code}"
+          echo "Response: ${body}"
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "Workflow execution failed with status ${http_code}"
+            exit 1
+          fi

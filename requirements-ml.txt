@@ -1,0 +1,11 @@
+# ML Dependencies (optional — install only when training/running ML models)
+# pip install -r requirements-ml.txt
+
+# Includes base requirements
+-r requirements.txt
+
+# Machine Learning
+tensorflow==2.15.0
+scikit-learn==1.4.0
+onnx==1.15.0
+tf2onnx==1.16.1

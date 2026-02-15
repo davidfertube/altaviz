@@ -84,4 +84,43 @@ JOIN compressor_metadata c ON a.compressor_id = c.compressor_id
 JOIN station_locations s ON c.station_id = s.station_id
 WHERE a.resolved = FALSE;
 
+-- Recreate v_latest_readings with organization_id
+DROP VIEW IF EXISTS v_latest_readings CASCADE;
+CREATE VIEW v_latest_readings AS
+SELECT DISTINCT ON (cm.compressor_id)
+    cm.compressor_id,
+    cm.organization_id,  -- CRITICAL: Add org_id from metadata
+    cm.model,
+    cm.manufacturer,
+    cm.status,
+    cm.station_id,
+    sl.station_name,
+    sl.latitude,
+    sl.longitude,
+    sra.vibration_avg,
+    sra.discharge_temp_avg,
+    sra.suction_pressure_avg,
+    sra.discharge_pressure_avg,
+    sra.horsepower_avg,
+    sra.gas_flow_avg,
+    sra.window_start AS last_reading_time
+FROM compressor_metadata cm
+LEFT JOIN sensor_readings_agg sra ON cm.compressor_id = sra.compressor_id
+LEFT JOIN station_locations sl ON cm.station_id = sl.station_id
+ORDER BY cm.compressor_id, sra.window_start DESC NULLS LAST;
+
+-- Recreate v_fleet_health_summary with organization_id
+DROP VIEW IF EXISTS v_fleet_health_summary CASCADE;
+CREATE VIEW v_fleet_health_summary AS
+SELECT
+    cm.organization_id,  -- CRITICAL: Add org_id
+    COUNT(DISTINCT cm.compressor_id) as total_compressors,
+    COUNT(DISTINCT cm.station_id) as total_stations,
+    SUM(CASE WHEN cm.status = 'healthy' THEN 1 ELSE 0 END) as healthy_count,
+    SUM(CASE WHEN cm.status = 'warning' THEN 1 ELSE 0 END) as warning_count,
+    SUM(CASE WHEN cm.status = 'critical' THEN 1 ELSE 0 END) as critical_count,
+    ROUND(100.0 * SUM(CASE WHEN cm.status = 'healthy' THEN 1 ELSE 0 END) / NULLIF(COUNT(*), 0), 1) as health_percentage
+FROM compressor_metadata cm
+GROUP BY cm.organization_id;
+
 COMMIT;

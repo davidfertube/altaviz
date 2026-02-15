@@ -2,10 +2,10 @@
 
 import useSWR from 'swr';
 import { fetcher, swrConfig } from '@/lib/fetcher';
-import type { SensorReadingAgg, CompressorMetadata, LatestReading, WindowType, AlertHistory, MaintenanceEvent } from '@/lib/types';
+import type { SensorReadingAgg, CompressorMetadata, LatestReading, WindowType, AlertHistory, MaintenanceEvent, MlPrediction } from '@/lib/types';
 
 export function useCompressorDetail(compressorId: string) {
-  return useSWR<{ metadata: CompressorMetadata & { station_name: string }; latestReading: LatestReading | null }>(
+  return useSWR<{ metadata: CompressorMetadata & { station_name: string }; latestReading: LatestReading | null; prediction: MlPrediction | null }>(
     `/api/compressors/${compressorId}`,
     fetcher,
     swrConfig,
