@@ -79,7 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return true;
       }
 
-      if ((account?.provider === 'github' || account?.provider === 'google' || account?.provider === 'microsoft-entra-id') && profile?.email) {
+      if (account?.provider === 'github' && profile?.email) {
         const dbUser = await findOrCreateUser({
           email: profile.email as string,
           name: (profile.name as string) || undefined,
