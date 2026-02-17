@@ -17,9 +17,10 @@ export default auth((req) => {
   if (pathname.startsWith('/api/')) {
     const origin = req.headers.get('origin');
     if (origin) {
-      // Always allow same-origin requests
+      // Strip www. for comparison to handle www/non-www mismatch
+      const normalize = (u: string) => u.replace('://www.', '://');
       const requestHost = req.nextUrl.origin;
-      const isSameOrigin = origin === requestHost;
+      const isSameOrigin = normalize(origin) === normalize(requestHost);
       if (!isSameOrigin && !ALLOWED_ORIGINS.has(origin)) {
         return new NextResponse(
           JSON.stringify({ error: 'Origin not allowed' }),
