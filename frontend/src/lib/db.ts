@@ -11,7 +11,7 @@ function getPool(): Pool {
       connectionTimeoutMillis: parseInt(process.env.DB_STATEMENT_TIMEOUT || '30000'),
       ssl: process.env.DATABASE_SSL === 'false'
         ? false
-        : { rejectUnauthorized: true },
+        : { rejectUnauthorized: false },
     });
 
     pool.on('error', (err) => {

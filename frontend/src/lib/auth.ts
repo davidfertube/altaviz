@@ -64,7 +64,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   callbacks: {
     ...authConfig.callbacks,
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === 'credentials' && user.email) {
         const dbUser = await findOrCreateUser({
           email: user.email,
@@ -79,20 +79,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return true;
       }
 
-      if (account?.provider === 'github' && profile?.email) {
-        const dbUser = await findOrCreateUser({
-          email: profile.email as string,
-          name: (profile.name as string) || undefined,
-          provider_id: profile.sub ?? undefined,
-          avatar_url: (profile.picture as string) || (profile.avatar_url as string) || undefined,
-        });
-
-        user.organizationId = dbUser.organization_id;
-        user.organizationName = dbUser.org_name;
-        user.role = dbUser.role;
-        user.subscriptionTier = dbUser.subscription_tier;
-        user.id = dbUser.id;
-      }
       return true;
     },
   },

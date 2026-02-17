@@ -64,7 +64,7 @@ describe('db module', () => {
     );
   });
 
-  it('enables SSL by default with rejectUnauthorized: true', async () => {
+  it('enables SSL by default with rejectUnauthorized: false', async () => {
     process.env.DATABASE_URL = 'postgresql://user:pass@myhost:5432/mydb';
 
     const { Pool } = require('pg');
@@ -73,7 +73,7 @@ describe('db module', () => {
 
     expect(Pool).toHaveBeenCalledWith(
       expect.objectContaining({
-        ssl: { rejectUnauthorized: true },
+        ssl: { rejectUnauthorized: false },
       })
     );
   });

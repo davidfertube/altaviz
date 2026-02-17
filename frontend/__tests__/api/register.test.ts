@@ -152,13 +152,13 @@ describe('POST /api/auth/register', () => {
     );
   });
 
-  it('returns 500 when database throws', async () => {
+  it('returns 503 when database connection fails', async () => {
     mockQuery.mockRejectedValueOnce(new Error('DB connection failed'));
 
     const response = await POST(makeRequest({
       email: 'test@example.com',
       password: 'password123',
     }));
-    expect(response.status).toBe(500);
+    expect(response.status).toBe(503);
   });
 });

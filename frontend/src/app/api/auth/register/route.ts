@@ -65,6 +65,21 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
+    console.error('Registration error:', error);
+    const message = error instanceof Error ? error.message : 'Registration failed';
+    // Surface DB connection errors clearly
+    if (message.includes('ECONNREFUSED') || message.includes('connect')) {
+      return NextResponse.json(
+        { error: 'Database connection failed. Please try again later.' },
+        { status: 503 }
+      );
+    }
+    if (message.includes('relation') && message.includes('does not exist')) {
+      return NextResponse.json(
+        { error: 'Database is not initialized. Please contact support.' },
+        { status: 503 }
+      );
+    }
     const { handleApiError } = await import('@/lib/errors');
     return handleApiError(error, 'Registration failed');
   }
