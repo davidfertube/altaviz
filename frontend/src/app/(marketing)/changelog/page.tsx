@@ -76,10 +76,10 @@ const ENTRIES = [
   {
     date: 'December 2025',
     icon: LayoutDashboard,
-    title: 'Multi-Tenant Dashboard & Live Demo',
+    title: 'Multi-Tenant Dashboard',
     description:
-      'Launched the full fleet monitoring dashboard with organization-scoped data isolation, SWR-powered real-time updates, and role-based access control. Public demo mode at /demo with simulated fleet data — no signup required.',
-    tags: ['Dashboard', 'Demo'],
+      'Launched the full fleet monitoring dashboard with organization-scoped data isolation, SWR-powered real-time updates, and role-based access control.',
+    tags: ['Dashboard'],
   },
   {
     date: 'November 2025',

@@ -6,25 +6,24 @@ import { Shield, FileCheck, Leaf, Settings, Activity, Lock } from 'lucide-react'
 
 const FOOTER_LINKS = {
   Platform: [
-    { label: 'Fleet Monitoring', href: '/demo' },
-    { label: 'Anomaly Detection', href: '/demo/monitoring' },
-    { label: 'Temperature Prediction', href: '/demo/monitoring' },
-    { label: 'RUL Estimation', href: '/demo/monitoring' },
-    { label: 'Emissions Tracking', href: '/demo/emissions' },
-    { label: 'Alert Management', href: '/demo/alerts' },
+    { label: 'Fleet Monitoring', href: '/signup' },
+    { label: 'Anomaly Detection', href: '/signup' },
+    { label: 'Temperature Prediction', href: '/signup' },
+    { label: 'RUL Estimation', href: '/signup' },
+    { label: 'Emissions Tracking', href: '/signup' },
+    { label: 'Alert Management', href: '/signup' },
   ],
   Solutions: [
-    { label: 'Transmission Pipelines', href: '/contact' },
-    { label: 'Gathering Systems', href: '/contact' },
-    { label: 'Reliability Engineers', href: '/contact' },
-    { label: 'Compliance Officers', href: '/contact' },
-    { label: 'Field Operations', href: '/contact' },
+    { label: 'Transmission Pipelines', href: '/solutions/transmission-pipelines' },
+    { label: 'Gathering Systems', href: '/solutions/gathering-systems' },
+    { label: 'Reliability Engineers', href: '/solutions/reliability-engineers' },
+    { label: 'Compliance Officers', href: '/solutions/compliance-officers' },
+    { label: 'Field Operations', href: '/solutions/field-operations' },
   ],
   Resources: [
     { label: 'Changelog', href: '/changelog' },
     { label: 'Documentation', href: '/contact' },
     { label: 'API Reference', href: '/contact' },
-    { label: 'Live Demo', href: '/demo' },
   ],
   Company: [
     { label: 'About', href: '/about' },

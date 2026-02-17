@@ -7,13 +7,11 @@ import {
   Clock,
   AlertTriangle,
   ArrowRight,
-  Play,
   Database,
   FileCheck,
   Leaf,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useEffect, useRef } from 'react';
 
 /* ------------------------------------------------------------------ */
@@ -271,32 +269,12 @@ export default function Hero() {
             initial="hidden"
             animate="visible"
           >
-            {/* Badges */}
-            <motion.div className="flex flex-wrap items-center gap-2 mb-6" variants={itemVariants}>
-              <Badge
-                variant="outline"
-                className="border-[#C4A77D]/30 bg-[#C4A77D]/10 text-[#A68B5B] hover:bg-[#C4A77D]/15 rounded-full px-4 py-1.5 text-sm font-medium gap-2"
-              >
-                <span className="relative flex h-2 w-2">
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#C4A77D]" />
-                </span>
-                Pipeline Integrity Management
-              </Badge>
-              <Badge
-                variant="outline"
-                className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/15 rounded-full px-3 py-1.5 text-xs font-medium gap-1.5"
-              >
-                <ShieldCheck className="size-3" />
-                SOC 2 Type II
-              </Badge>
-            </motion.div>
-
             <motion.h1
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#1C1917] leading-[1.05] tracking-tight mb-5"
               variants={itemVariants}
             >
-              ML monitoring<br />
-              <span className="text-[#C4A77D]">for pipeline integrity</span>
+              ML Monitoring<br />
+              <span className="text-[#C4A77D]">for Pipeline Integrity</span>
             </motion.h1>
 
             <motion.p
@@ -317,7 +295,7 @@ export default function Hero() {
                 size="lg"
                 className="h-12 px-8 text-base font-semibold rounded-full bg-[#1C1917] text-white shadow-lg shadow-[#1C1917]/15 hover:shadow-xl hover:bg-[#2D2D2D] transition-all border-0"
               >
-                <Link href="/signup">
+                <Link href="/contact">
                   Schedule a Demo
                   <ArrowRight className="size-4 ml-1" />
                 </Link>
@@ -328,9 +306,9 @@ export default function Hero() {
                 size="lg"
                 className="h-12 px-8 text-base font-medium rounded-full border-[#E7E0D5] text-[#78716C] hover:text-[#1C1917] hover:border-[#C4A77D] hover:bg-[#C4A77D]/5 bg-transparent"
               >
-                <Link href="/demo">
-                  <Play className="size-4 mr-1" />
-                  Watch 2-min Overview
+                <Link href="/signup">
+                  <ArrowRight className="size-4 mr-1" />
+                  Get Started
                 </Link>
               </Button>
             </motion.div>

@@ -20,7 +20,6 @@ import {
   Bell,
   Leaf,
   Shield,
-  Play,
   GitBranch,
   BookOpen,
   Lock,
@@ -155,34 +154,12 @@ export default function Navbar() {
                     Product
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <div className="grid grid-cols-[1fr_200px] gap-0 p-4 w-[440px]">
-                      <div>
-                        <MegaMenuItem icon={MapPin} title="Fleet Overview" description="Interactive map and health dashboard" href="/demo" />
-                        <MegaMenuItem icon={Activity} title="Monitoring" description="Real-time sensor analytics and ML predictions" href="/demo/monitoring" />
-                        <MegaMenuItem icon={Bell} title="Alerts" description="Prioritized alerts with auto-escalation" href="/demo/alerts" />
-                        <MegaMenuItem icon={Leaf} title="Emissions" description="EPA Subpart W compliance tracking" href="/demo/emissions" />
-                        <MegaMenuItem icon={Shield} title="Security" description="RBAC, audit logs, and compliance standards" href="/security" />
-                      </div>
-                      {/* Promo card */}
-                      <div className="rounded-xl bg-[#0C1018] p-4 flex flex-col justify-between border border-white/[0.06]">
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                            <span className="text-[9px] text-emerald-400 font-mono uppercase">Live Demo</span>
-                          </div>
-                          <p className="text-sm font-medium text-white mb-1">See it in action</p>
-                          <p className="text-xs text-white/40 leading-snug">
-                            Full platform with simulated fleet data. No signup required.
-                          </p>
-                        </div>
-                        <Link
-                          href="/demo"
-                          className="mt-3 flex items-center gap-1.5 text-xs font-medium text-[#C4A77D] hover:text-[#D4C5A9] transition-colors"
-                        >
-                          <Play className="size-3" />
-                          Launch Demo
-                        </Link>
-                      </div>
+                    <div className="p-4 w-[320px]">
+                      <MegaMenuItem icon={MapPin} title="Fleet Monitoring" description="Interactive map and health dashboard" href="/solutions/transmission-pipelines" />
+                      <MegaMenuItem icon={Activity} title="Predictive Maintenance" description="ML-powered anomaly detection and RUL" href="/solutions/reliability-engineers" />
+                      <MegaMenuItem icon={Bell} title="Alert Management" description="Prioritized alerts with auto-escalation" href="/solutions/field-operations" />
+                      <MegaMenuItem icon={Leaf} title="Emissions Compliance" description="EPA Subpart W tracking and reporting" href="/solutions/compliance-officers" />
+                      <MegaMenuItem icon={Shield} title="Security" description="RBAC, audit logs, and compliance standards" href="/security" />
                     </div>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
@@ -238,11 +215,10 @@ export default function Navbar() {
               Sign In
             </Link>
             <Link
-              href="/demo"
-              className="text-sm font-medium text-[#A68B5B] hover:text-[#1C1917] transition-colors px-3 py-2 flex items-center gap-1.5"
+              href="/signup"
+              className="text-sm font-medium text-[#A68B5B] hover:text-[#1C1917] transition-colors px-3 py-2"
             >
-              <Play className="size-3.5" />
-              Live Demo
+              Get Started
             </Link>
             <Link
               href="/contact"
@@ -268,11 +244,12 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="lg:hidden bg-white/95 backdrop-blur-xl border-t border-[#E7E0D5] max-h-[80vh] overflow-y-auto">
           <div className="px-4 py-4 space-y-1">
-            <MobileNavGroup label="Product">
-              <MobileNavLink href="/demo" label="Fleet Overview" onClick={closeMobile} />
-              <MobileNavLink href="/demo/monitoring" label="Monitoring" onClick={closeMobile} />
-              <MobileNavLink href="/demo/alerts" label="Alerts" onClick={closeMobile} />
-              <MobileNavLink href="/demo/emissions" label="Emissions" onClick={closeMobile} />
+            <MobileNavGroup label="Solutions">
+              <MobileNavLink href="/solutions/transmission-pipelines" label="Transmission Pipelines" onClick={closeMobile} />
+              <MobileNavLink href="/solutions/gathering-systems" label="Gathering Systems" onClick={closeMobile} />
+              <MobileNavLink href="/solutions/reliability-engineers" label="Reliability Engineers" onClick={closeMobile} />
+              <MobileNavLink href="/solutions/compliance-officers" label="Compliance Officers" onClick={closeMobile} />
+              <MobileNavLink href="/solutions/field-operations" label="Field Operations" onClick={closeMobile} />
             </MobileNavGroup>
 
             <MobileNavLink href="/pricing" label="Pricing" onClick={closeMobile} />
@@ -297,11 +274,11 @@ export default function Navbar() {
                 Sign In
               </Link>
               <Link
-                href="/demo"
+                href="/signup"
                 onClick={closeMobile}
                 className="block text-sm font-medium text-[#A68B5B] hover:text-[#1C1917] py-2.5 px-3 rounded-lg hover:bg-[#F0EBE1] transition-colors"
               >
-                Live Demo
+                Get Started
               </Link>
               <Link
                 href="/contact"
