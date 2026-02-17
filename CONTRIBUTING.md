@@ -51,13 +51,13 @@ cd frontend && npm run dev
 ## Running Tests
 
 ```bash
-# Frontend (Jest) — 13 test suites, 78 tests
+# Frontend (Jest) — 30 test suites, 234 tests
 cd frontend && npm test
 
 # Frontend with coverage
 cd frontend && npm run test:coverage
 
-# Python ETL (pytest) — 5 test suites, 25 tests
+# Python ETL + ML (pytest) — 9 test suites, 29 tests
 JAVA_HOME=/path/to/java11 PYSPARK_PYTHON=.venv/bin/python PYTHONPATH=. \
   .venv/bin/python -m pytest tests/ -v
 
@@ -70,8 +70,8 @@ cd frontend && npx tsc --noEmit && npx eslint .
 All PRs must pass:
 
 1. **Lint + typecheck** — `tsc --noEmit` + ESLint
-2. **Frontend tests** — `npm test` (78 tests across 13 suites)
-3. **Python tests** — `pytest tests/` (25 tests across 5 suites)
+2. **Frontend tests** — `npm test` (234 tests across 30 suites)
+3. **Python tests** — `pytest tests/` (29 tests across 9 suites)
 4. **Build** — `npm run build` must succeed
 5. **Security scan** — `npm audit` + Trivy filesystem scan
 

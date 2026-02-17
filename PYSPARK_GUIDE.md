@@ -571,8 +571,8 @@ spark:
 1. ✅ Data generation: `python src/data_simulator/compressor_simulator.py`
 2. ✅ ETL pipeline: `python src/etl/pyspark_pipeline.py`
 3. ✅ Dashboard: `cd frontend && npm run dev` (Next.js 16 + React 19)
-4. ⬜ ML training: `python src/ml/train_lstm.py` (NOT YET BUILT)
-5. ⬜ Tests: `pytest tests/` (NOT YET BUILT)
+4. ✅ ML models: 4 models (anomaly detection, temp drift, emissions, RUL) with 29 pytest tests
+5. ✅ Tests: `pytest tests/ -v` (29 tests, 9 suites) + `cd frontend && npm test` (234 tests, 30 suites)
 
 ### Resources
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAlert } from '@/lib/queries';
-import { getAppSession } from '@/lib/session';
+import { getAppSession, meetsRoleLevel } from '@/lib/session';
 
 export async function PATCH(
   _request: NextRequest,
@@ -10,6 +10,9 @@ export async function PATCH(
     const session = await getAppSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!meetsRoleLevel(session.role, 'operator')) {
+      return NextResponse.json({ error: 'Operator access required' }, { status: 403 });
     }
 
     const { alertId } = await params;

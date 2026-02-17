@@ -6,7 +6,7 @@ import Header from '@/components/layout/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, Users } from 'lucide-react';
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -51,6 +51,29 @@ export default function SettingsPage() {
             <div>
               <p className="text-xs text-muted-foreground">Role</p>
               <p className="text-sm font-medium capitalize">{session?.user?.role || '--'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Team */}
+        <Card>
+          <CardHeader className="py-4 px-6">
+            <CardTitle className="text-base">Team</CardTitle>
+          </CardHeader>
+          <CardContent className="px-6 pb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Team Members</p>
+                <p className="text-xs text-muted-foreground">
+                  Invite members, manage roles and permissions
+                </p>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/settings/team">
+                  <Users className="size-4 mr-2" />
+                  Manage Team
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>

@@ -65,13 +65,13 @@ export default function GaugeChart({
 
   return (
     <div className="bg-surface border border-border rounded-[--radius-card] p-4 flex flex-col items-center">
-      <p className="text-xs text-muted mb-2 font-medium">{label}</p>
+      <p className="text-xs text-muted-foreground mb-2 font-medium">{label}</p>
       <svg viewBox="0 0 160 95" className="w-full max-w-[180px]">
         {/* Background arc */}
         <path
           d={arcPath(startAngle, endAngle)}
           fill="none"
-          stroke="var(--border-color)"
+          stroke="var(--border)"
           strokeWidth="10"
           strokeLinecap="round"
         />
@@ -93,7 +93,7 @@ export default function GaugeChart({
         <text x={cx} y={cy - 8} textAnchor="middle" className="fill-foreground" fontSize="18" fontWeight="700" fontFamily="var(--font-mono)">
           {value != null ? value.toFixed(1) : '--'}
         </text>
-        <text x={cx} y={cy + 8} textAnchor="middle" className="fill-muted" fontSize="10">
+        <text x={cx} y={cy + 8} textAnchor="middle" className="fill-muted-foreground" fontSize="10">
           {unit}
         </text>
       </svg>

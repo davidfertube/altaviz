@@ -1,3 +1,4 @@
+import AnnouncementBar from '@/components/marketing/AnnouncementBar';
 import Navbar from '@/components/marketing/Navbar';
 import Footer from '@/components/marketing/Footer';
 
@@ -8,6 +9,7 @@ export default function MarketingLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden bg-[#0A0E17]">
+      <AnnouncementBar />
       <Navbar />
       <main className="flex-1 w-full">
         {children}

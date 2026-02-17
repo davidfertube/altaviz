@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAppSession } from '@/lib/session';
+import { getAppSession, meetsRoleLevel } from '@/lib/session';
 import { createCheckoutSession } from '@/lib/stripe';
 import { getStripePriceId, type SubscriptionTier } from '@/lib/plans';
 
@@ -8,6 +8,9 @@ export async function POST(request: NextRequest) {
     const session = await getAppSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!meetsRoleLevel(session.role, 'admin')) {
+      return NextResponse.json({ error: 'Admin access required for billing' }, { status: 403 });
     }
 
     const { tier } = (await request.json()) as { tier: SubscriptionTier };

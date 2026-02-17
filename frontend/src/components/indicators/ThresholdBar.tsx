@@ -17,7 +17,7 @@ export default function ThresholdBar({
   unit = '',
   inverted = false,
 }: ThresholdBarProps) {
-  if (value == null) return <span className="text-xs text-muted">--</span>;
+  if (value == null) return <span className="text-xs text-muted-foreground">--</span>;
 
   const range = max - min;
   const pct = Math.max(0, Math.min(100, ((value - min) / range) * 100));
@@ -40,7 +40,7 @@ export default function ThresholdBar({
 
   return (
     <div className="w-full">
-      <div className="flex justify-between text-xs text-muted mb-1">
+      <div className="flex justify-between text-xs text-muted-foreground mb-1">
         <span>{value.toFixed(1)} {unit}</span>
         <span className={`font-medium ${
           status === 'critical' ? 'text-critical' :

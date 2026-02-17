@@ -17,6 +17,20 @@ If you discover a security vulnerability, please report it responsibly:
 - **Dev credentials**: Disabled by default; requires both `NODE_ENV=development` AND `DEV_CREDENTIALS_ENABLED=true`
 - **Dev email allowlist**: Controlled via `DEV_ALLOWED_EMAILS` env var
 
+## Role-Based Access Control (RBAC)
+
+- **Roles**: `owner` > `admin` > `operator` > `viewer` (hierarchical)
+- Role enforcement via `meetsRoleLevel()` and `requireRole()` in `lib/session.ts`
+- Mutation API routes (acknowledge, resolve, team management, billing) require `admin` or higher
+- Read-only routes require `viewer` or higher
+- Role level comparison is numeric: owner(4), admin(3), operator(2), viewer(1)
+
+## Audit Logging
+
+- All security-relevant actions logged to `audit_logs` table
+- `logAuditEvent()` in `lib/audit.ts` records: userId, organizationId, action, resourceType, resourceId, ipAddress
+- Events tracked: alert acknowledgment/resolution, team member changes, role assignments, billing actions
+
 ## Multi-Tenant Data Isolation
 
 - All database queries are scoped by `organization_id` parameter

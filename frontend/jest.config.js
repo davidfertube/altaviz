@@ -29,6 +29,8 @@ module.exports = {
     'src/app/api/**/*.ts',
     '!src/lib/types.ts',
     '!src/lib/constants.ts',
+    '!src/lib/demo-data.ts',
+    '!src/lib/email-templates.ts',
   ],
   coverageThreshold: {
     global: {

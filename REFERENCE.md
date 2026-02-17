@@ -26,7 +26,7 @@ A complete walkthrough for rebuilding this predictive maintenance SaaS platform 
 
 ## 1. Project Overview
 
-**Altaviz** is a multi-tenant SaaS platform for predictive maintenance of natural gas compression equipment. It monitors 10 compressor units across 4 Texas stations, detecting failures 24-48 hours before they happen.
+**Altaviz** is a multi-tenant SaaS platform for pipeline integrity management across oil and gas infrastructure. It monitors 10 compressor units across 4 Texas stations, detecting failures 24-48 hours before they happen.
 
 ### Stack
 
@@ -144,7 +144,7 @@ cd frontend && npm run dev
 - **Parameterized queries**: `$1, $2` placeholders prevent SQL injection natively
 - **Views**: Pre-built queries for common dashboard needs (fleet health, active alerts)
 
-### Schema Design (11 Tables, 3 Views)
+### Schema Design (12 Tables, 3 Views)
 
 File: `infrastructure/sql/schema.sql`
 
@@ -401,17 +401,20 @@ frontend/src/
     ├── stripe.ts            # Stripe client
     ├── demo-data.ts         # Pre-seeded demo data
     ├── audit.ts             # Audit logging helper
-    └── rate-limit.ts        # In-memory rate limiter
+    ├── rate-limit.ts        # In-memory rate limiter
+    ├── session.ts           # RBAC helpers (getAppSession, requireRole, meetsRoleLevel)
+    ├── email.ts             # Transactional email via Resend API
+    └── email-templates.ts   # HTML email templates (welcome, critical alert, team invite)
 ```
 
 ### Route Groups (Next.js App Router)
 
 Route groups organize pages by access level without affecting URLs:
 
-- `(marketing)` — Public: `/`, `/pricing`
+- `(marketing)` — Public: `/`, `/pricing`, `/about`, `/contact`, `/changelog`, `/privacy`, `/terms`, `/security`
 - `(auth)` — Public: `/login`
 - `(demo)` — Public: `/demo/*` (full dashboard experience, no auth)
-- `(dashboard)` — Protected: `/dashboard/*` (requires session)
+- `(dashboard)` — Protected: `/dashboard/*` (requires session), including `/dashboard/settings/team`
 
 ### Data Fetching Pattern
 
@@ -620,21 +623,21 @@ await logAuditEvent({
 
 ## 12. Testing Strategy
 
-### 103 Tests Across 18 Suites
+### 263 Tests Across 39 Suites
 
 ```bash
-# Frontend (Jest) — 79 tests, 13 suites
+# Frontend (Jest) — 234 tests, 30 suites
 cd frontend && npm test
 
-# ETL (pytest) — 25 tests, 5 suites
+# ETL (pytest) — 29 tests, 9 suites
 pytest tests/ -v
 ```
 
 ### What's Tested
 
-**Frontend**: API route handlers (fleet, alerts, compressors, stripe, health, workflows), library modules (db pool config, crypto, session, validation, subscription plans)
+**Frontend**: API route handlers (fleet, alerts, compressors, stripe, health, workflows), library modules (db pool config, crypto, session, validation, subscription plans), RBAC enforcement, team management, email sending/templates
 
-**ETL**: Schema validation, data quality transforms, pipeline stage outputs, database writer functions
+**ETL**: Schema validation, data quality transforms, pipeline stage outputs, database writer functions, ML model inference (anomaly detection, temperature drift, emissions estimation, RUL prediction)
 
 ### Testing Pattern
 
@@ -778,7 +781,7 @@ Environment variables are for secrets and deployment-specific settings (DATABASE
 | `config/thresholds.yaml` | Sensor ranges, stations, alert rules |
 | `config/etl_config.yaml` | Pipeline configuration |
 | `config/database.yaml` | Database connection settings |
-| `infrastructure/sql/schema.sql` | PostgreSQL DDL (11 tables, 3 views) |
+| `infrastructure/sql/schema.sql` | PostgreSQL DDL (12 tables, 3 views) |
 | `frontend/src/lib/db.ts` | PostgreSQL connection pool |
 | `frontend/src/lib/queries.ts` | 12 org-scoped SQL queries |
 | `frontend/src/lib/auth.ts` | Authentication (NextAuth.js v5) |
@@ -787,6 +790,13 @@ Environment variables are for secrets and deployment-specific settings (DATABASE
 | `frontend/src/lib/demo-data.ts` | Pre-seeded demo data |
 | `frontend/src/lib/audit.ts` | Audit logging helper |
 | `frontend/src/lib/rate-limit.ts` | In-memory rate limiter |
+| `frontend/src/lib/session.ts` | RBAC helpers (getAppSession, requireRole, meetsRoleLevel) |
+| `frontend/src/lib/email.ts` | Transactional email via Resend API |
+| `frontend/src/lib/email-templates.ts` | HTML email templates (welcome, critical alert, team invite) |
+| `tests/test_anomaly_detector.py` | Isolation Forest anomaly detection tests |
+| `tests/test_temp_drift_predictor.py` | Temperature drift prediction tests |
+| `tests/test_emissions_estimator.py` | EPA emissions estimation tests |
+| `tests/test_rul_predictor.py` | RUL prediction tests |
 | `.env.example` | All environment variables |
 | `docker-compose.yml` | Local dev with PostgreSQL |
 | `.github/workflows/ci.yml` | CI/CD pipeline |

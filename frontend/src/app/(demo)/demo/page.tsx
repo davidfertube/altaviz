@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import useSWR from 'swr';
 import Header from '@/components/layout/Header';
 import MetricCard from '@/components/cards/MetricCard';
@@ -11,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { MetricCardSkeleton } from '@/components/ui/Skeleton';
 import Link from 'next/link';
 import { COLORS } from '@/lib/constants';
+import { X } from 'lucide-react';
 import type { FleetHealthSummary, ActiveAlert } from '@/lib/types';
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
@@ -44,6 +46,7 @@ function FleetHealthSparkline({ fleet }: { fleet: FleetHealthSummary[] }) {
 }
 
 export default function DemoFleetPage() {
+  const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const { data: fleet, isLoading: fleetLoading } = useSWR<FleetHealthSummary[]>('/api/demo/fleet', fetcher, { refreshInterval: 30000 });
   const { data: alerts, isLoading: alertsLoading } = useSWR<ActiveAlert[]>('/api/demo/alerts', fetcher, { refreshInterval: 30000 });
 
@@ -80,15 +83,39 @@ export default function DemoFleetPage() {
         {/* Fleet Health Sparkline */}
         {fleet && fleet.length > 0 && <FleetHealthSparkline fleet={fleet} />}
 
-        {/* Map + Compressor Grid */}
+        {/* Map + Pipeline Grid */}
         {fleet && fleet.length > 0 && (
           <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
             <div className="xl:col-span-2 h-[300px] sm:h-[420px]">
-              <FleetMap fleet={fleet} />
+              <FleetMap
+                fleet={fleet}
+                selectedStationId={selectedStationId}
+                onStationSelect={setSelectedStationId}
+                linkPrefix="/demo/monitoring"
+              />
             </div>
             <div className="xl:col-span-3">
+              {selectedStationId && (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-medium text-foreground">
+                    {fleet.find(c => c.station_id === selectedStationId)?.station_name}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-muted-foreground"
+                    onClick={() => setSelectedStationId(null)}
+                  >
+                    Show all pipelines
+                    <X className="size-3 ml-1" />
+                  </Button>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-                {fleet.map(c => (
+                {(selectedStationId
+                  ? fleet.filter(c => c.station_id === selectedStationId)
+                  : fleet
+                ).map(c => (
                   <PipelineCard key={c.compressor_id} data={c} linkPrefix="/demo/monitoring" />
                 ))}
               </div>

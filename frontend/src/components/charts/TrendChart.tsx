@@ -55,16 +55,16 @@ export default function TrendChart({
               <stop offset="95%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
           <XAxis
             dataKey="time"
             tickFormatter={formatTime}
-            stroke="var(--muted)"
+            stroke="var(--muted-foreground)"
             fontSize={11}
             tickLine={false}
           />
           <YAxis
-            stroke="var(--muted)"
+            stroke="var(--muted-foreground)"
             fontSize={11}
             tickLine={false}
             tickFormatter={(v) => `${v}`}
@@ -72,7 +72,7 @@ export default function TrendChart({
           <Tooltip
             contentStyle={{
               backgroundColor: 'var(--surface)',
-              borderColor: 'var(--border-color)',
+              borderColor: 'var(--border)',
               borderRadius: '8px',
               fontSize: '12px',
             }}

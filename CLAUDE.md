@@ -1,8 +1,8 @@
 # Altaviz
 
-Multi-tenant SaaS platform for predictive maintenance of natural gas compression equipment.
+Multi-tenant SaaS platform for pipeline integrity management across oil and gas infrastructure.
 Stack: PySpark 3.5 + Delta Lake 3.0 | PostgreSQL (Supabase) | Next.js 16 + React 19 + Tailwind CSS v4 + shadcn/ui | NextAuth.js v5 (GitHub + Google OAuth) | Stripe Billing | Vercel (primary) + Azure App Service (secondary)
-Status: Portfolio-ready MVP — ETL pipeline with ML inference, multi-tenant dashboard, live demo mode, auth, billing, agentic workflows, comprehensive test suite (103 tests), and CI/CD pipeline. Monthly cost: $0.
+Status: Portfolio-ready MVP — ETL pipeline with ML inference, multi-tenant dashboard, live demo mode, auth, billing, agentic workflows, RBAC, team management, email notifications, comprehensive test suite (263 tests), and CI/CD pipeline. Monthly cost: $0.
 
 ## Critical Rules
 
@@ -28,8 +28,8 @@ python src/etl/pyspark_pipeline.py --skip-ml             # Run ETL without ML in
 python src/etl/pyspark_pipeline.py --skip-db             # Run ETL without database export
 cd frontend && npm run dev                               # Launch frontend (dev mode, localhost:3000)
 cd frontend && npm run build                             # Build frontend for production
-cd frontend && npm test                                  # Run Jest tests (78 tests, 13 suites)
-pytest tests/ -v                                         # Run pytest ETL tests (25 tests, 5 suites)
+cd frontend && npm test                                  # Run Jest tests (234 tests, 30 suites)
+pytest tests/ -v                                         # Run pytest ML+ETL tests (29 tests, 9 suites)
 cd frontend && npx tsc --noEmit                          # TypeScript type check
 ```
 
@@ -53,7 +53,7 @@ Landing (/) ← Next.js 16 → Dashboard (/dashboard/*) → API Routes → Postg
 - Delta Lake tables in `data/processed/delta/{sensors_bronze,sensors_silver,sensors_gold}/`
 - Database stores hourly aggregates (1hr, 4hr, 24hr windows) in `sensor_readings_agg` table
 - PostgreSQL (Supabase free tier) with `pg` (node-postgres) on frontend, JDBC on ETL
-- 11 tables + 3 org-aware views (schema at `infrastructure/sql/schema.sql`)
+- 12 tables + 3 org-aware views (schema at `infrastructure/sql/schema.sql`)
 - Multi-tenant: all data access filtered by `organization_id`
 
 ## Route Structure
@@ -72,8 +72,15 @@ Landing (/) ← Next.js 16 → Dashboard (/dashboard/*) → API Routes → Postg
 /dashboard/monitoring/[id] . Compressor Detail (radial gauges, time-series charts)
 /dashboard/alerts .......... Alert Management (filterable, acknowledge/resolve)
 /dashboard/data-quality .... Pipeline Health metrics
-/dashboard/settings ........ Organization, profile, billing link
+/dashboard/settings ........ Organization, profile, team, billing
 /dashboard/settings/billing  Subscription management (Stripe checkout/portal)
+/dashboard/settings/team ... Team management (members, invites, roles)
+/about ..................... Company story, mission, values
+/contact ................... Contact form + sales info
+/changelog ................. Product updates timeline
+/privacy ................... Privacy policy
+/terms ..................... Terms of service
+/security .................. Security policy + compliance
 ```
 
 Route groups: `(marketing)` public, `(dashboard)` authenticated, `(demo)` public demo, `(auth)` login.
@@ -195,7 +202,7 @@ DEV_ALLOWED_EMAILS=admin@altaviz.com
 | `config/etl_config.yaml` | Window sizes, Spark config, data paths |
 | `config/thresholds.yaml` | Sensor normal/warning/critical ranges, station locations |
 | `.env.example` | All env vars: DB, Auth, Stripe, ETL |
-| `infrastructure/sql/schema.sql` | PostgreSQL DDL: 11 tables, 3 views, triggers, seed data |
+| `infrastructure/sql/schema.sql` | PostgreSQL DDL: 12 tables, 3 views, triggers, seed data |
 | `frontend/src/lib/db.ts` | PostgreSQL pool via `pg` (node-postgres) |
 | `frontend/src/lib/queries.ts` | 12 org-scoped parameterized SQL query functions |
 | `frontend/src/lib/auth.ts` | NextAuth.js v5 (GitHub + Google OAuth + dev credentials) |
@@ -209,5 +216,8 @@ DEV_ALLOWED_EMAILS=admin@altaviz.com
 | `src/etl/pyspark_pipeline.py` | 5-stage ETL: Bronze → Silver → Gold → ML → Database |
 | `src/etl/database_writer.py` | PostgreSQL JDBC writer for all tables |
 | `src/etl/schemas.py` | PySpark StructType schemas (sensor, bronze, silver, gold, emissions) |
+| `frontend/src/lib/session.ts` | `getAppSession()`, `requireRole()`, RBAC helpers |
+| `frontend/src/lib/email.ts` | Transactional email via Resend API (welcome, alerts, invites) |
+| `frontend/src/lib/email-templates.ts` | HTML email templates with inline CSS |
 | `frontend/src/lib/audit.ts` | Audit logging helper for enterprise compliance |
 | `frontend/src/lib/rate-limit.ts` | In-memory rate limiter with header support |

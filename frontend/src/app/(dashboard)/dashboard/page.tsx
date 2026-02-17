@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useFleetHealth, useActiveAlerts } from '@/hooks/useFleetHealth';
 import Header from '@/components/layout/Header';
 import MetricCard from '@/components/cards/MetricCard';
@@ -12,6 +13,7 @@ import { MetricCardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import Link from 'next/link';
 import { COLORS } from '@/lib/constants';
+import { X } from 'lucide-react';
 
 function FleetHealthSparkline({ fleet }: { fleet: { compressor_id: string; health_status: string }[] }) {
   // Build a mini sparkline: bar per compressor colored by status
@@ -43,6 +45,7 @@ function FleetHealthSparkline({ fleet }: { fleet: { compressor_id: string; healt
 }
 
 export default function FleetOverviewPage() {
+  const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const { data: fleet, isLoading: fleetLoading } = useFleetHealth();
   const { data: alerts, isLoading: alertsLoading } = useActiveAlerts();
 
@@ -105,13 +108,37 @@ export default function FleetOverviewPage() {
           <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
             {/* Map */}
             <div className="xl:col-span-2 h-[300px] sm:h-[420px]">
-              <FleetMap fleet={fleet} />
+              <FleetMap
+                fleet={fleet}
+                selectedStationId={selectedStationId}
+                onStationSelect={setSelectedStationId}
+                linkPrefix="/dashboard/monitoring"
+              />
             </div>
 
             {/* Pipeline Grid */}
             <div className="xl:col-span-3">
+              {selectedStationId && (
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-sm font-medium text-foreground">
+                    {fleet.find(c => c.station_id === selectedStationId)?.station_name}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-muted-foreground"
+                    onClick={() => setSelectedStationId(null)}
+                  >
+                    Show all pipelines
+                    <X className="size-3 ml-1" />
+                  </Button>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-                {fleet.map(c => (
+                {(selectedStationId
+                  ? fleet.filter(c => c.station_id === selectedStationId)
+                  : fleet
+                ).map(c => (
                   <PipelineCard key={c.compressor_id} data={c} />
                 ))}
               </div>

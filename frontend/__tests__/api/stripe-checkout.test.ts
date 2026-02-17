@@ -6,6 +6,7 @@ import { NextRequest } from 'next/server';
 
 jest.mock('../../src/lib/session', () => ({
   getAppSession: jest.fn(),
+  meetsRoleLevel: jest.fn(),
 }));
 
 jest.mock('../../src/lib/stripe', () => ({
@@ -23,12 +24,13 @@ jest.mock('../../src/lib/errors', () => ({
   }),
 }));
 
-import { getAppSession } from '../../src/lib/session';
+import { getAppSession, meetsRoleLevel } from '../../src/lib/session';
 import { createCheckoutSession } from '../../src/lib/stripe';
 import { getStripePriceId } from '../../src/lib/plans';
 import { POST } from '../../src/app/api/stripe/checkout/route';
 
 const mockGetAppSession = getAppSession as jest.MockedFunction<typeof getAppSession>;
+const mockMeetsRoleLevel = meetsRoleLevel as jest.MockedFunction<typeof meetsRoleLevel>;
 const mockCreateCheckoutSession = createCheckoutSession as jest.MockedFunction<typeof createCheckoutSession>;
 const mockGetStripePriceId = getStripePriceId as jest.MockedFunction<typeof getStripePriceId>;
 
@@ -63,6 +65,7 @@ describe('POST /api/stripe/checkout', () => {
 
   it('returns 400 for invalid tier', async () => {
     mockGetAppSession.mockResolvedValue(session);
+    mockMeetsRoleLevel.mockReturnValue(true);
     mockGetStripePriceId.mockReturnValue(null);
 
     const response = await POST(makeRequest({ tier: 'invalid' }));
@@ -72,8 +75,20 @@ describe('POST /api/stripe/checkout', () => {
     expect(body.error).toBe('Invalid plan');
   });
 
+  it('returns 403 when non-admin tries checkout', async () => {
+    mockGetAppSession.mockResolvedValue({ ...session, role: 'viewer' });
+    mockMeetsRoleLevel.mockReturnValue(false);
+
+    const response = await POST(makeRequest({ tier: 'pro' }));
+    expect(response.status).toBe(403);
+
+    const body = await response.json();
+    expect(body.error).toBe('Admin access required for billing');
+  });
+
   it('returns checkout URL for valid pro tier', async () => {
     mockGetAppSession.mockResolvedValue(session);
+    mockMeetsRoleLevel.mockReturnValue(true);
     mockGetStripePriceId.mockReturnValue('price_pro_123');
     mockCreateCheckoutSession.mockResolvedValue('https://checkout.stripe.com/session_123');
 

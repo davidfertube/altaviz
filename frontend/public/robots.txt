@@ -1,0 +1,9 @@
+# Altaviz - Pipeline Integrity Management
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /signup
+
+Sitemap: https://altaviz.io/sitemap.xml

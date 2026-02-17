@@ -1,7 +1,7 @@
 -- ===============================================
 -- ALTAVIZ UNIFIED SCHEMA (PostgreSQL 14+)
 -- ===============================================
--- Multi-tenant compressor health monitoring system
+-- Multi-tenant pipeline integrity monitoring system
 -- Includes: 11 tables, 3 views, triggers, seed data
 -- Run once on a fresh PostgreSQL database (e.g. Supabase)
 
@@ -397,3 +397,23 @@ VALUES (
     (SELECT id FROM organizations WHERE slug = 'altaviz-demo'),
     'admin@altaviz.com', 'admin', 'owner'
 ) ON CONFLICT (email) DO NOTHING;
+
+-- ===============================================
+-- AUDIT LOG TABLE
+-- ===============================================
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id              BIGSERIAL PRIMARY KEY,
+    user_id         UUID REFERENCES users(id),
+    organization_id UUID NOT NULL REFERENCES organizations(id),
+    action          VARCHAR(100) NOT NULL,
+    resource_type   VARCHAR(50) NOT NULL,
+    resource_id     VARCHAR(255),
+    ip_address      INET,
+    details         JSONB,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_org_created ON audit_logs(organization_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON audit_logs(resource_type, resource_id);

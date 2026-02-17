@@ -203,3 +203,42 @@ export function getMaintenanceEvents(organizationId: string, compressorId?: stri
     [organizationId]
   );
 }
+
+// === Team Management ===
+
+export interface TeamMember {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  last_login_at: string | null;
+  created_at: string;
+}
+
+export function getTeamMembers(organizationId: string): Promise<TeamMember[]> {
+  return query<TeamMember>(
+    `SELECT id, email, name, role, last_login_at, created_at
+     FROM users
+     WHERE organization_id = $1
+     ORDER BY created_at ASC`,
+    [organizationId]
+  );
+}
+
+export function updateUserRole(userId: string, role: string, organizationId: string): Promise<TeamMember[]> {
+  return query<TeamMember>(
+    `UPDATE users SET role = $2, updated_at = NOW()
+     WHERE id = $1 AND organization_id = $3
+     RETURNING id, email, name, role, last_login_at, created_at`,
+    [userId, role, organizationId]
+  );
+}
+
+export function removeTeamMember(userId: string, organizationId: string): Promise<TeamMember[]> {
+  return query<TeamMember>(
+    `DELETE FROM users
+     WHERE id = $1 AND organization_id = $2 AND role != 'owner'
+     RETURNING id, email, name, role, last_login_at, created_at`,
+    [userId, organizationId]
+  );
+}

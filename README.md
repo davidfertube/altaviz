@@ -4,7 +4,7 @@
 
 ## Overview
 
-Altaviz provides real-time integrity monitoring for transmission and gathering pipelines, combining sensor data processing (PySpark ETL with Delta Lake), ML-powered anomaly detection, and automated PHMSA compliance reporting (49 CFR 192, EPA Subpart W). Deployed across 4 Texas stations with 10 monitored pipelines, the platform delivers 48-hour advance failure warnings and reduces unplanned shutdowns by 40%. Production-hardened with 103 automated tests, enterprise security controls, and Azure IaC.
+Altaviz provides real-time integrity monitoring for transmission and gathering pipelines, combining sensor data processing (PySpark ETL with Delta Lake), ML-powered anomaly detection, and automated PHMSA compliance reporting (49 CFR 192, EPA Subpart W). Deployed across 4 Texas stations with 10 monitored pipelines, the platform delivers 48-hour advance failure warnings and reduces unplanned shutdowns by 40%. Production-hardened with 263 automated tests, enterprise security controls, and Azure IaC.
 
 ### Key Features
 
@@ -114,23 +114,27 @@ altaviz/
 │       ├── transformations.py       # Gold layer: rolling windows, rate of change, thresholds
 │       ├── database_writer.py       # JDBC writer (PostgreSQL + Azure SQL)
 │       └── utils.py                 # Config loading, Spark session, logging
-├── tests/                           # Python ETL test suite (5 suites, 25 tests)
+├── tests/                           # Python ETL + ML test suite (9 suites, 29 tests)
 │   ├── conftest.py                  # SparkSession fixture, sample data
 │   ├── test_schemas.py              # Schema validation tests
 │   ├── test_data_quality.py         # Null removal, outlier detection tests
 │   ├── test_transformations.py      # Rolling windows, rate of change, threshold tests
 │   ├── test_database_writer.py      # Alert generation, severity assignment tests
-│   └── test_pipeline_integration.py # End-to-end Bronze → Silver → Gold tests
+│   ├── test_pipeline_integration.py # End-to-end Bronze → Silver → Gold tests
+│   ├── test_anomaly_detector.py     # Isolation Forest anomaly detection tests
+│   ├── test_temp_drift_predictor.py # Temperature drift prediction tests
+│   ├── test_emissions_estimator.py  # EPA Subpart W emissions estimation tests
+│   └── test_rul_predictor.py        # Remaining Useful Life prediction tests
 ├── frontend/                        # Next.js 16 + React 19 SaaS dashboard
 │   ├── src/app/                     # App Router pages
-│   │   ├── (marketing)/             # Public pages (landing, pricing)
+│   │   ├── (marketing)/             # Public pages (landing, pricing, about, contact, changelog, legal)
 │   │   ├── (dashboard)/dashboard/   # Authenticated pages (fleet, monitoring, alerts)
 │   │   ├── (auth)/login/            # Authentication page
 │   │   └── api/                     # 15+ API routes (org-scoped, validated, rate-limited)
 │   ├── src/components/              # Reusable UI components
 │   ├── src/hooks/                   # SWR data fetching hooks
 │   ├── src/lib/                     # Shared utilities
-│   │   ├── auth.ts                  # NextAuth.js v5 config (Azure AD + dev credentials)
+│   │   ├── auth.ts                  # NextAuth.js v5 config (GitHub + Google OAuth, RBAC)
 │   │   ├── session.ts               # getAppSession() / requireSession() helpers
 │   │   ├── db.ts                    # node-postgres Pool singleton (env-driven config)
 │   │   ├── queries.ts               # 12 org-scoped parameterized SQL query functions
@@ -143,18 +147,20 @@ altaviz/
 │   │   ├── errors.ts                # Sanitized error responses with requestId
 │   │   ├── fetcher.ts               # Shared SWR fetcher with retry logic
 │   │   ├── env.ts                   # Startup env var validation
+│   │   ├── email.ts                 # Email notifications via Resend API
+│   │   ├── email-templates.ts       # Email HTML templates (alerts, invitations)
 │   │   ├── types.ts                 # TypeScript interfaces
 │   │   └── constants.ts             # Sensor thresholds, colors, nav items
-│   └── __tests__/                   # Frontend test suite (13 suites, 78 tests)
-│       ├── lib/                     # Unit tests (validation, plans, crypto, session, db)
-│       └── api/                     # API route tests (fleet, alerts, readings, workflows, stripe)
+│   └── __tests__/                   # Frontend test suite (30 suites, 234 tests)
+│       ├── lib/                     # Unit tests (validation, plans, crypto, session, db, email, RBAC)
+│       └── api/                     # API route tests (fleet, alerts, readings, workflows, stripe, team)
 ├── config/                          # Configuration files
 │   ├── database.yaml                # PostgreSQL + Azure SQL connection settings
 │   ├── etl_config.yaml              # Window sizes, Spark config, quality thresholds
 │   └── thresholds.yaml              # Sensor normal/warning/critical ranges
 ├── infrastructure/
 │   ├── sql/
-│   │   ├── schema.sql               # PostgreSQL DDL (10 tables, 3 views, 15+ indexes)
+│   │   ├── schema.sql               # PostgreSQL DDL (12 tables, 3 views, 15+ indexes)
 │   │   ├── migrations/              # Numbered migration scripts
 │   │   └── azure/                   # Azure SQL DDL + seed data
 │   └── terraform/                   # Azure IaC (Container Apps, PostgreSQL, Key Vault, ACR)
@@ -266,9 +272,9 @@ See [SECURITY.md](SECURITY.md) for the full security policy, vulnerability repor
 
 ## Testing
 
-103 automated tests across 18 test suites.
+263 automated tests across 39 test suites.
 
-### Frontend (Jest) — 13 suites, 78 tests
+### Frontend (Jest) — 30 suites, 234 tests
 
 ```bash
 cd frontend && npm test                  # Run all tests
@@ -276,9 +282,9 @@ cd frontend && npm run test:watch        # Watch mode
 cd frontend && npm run test:coverage     # With coverage report (60% threshold)
 ```
 
-Tests cover: input validation, feature gates, timing-safe crypto, session handling, database pool config, all API routes (auth, pagination, feature gates, Stripe webhooks, workflows).
+Tests cover: input validation, feature gates, timing-safe crypto, session handling, RBAC enforcement, database pool config, email notifications, team management, all API routes (auth, pagination, feature gates, Stripe webhooks, workflows).
 
-### Python ETL (pytest) — 5 suites, 25 tests
+### Python ETL + ML (pytest) — 9 suites, 29 tests
 
 ```bash
 JAVA_HOME=/path/to/java11 \
@@ -287,7 +293,7 @@ PYTHONPATH=. \
 .venv/bin/python -m pytest tests/ -v
 ```
 
-Tests cover: schema validation, data quality (null removal, outlier detection), Gold layer transformations (rolling windows, rate of change, thresholds), alert generation, end-to-end pipeline integration.
+Tests cover: schema validation, data quality (null removal, outlier detection), Gold layer transformations (rolling windows, rate of change, thresholds), alert generation, end-to-end pipeline integration, and all 4 ML models (anomaly detection, temperature drift, emissions estimation, RUL prediction).
 
 ### Lint & Typecheck
 
@@ -310,16 +316,16 @@ The data simulator includes 2 compressors with programmed degradation patterns f
 |-----------|--------|---------|
 | Data Simulator | Done | 10 compressors, 7 days, 2 failure scenarios |
 | PySpark ETL | Done | Bronze/Silver/Gold with Delta Lake |
-| Database Schema | Done | PostgreSQL + Azure SQL (10 tables, 3 views, 2 migrations) |
+| Database Schema | Done | PostgreSQL + Azure SQL (12 tables, 3 views, 2 migrations) |
 | Next.js Dashboard | Done | Multi-tenant SaaS with fleet overview, monitoring, alerts, data quality, settings |
 | Authentication | Done | NextAuth.js v5 with Azure AD, JWT (8h expiry), role-based access |
 | Stripe Billing | Done | Free/Pro/Enterprise tiers, checkout, portal, webhooks, feature gates |
 | Agentic Workflows | Done | Alert escalation, auto-resolve, data freshness, stale cleanup |
 | Security Hardening | Done | Rate limiting, CSP, input validation, timing-safe auth, env validation |
-| Test Suite | Done | 13 Jest suites (78 tests) + 5 pytest suites (25 tests) = 103 tests |
+| Test Suite | Done | 30 Jest suites (234 tests) + 9 pytest suites (29 tests) = 263 tests |
 | CI/CD Pipeline | Done | Multi-job CI (lint, typecheck, tests, build, security) + env-aware CD |
 | Azure IaC | Done | Terraform: Container Apps, PostgreSQL, Key Vault, ACR, App Insights |
-| ML Model | Not Started | LSTM for remaining useful life prediction |
+| ML Models | Done | 4 models (Isolation Forest, Linear Regression, EPA factors, Heuristic RUL) with 29 pytest tests |
 
 ## Author
 

@@ -40,3 +40,31 @@ export async function requireSession(): Promise<AppSession> {
   }
   return session;
 }
+
+export type Role = 'owner' | 'admin' | 'operator' | 'viewer';
+
+const ROLE_LEVEL: Record<Role, number> = {
+  owner: 4,
+  admin: 3,
+  operator: 2,
+  viewer: 1,
+};
+
+/**
+ * Require an authenticated session with one of the specified roles.
+ * Returns the session if authorized, throws otherwise.
+ */
+export async function requireRole(...allowedRoles: Role[]): Promise<AppSession> {
+  const session = await requireSession();
+  if (!allowedRoles.includes(session.role as Role)) {
+    throw new Error('Insufficient permissions');
+  }
+  return session;
+}
+
+/**
+ * Check if a role meets the minimum access level.
+ */
+export function meetsRoleLevel(role: string, minimumRole: Role): boolean {
+  return (ROLE_LEVEL[role as Role] ?? 0) >= ROLE_LEVEL[minimumRole];
+}
