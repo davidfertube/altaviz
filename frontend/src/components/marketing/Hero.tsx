@@ -295,17 +295,16 @@ export default function Hero() {
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#1C1917] leading-[1.05] tracking-tight mb-5"
               variants={itemVariants}
             >
-              The operating system<br />
-              <span className="text-[#C4A77D]">
-                for pipeline integrity
-              </span>
+              ML monitoring<br />
+              <span className="text-[#C4A77D]">for pipeline integrity</span>
             </motion.h1>
 
             <motion.p
               className="text-lg text-[#78716C] max-w-lg mb-8 leading-relaxed"
               variants={itemVariants}
             >
-              Real-time monitoring, ML-powered predictions, and automated compliance for transmission and gathering pipelines.
+              ML-powered monitoring and predictive maintenance<br />
+              for transmission and gathering pipelines.
             </motion.p>
 
             {/* CTAs */}
