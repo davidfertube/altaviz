@@ -16,11 +16,16 @@ export default auth((req) => {
   // CORS validation for API routes
   if (pathname.startsWith('/api/')) {
     const origin = req.headers.get('origin');
-    if (origin && !ALLOWED_ORIGINS.has(origin)) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Origin not allowed' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
+    if (origin) {
+      // Always allow same-origin requests
+      const requestHost = req.nextUrl.origin;
+      const isSameOrigin = origin === requestHost;
+      if (!isSameOrigin && !ALLOWED_ORIGINS.has(origin)) {
+        return new NextResponse(
+          JSON.stringify({ error: 'Origin not allowed' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
   }
 
