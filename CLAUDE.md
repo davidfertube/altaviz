@@ -1,164 +1,192 @@
 # Altaviz
 
-Multi-tenant SaaS platform for pipeline integrity management across oil and gas infrastructure.
-Stack: PySpark 3.5 + Delta Lake 3.0 | PostgreSQL (Supabase) | Next.js 16 + React 19 + Tailwind CSS v4 + shadcn/ui | NextAuth.js v5 (GitHub + Google OAuth) | Stripe Billing | Vercel (primary) + Azure App Service (secondary)
-Status: Portfolio-ready MVP — ETL pipeline with ML inference, multi-tenant dashboard, live demo mode, auth, billing, agentic workflows, RBAC, team management, email notifications, comprehensive test suite (263 tests), and CI/CD pipeline. Monthly cost: $0.
+Production-grade data engineering platform for compressor fleet integrity management.
+Designed for Archrock-scale operations: 4,700+ compressors, 10 basins, 200+ stations.
+
+Stack: PySpark 3.5 + Delta Lake 3.0 | Azure Fabric / OneLake | Azure Event Hubs | MLflow | Pydantic AI | Terraform
+Status: Production architecture — Streaming + batch ETL, 4 ML models, AI diagnostics agent, fleet simulator, pipeline observability, data quality framework, infrastructure as code.
 
 ## Critical Rules
 
 - NEVER use `inferSchema`; always use explicit `StructType` schemas from `src/etl/schemas.py`
 - NEVER chain `.withColumn()` calls; use a single `.select()` with all new columns
-- NEVER hardcode database credentials; use `DATABASE_URL` environment variable
+- NEVER hardcode credentials; use environment variables or Azure Key Vault
 - NEVER commit `.env` files, `.env.local`, or `data/` directory contents
 - Maintain Bronze → Silver → Gold → ML medallion pattern; Bronze is immutable raw data
-- Use `broadcast()` for joins with small tables (metadata, stations = 10 rows)
-- Partition Gold layer by `date` column
+- Use `broadcast()` for joins with small tables (metadata, stations)
+- Partition Gold layer by `date` and `region`; Z-order by `compressor_id`
 - All sensor thresholds live in `config/thresholds.yaml`, not in application code
-- Frontend: all SQL queries must be parameterized (never string interpolation)
-- Frontend: all queries must be org-scoped via `organization_id` parameter
-- Frontend: use SWR hooks for data fetching with appropriate refresh intervals
-- Prerequisites: Python 3.10+, Java 11+ (for PySpark), Node.js 18+
+- OneLake paths use ABFS protocol: `abfss://<workspace>@onelake.dfs.fabric.microsoft.com/<lakehouse>/`
+- Prerequisites: Python 3.10+, Java 11+ (for PySpark)
 
 ## Key Commands
 
 ```bash
-python src/data_simulator/compressor_simulator.py        # Generate 50k+ sensor readings
-python src/etl/pyspark_pipeline.py                       # Run complete ETL + ML pipeline
-python src/etl/pyspark_pipeline.py --skip-ml             # Run ETL without ML inference
-python src/etl/pyspark_pipeline.py --skip-db             # Run ETL without database export
-cd frontend && npm run dev                               # Launch frontend (dev mode, localhost:3000)
-cd frontend && npm run build                             # Build frontend for production
-cd frontend && npm test                                  # Run Jest tests (234 tests, 30 suites)
-pytest tests/ -v                                         # Run pytest ML+ETL tests (29 tests, 9 suites)
-cd frontend && npx tsc --noEmit                          # TypeScript type check
+# Fleet Simulator (4,700 compressors)
+python -m src.data_simulator.fleet_simulator                    # Full fleet, 10 days, Parquet output
+python -m src.data_simulator.fleet_simulator --compressors 100  # Small test fleet
+python -m src.data_simulator.fleet_simulator --output eventhub  # Stream to Event Hubs
+
+# Legacy Simulator (10 compressors, original demo)
+python src/data_simulator/compressor_simulator.py
+
+# Production Pipeline (OneLake)
+python -m src.etl.pipeline                          # Full pipeline (batch mode)
+python -m src.etl.pipeline --mode stream            # Streaming from Event Hubs
+python -m src.etl.pipeline --skip-ml                # ETL only, no ML inference
+python -m src.etl.pipeline --skip-quality           # Skip data quality checks
+
+# Legacy Pipeline (local Delta + PostgreSQL)
+python src/etl/pyspark_pipeline.py                  # Original demo pipeline
+python src/etl/pyspark_pipeline.py --skip-ml        # Without ML
+python src/etl/pyspark_pipeline.py --skip-db        # Without database export
+
+# AI Diagnostics Agent
+python -m src.agents.run_diagnosis COMP-0003        # Run diagnosis (4-digit IDs at scale)
+uvicorn src.agents.api:app --port 8001              # Start diagnostics API
+
+# Tests
+pytest tests/ -v                                    # All Python tests
+pytest tests/load/ -v                               # Fleet scale tests
+pytest tests/integration/ -v                        # Integration tests (requires Spark)
+pytest tests/unit/ -v                               # Unit tests
+
+# Infrastructure
+cd infrastructure/terraform && terraform plan       # Preview Azure changes
+cd infrastructure/terraform && terraform apply      # Deploy infrastructure
 ```
 
 ## Architecture
 
 ```
-Data Simulator → PySpark ETL (Bronze/Silver/Gold) → ML Inference → PostgreSQL (Supabase)
-                                                          ↓                    ↓
-                                    Anomaly Detection (Isolation Forest)  Next.js Dashboard
-                                    Temperature Drift Prediction              ↓
-                                    Emissions Estimation (EPA)           Vercel (Free Tier)
-                                    RUL Prediction (Heuristic)
-                                                                              ↓
-Landing (/) ← Next.js 16 → Dashboard (/dashboard/*) → API Routes → PostgreSQL (org-scoped)
-                ↓                        ↓
-         Demo (/demo/*)     Auth (NextAuth v5 + GitHub/Google) + Stripe Billing
-         (no auth required)
+                        PRODUCTION ARCHITECTURE (4,700 Compressors)
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│  IoT Devices (4,700 compressors, 5-min intervals)                       │
+│       ↓ MQTT/HTTPS                                                       │
+│  Azure Event Hubs (16 partitions, partitioned by basin)                  │
+│       ↓ Spark Structured Streaming                                       │
+├──────────────────────────────────────────────────────────────────────────┤
+│  BRONZE (OneLake lh_bronze_raw)                                          │
+│  - Raw telemetry, zero transformations                                   │
+│  - Partitioned by ingestion_date                                         │
+│  - 1.35M rows/day, 7-year retention (EPA compliance)                    │
+├──────────────────────────────────────────────────────────────────────────┤
+│  SILVER (OneLake lh_silver_cleaned)                                      │
+│  - Deduplicated, null-handled, outlier-removed                          │
+│  - Per-compressor statistical validation (4-sigma)                      │
+│  - Quality checks: completeness, freshness, consistency                 │
+│  - Partitioned by date                                                   │
+├──────────────────────────────────────────────────────────────────────────┤
+│  GOLD (OneLake lh_gold_curated)                                          │
+│  - Rolling aggregations (1hr, 4hr, 24hr windows)                        │
+│  - Derived metrics (pressure differential, temp rate of change)         │
+│  - Threshold status flags (normal/warning/critical)                     │
+│  - Partitioned by date + region, Z-ordered by compressor_id             │
+├──────────────────────────────────────────────────────────────────────────┤
+│  ML INFERENCE (OneLake lh_ml_serving)                                    │
+│  - Anomaly Detection (Isolation Forest)                                  │
+│  - Temperature Drift (Linear Regression)                                │
+│  - Emissions (EPA Subpart W)                                            │
+│  - RUL Prediction (Heuristic)                                           │
+│  - Feature Store + MLflow Model Registry                                │
+├──────────────────────────────────────────────────────────────────────────┤
+│  SERVING                                                                 │
+│  - Pydantic AI Diagnostics Agent (FastAPI sidecar)                      │
+│  - Pipeline Monitor (Azure Monitor + Teams alerts)                      │
+│  - OneLake SQL endpoint for BI (Power BI, Synapse)                      │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
-- Raw Parquet/CSV in `data/raw/`
-- Delta Lake tables in `data/processed/delta/{sensors_bronze,sensors_silver,sensors_gold}/`
-- Database stores hourly aggregates (1hr, 4hr, 24hr windows) in `sensor_readings_agg` table
-- PostgreSQL (Supabase free tier) with `pg` (node-postgres) on frontend, JDBC on ETL
-- 12 tables + 3 org-aware views (schema at `infrastructure/sql/schema.sql`)
-- Multi-tenant: all data access filtered by `organization_id`
+## Fleet Scale
 
-## Route Structure
-
-```
-/ .......................... Landing page (energy sector themed, animated counters, gradient CTAs)
-/pricing ................... Pricing comparison (Free / Pro $49 / Enterprise $199)
-/login ..................... Auth page (GitHub + Google OAuth + dev credentials)
-/demo ...................... Live Demo — Fleet Overview (no auth, simulated data)
-/demo/monitoring ........... Demo — Monitoring Grid
-/demo/monitoring/[id] ...... Demo — Compressor Detail (gauges, trends, ML predictions)
-/demo/alerts ............... Demo — Alert Management
-/demo/emissions ............ Demo — EPA Emissions Monitoring
-/dashboard ................. Fleet Overview (protected, requires auth)
-/dashboard/monitoring ...... Monitoring Grid
-/dashboard/monitoring/[id] . Compressor Detail (radial gauges, time-series charts)
-/dashboard/alerts .......... Alert Management (filterable, acknowledge/resolve)
-/dashboard/data-quality .... Pipeline Health metrics
-/dashboard/settings ........ Organization, profile, team, billing
-/dashboard/settings/billing  Subscription management (Stripe checkout/portal)
-/dashboard/settings/team ... Team management (members, invites, roles)
-/about ..................... Company story, mission, values
-/contact ................... Contact form + sales info
-/changelog ................. Product updates timeline
-/privacy ................... Privacy policy
-/terms ..................... Terms of service
-/security .................. Security policy + compliance
-```
-
-Route groups: `(marketing)` public, `(dashboard)` authenticated, `(demo)` public demo, `(auth)` login.
+| Metric | Demo (10 units) | Production (4,700 units) |
+|--------|-----------------|--------------------------|
+| Compressors | 10 | 4,700 |
+| Stations | 4 (Texas) | 200+ (10 basins) |
+| Basins | 1 | 10 (Permian, Eagle Ford, Marcellus, etc.) |
+| Readings/day | 14,400 | 1,353,600 |
+| Storage/day | ~3 MB | ~270 MB |
+| Hourly aggregates/day | 240 | 112,800 |
+| Active alerts (~5%) | 2-3 | ~235 |
+| ML predictions/run | 40 | 18,800 |
 
 ## ML Models
 
 | Model | File | Algorithm | Purpose |
 |-------|------|-----------|---------|
-| Anomaly Detection | `src/ml/anomaly_detector.py` | Isolation Forest (scikit-learn) | Detects unusual vibration patterns, 24-48hr early warning |
-| Temperature Drift | `src/ml/temp_drift_predictor.py` | Linear Regression (scipy) | Predicts hours until temp warning/critical thresholds |
-| Emissions Estimation | `src/ml/emissions_estimator.py` | EPA Subpart W factors | Estimates CH4/CO2e emissions for compliance tracking |
-| RUL Prediction | `src/ml/rul_predictor.py` | Heuristic (rule-based) | Remaining Useful Life estimation from sensor degradation |
+| Anomaly Detection | `src/ml/models/anomaly_detector.py` | Isolation Forest (scikit-learn) | Vibration pattern anomalies, 24-48hr early warning |
+| Temperature Drift | `src/ml/models/temp_drift_predictor.py` | Linear Regression (scipy) | Hours until temp warning/critical thresholds |
+| Emissions | `src/ml/models/emissions_estimator.py` | EPA Subpart W factors | CH4/CO2e emissions for OOOOb compliance |
+| RUL Prediction | `src/ml/models/rul_predictor.py` | Heuristic (rule-based) | Remaining Useful Life from sensor degradation |
 
-ML models run as a pipeline stage after Gold layer: `Bronze → Silver → Gold → ML → Database`
+ML Lifecycle: Feature Store → MLflow Training → Model Registry → Batch Prediction → OneLake
 
-## Authentication & Multi-Tenancy
+## AI Diagnostics Agent
 
-- **NextAuth.js v5** with GitHub + Google OAuth + dev Credentials provider
-- JWT strategy enriched with `organizationId`, `organizationName`, `role`, `subscriptionTier`
-- Dev credentials: requires `DEV_CREDENTIALS_ENABLED=true` + email allowlist
-- Rate limiting: 60 req/min per IP on all `/api/*` routes via middleware
-- Middleware protects all `/dashboard/*` routes → redirects to `/login`
-- Demo routes (`/demo/*`) are public — no auth required
-- Auto-creates org + user on first sign-in (`findOrCreateUser` in `lib/auth.ts`)
-- All 12 query functions in `queries.ts` require `organizationId` parameter
+- **Framework:** Pydantic AI (type-safe structured outputs)
+- **Agent:** `src/agents/diagnostics_agent.py` — 5 database tools
+- **API:** `src/agents/api.py` — FastAPI sidecar (port 8001)
+- **CLI:** `python -m src.agents.run_diagnosis COMP-0003`
+- **Output:** `DiagnosticReport` with root cause, contributing factors, actions
 
-## Stripe Billing
+## Data Quality Framework
 
-- Lazy-initialized client in `lib/stripe.ts` (won't crash if STRIPE_SECRET_KEY unset)
-- Tiers: Free (2 compressors, 1hr window), Pro (20, all windows), Enterprise (unlimited + ML)
-- Webhook handler: `checkout.session.completed`, `subscription.updated`, `subscription.deleted`, `invoice.payment_failed`
-- `billing_events` table logs all Stripe events with idempotency (ON CONFLICT DO NOTHING)
+- **Module:** `src/etl/silver/quality.py`
+- **Checks:** Fleet completeness (85% threshold), data freshness (15-min SLA), sensor completeness (95%), volume consistency, pressure consistency
+- **Report:** `QualityReport` with pass/fail per check, auto-logged to monitor
 
-## Agentic Workflows
+## Pipeline Observability
 
-Automated workflows in `lib/workflows.ts`, triggered via `POST /api/workflows/run`:
+- **Monitor:** `src/monitoring/metrics.py` — `PipelineMonitor` class
+- **Tracks:** Stage durations, row counts, rejection rates, ML results
+- **Destinations:** Structured logs, Azure Monitor (Log Analytics), Teams webhook on failure
+- **Legacy:** `src/etl/pipeline_observer.py` (PostgreSQL-based, demo mode)
 
-| Workflow | Action | Trigger |
-|----------|--------|---------|
-| `alert_escalation` | Unacknowledged warnings → critical after 4h | Cron / manual |
-| `alert_auto_resolve` | Resolve alerts when sensor readings return to healthy | Cron / manual |
-| `data_freshness_check` | Create staleness alerts if no data for 3h+ | Cron / manual |
-| `stale_alert_cleanup` | Auto-acknowledge alerts unactioned for 7+ days | Cron / manual |
+## Failure Scenarios
 
-## Live Demo Mode
+6 realistic failure modes defined in `src/data_simulator/failure_scenarios.py`:
 
-- `/demo/*` routes provide full dashboard experience without auth
-- Pre-seeded data in `frontend/src/lib/demo-data.ts` (10 compressors, 4 Texas stations)
-- Demo API routes at `/api/demo/*` return static data (no database required)
-- COMP-003 shows active degradation (critical alerts, ML failure prediction)
-- COMP-007 shows early warning patterns
-- Emissions page shows EPA Subpart W compliance monitoring
-- Demo banner at top: "This is a live demo with simulated data"
+| Mode | Primary Sensor | Fleet Probability | Progression |
+|------|---------------|-------------------|-------------|
+| Bearing Wear | vibration_mms | 2.5%/month | Exponential vibration increase |
+| Cooling Degradation | discharge_temp_f | 2.0%/month | Linear temperature rise |
+| Valve Failure | discharge_pressure_psi | 1.5%/month | Pressure oscillations |
+| Ring Wear | gas_flow_mcf | 2.0%/month | Gradual efficiency loss |
+| Packing Leak | discharge_pressure_psi | 1.5%/month | Pressure loss + emissions |
+| Fouling | discharge_temp_f | 3.0%/month | Slow temp increase + spikes |
+
+At any time: ~5% of fleet degrading, ~1% critical.
 
 ## Environment Variables
 
 ```bash
-# Database (PostgreSQL via Supabase)
-DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
+# Azure Fabric
+FABRIC_WORKSPACE_ID=               # Fabric workspace GUID
+FABRIC_BRONZE_LAKEHOUSE_ID=        # Bronze lakehouse GUID
+FABRIC_SILVER_LAKEHOUSE_ID=
+FABRIC_GOLD_LAKEHOUSE_ID=
+FABRIC_ML_LAKEHOUSE_ID=
 
-# Authentication (NextAuth.js v5)
-AUTH_SECRET=                    # openssl rand -base64 32
-AUTH_TRUST_HOST=true
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-# GOOGLE_CLIENT_ID=            # Optional
-# GOOGLE_CLIENT_SECRET=        # Optional
+# Azure Event Hubs
+EVENTHUB_CONNECTION_STRING=        # Full connection string with EntityPath
+EVENTHUB_NAMESPACE=                # Namespace (alternative to connection string)
+EVENTHUB_NAME=compressor-telemetry
+EVENTHUB_CONSUMER_GROUP=$Default
 
-# Dev credentials (local development only)
-DEV_CREDENTIALS_ENABLED=true
-DEV_ALLOWED_EMAILS=admin@altaviz.com
+# Monitoring
+LOG_ANALYTICS_WORKSPACE_ID=        # Azure Log Analytics workspace
+TEAMS_WEBHOOK_URL=                 # Microsoft Teams alert webhook
 
-# Stripe Billing (optional)
-# STRIPE_SECRET_KEY=sk_test_...
-# STRIPE_WEBHOOK_SECRET=whsec_...
+# ML
+MLFLOW_TRACKING_URI=               # MLflow server (default: file:./mlruns)
 
-# ETL Pipeline
-# ETL_ORGANIZATION_ID=         # Default org UUID for pipeline writes
+# AI Agent
+DIAGNOSTICS_MODEL=openai:gpt-4o-mini
+
+# Legacy (PostgreSQL for demo mode)
+DATABASE_URL=postgresql://...
+ETL_ORGANIZATION_ID=
 ```
 
 ## Coding Patterns
@@ -168,56 +196,67 @@ DEV_ALLOWED_EMAILS=admin@altaviz.com
 - Single select for all transforms: `df.select(col("*"), avg("col").over(window).alias("new"))`
 - Broadcast small tables: `large_df.join(broadcast(small_df), "compressor_id")`
 - NEVER use doubled backslashes `\\` in code (PySpark SyntaxError bug)
-- `date_format()` returns StringType: must `.cast("timestamp")` before JDBC write
+- `date_format()` returns StringType: must `.cast("timestamp")` before writes
 
-### Database (PostgreSQL)
-- All queries org-scoped: `WHERE organization_id = $1` or via JOIN to org-filtered table
-- Use views for common queries: `v_latest_readings`, `v_active_alerts`, `v_fleet_health_summary`
-- Always parameterized queries with `$1, $2` placeholders (native PostgreSQL)
-- Use `INSERT ... ON CONFLICT ... DO UPDATE` for upserts
-- Use `RETURNING *` for returning modified rows
-- Triggers handle `updated_at` timestamps
+### OneLake / Delta Lake
+- Read: `spark.read.format("delta").load("abfss://workspace@onelake.dfs.fabric.microsoft.com/lakehouse/Tables/table")`
+- Write: `df.write.format("delta").mode("append").partitionBy("date").save(path)`
+- Upsert: Use Delta MERGE for idempotent writes
+- Optimize: Run `OPTIMIZE` + `ZORDER BY` after batch writes
+- Vacuum: `VACUUM delta.\`path\` RETAIN 168 HOURS` (weekly)
 
-### Frontend (Next.js)
-- Colors: `#1F77B4` (primary), `#2CA02C` (healthy), `#FF7F0E` (warning), `#D62728` (critical)
-- Landing: dark palette `#0A0E17`, gradients `#1F77B4` → `#6C5CE7`, glass cards `bg-white/5 backdrop-blur-xl`
-- Fonts: Inter (body/headings), JetBrains Mono (numbers/metrics)
-- Route groups: `(marketing)` public, `(dashboard)` authenticated, `(demo)` public demo, `(auth)` login
-- SWR hooks in `frontend/src/hooks/` — 30s refresh for fleet/alerts, 60s for readings
-- shadcn/ui: 21 components in `frontend/src/components/ui/`
-- Tailwind CSS v4 with `@theme inline` block in `globals.css`
-- Dark mode via `.dark` class on `<html>`, toggled via ThemeProvider context
-
-## Simulated Failures
-
-- **COMP-003**: Degradation starts Day 3, failure on Day 6
-- **COMP-007**: Degradation starts Day 5, failure on Day ~8
-- Patterns: vibration → exponential increase, temperature → linear increase, pressure → sinusoidal fluctuations
+### Streaming
+- Watermark: `.withWatermark("timestamp", "15 minutes")` for late data
+- Checkpoint: Always set `checkpointLocation` for exactly-once
+- Trigger: `processingTime="5 minutes"` for micro-batch
 
 ## File Reference
 
 | File | Purpose |
 |------|---------|
-| `config/database.yaml` | DB connection settings for PostgreSQL |
-| `config/etl_config.yaml` | Window sizes, Spark config, data paths |
-| `config/thresholds.yaml` | Sensor normal/warning/critical ranges, station locations |
-| `.env.example` | All env vars: DB, Auth, Stripe, ETL |
-| `infrastructure/sql/schema.sql` | PostgreSQL DDL: 12 tables, 3 views, triggers, seed data |
-| `frontend/src/lib/db.ts` | PostgreSQL pool via `pg` (node-postgres) |
-| `frontend/src/lib/queries.ts` | 12 org-scoped parameterized SQL query functions |
-| `frontend/src/lib/auth.ts` | NextAuth.js v5 (GitHub + Google OAuth + dev credentials) |
-| `frontend/src/lib/demo-data.ts` | Pre-seeded demo data (fleet, alerts, readings, emissions) |
-| `frontend/src/lib/workflows.ts` | Agentic workflow engine (4 automated workflows) |
-| `frontend/src/lib/stripe.ts` | Stripe client (lazy-init), checkout/portal helpers |
-| `src/ml/anomaly_detector.py` | Isolation Forest anomaly detection on vibration data |
-| `src/ml/temp_drift_predictor.py` | Temperature drift linear regression predictor |
-| `src/ml/emissions_estimator.py` | EPA Subpart W emissions estimation |
-| `src/ml/rul_predictor.py` | Heuristic Remaining Useful Life calculator |
-| `src/etl/pyspark_pipeline.py` | 5-stage ETL: Bronze → Silver → Gold → ML → Database |
-| `src/etl/database_writer.py` | PostgreSQL JDBC writer for all tables |
-| `src/etl/schemas.py` | PySpark StructType schemas (sensor, bronze, silver, gold, emissions) |
-| `frontend/src/lib/session.ts` | `getAppSession()`, `requireRole()`, RBAC helpers |
-| `frontend/src/lib/email.ts` | Transactional email via Resend API (welcome, alerts, invites) |
-| `frontend/src/lib/email-templates.ts` | HTML email templates with inline CSS |
-| `frontend/src/lib/audit.ts` | Audit logging helper for enterprise compliance |
-| `frontend/src/lib/rate-limit.ts` | In-memory rate limiter with header support |
+| **Config** | |
+| `config/fabric_config.yaml` | Fabric workspace, lakehouses, Event Hubs, schedule |
+| `config/etl_config.yaml` | Window sizes, Spark config, data paths (legacy) |
+| `config/thresholds.yaml` | Sensor ranges, station locations, alert rules |
+| `config/database.yaml` | PostgreSQL connection settings (legacy) |
+| **Data Simulator** | |
+| `src/data_simulator/fleet_simulator.py` | 4,700 compressor fleet generator |
+| `src/data_simulator/compressor_profiles.py` | 7 compressor models, 10 basins, station definitions |
+| `src/data_simulator/failure_scenarios.py` | 6 failure modes with degradation curves |
+| `src/data_simulator/compressor_simulator.py` | Original 10-unit demo simulator |
+| **Ingestion** | |
+| `src/ingestion/event_hub_producer.py` | Stream telemetry to Azure Event Hubs |
+| `src/ingestion/event_hub_consumer.py` | Spark Structured Streaming from Event Hubs |
+| `src/ingestion/schema_registry.py` | Avro schema validation, dead letter routing |
+| **ETL Pipeline** | |
+| `src/etl/pipeline.py` | Production orchestrator (OneLake, Fabric) |
+| `src/etl/onelake.py` | OneLake read/write client (ABFS + local fallback) |
+| `src/etl/bronze/ingest.py` | Bronze layer ingestion |
+| `src/etl/silver/cleanse.py` | Silver layer cleaning (dedup, outliers, validation) |
+| `src/etl/silver/quality.py` | Data quality framework (5 check types) |
+| `src/etl/gold/aggregate.py` | Gold layer aggregations, alerts, fleet health |
+| `src/etl/schemas.py` | PySpark StructType schemas |
+| `src/etl/pyspark_pipeline.py` | Legacy demo pipeline (local Delta + PostgreSQL) |
+| `src/etl/database_writer.py` | Legacy PostgreSQL JDBC writer |
+| `src/etl/pipeline_observer.py` | Legacy pipeline observability |
+| **ML** | |
+| `src/ml/models/anomaly_detector.py` | Isolation Forest anomaly detection |
+| `src/ml/models/temp_drift_predictor.py` | Temperature drift predictor |
+| `src/ml/models/emissions_estimator.py` | EPA Subpart W emissions |
+| `src/ml/models/rul_predictor.py` | Remaining Useful Life heuristic |
+| `src/ml/serving/batch_predictor.py` | Parallel batch inference for fleet |
+| `src/ml/serving/model_registry.py` | MLflow integration + model lifecycle |
+| `src/ml/feature_store/store.py` | Feature computation, serving, drift monitoring |
+| **Monitoring** | |
+| `src/monitoring/metrics.py` | Production pipeline monitor (Azure Monitor + Teams) |
+| **AI Agent** | |
+| `src/agents/diagnostics_agent.py` | Pydantic AI diagnostics agent |
+| `src/agents/api.py` | FastAPI sidecar (port 8001) |
+| `src/agents/run_diagnosis.py` | CLI diagnostics runner |
+| **Infrastructure** | |
+| `infrastructure/terraform/main.tf` | Azure resources (Event Hubs, Key Vault, monitoring) |
+| `infrastructure/sql/schema.sql` | PostgreSQL DDL (legacy) |
+| **Tests** | |
+| `tests/load/test_fleet_scale.py` | Fleet simulator, profiles, failure scenarios |
+| `tests/integration/test_onelake_connectivity.py` | OneLake, Bronze/Silver/Gold, quality |
+| `tests/unit/` | Schema, transformation, ML model unit tests |

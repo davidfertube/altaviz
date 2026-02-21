@@ -26,7 +26,7 @@ export default function TrustBar() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          Trusted by operators across the Permian, Eagle Ford, and Haynesville basins
+          Trusted by operators across major U.S. basins
         </motion.p>
 
         <motion.div
@@ -53,7 +53,7 @@ export default function TrustBar() {
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          Monitoring 2,400+ miles of pipeline across Texas and the Permian Basin
+          2,400+ miles of pipeline monitored. Zero undetected failures.
         </motion.p>
       </div>
     </section>

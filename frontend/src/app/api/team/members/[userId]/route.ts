@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAppSession, meetsRoleLevel } from '@/lib/session';
 import { updateUserRole, removeTeamMember } from '@/lib/queries';
+import { logAuditEvent } from '@/lib/audit';
 
 const VALID_ROLES = ['admin', 'operator', 'viewer'];
 
@@ -29,6 +30,16 @@ export async function PATCH(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    logAuditEvent({
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: 'team.update_role',
+      resourceType: 'user',
+      resourceId: userId,
+      ipAddress: request.headers.get('x-forwarded-for') || undefined,
+      details: { newRole: role },
+    });
+
     return NextResponse.json(updated);
   } catch (error) {
     const { handleApiError } = await import('@/lib/errors');
@@ -37,7 +48,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
@@ -59,6 +70,15 @@ export async function DELETE(
     if (!removed) {
       return NextResponse.json({ error: 'User not found or is owner' }, { status: 404 });
     }
+
+    logAuditEvent({
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: 'team.remove',
+      resourceType: 'user',
+      resourceId: userId,
+      ipAddress: request.headers.get('x-forwarded-for') || undefined,
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

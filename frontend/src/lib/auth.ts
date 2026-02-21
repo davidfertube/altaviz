@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import { query } from './db';
 import authConfig from './auth.config';
+import { sendWelcomeEmail } from './email';
 
 async function findOrCreateUser(profile: {
   email: string;
@@ -50,6 +51,14 @@ async function findOrCreateUser(profile: {
      RETURNING id, role`,
     [org.id, profile.email, profile.name, profile.provider_id, profile.avatar_url]
   );
+
+  const dashboardUrl = `${process.env.NEXTAUTH_URL || 'https://altaviz.vercel.app'}/dashboard`;
+  sendWelcomeEmail({
+    to: profile.email,
+    userName: profile.name || profile.email.split('@')[0],
+    organizationName: org.name,
+    dashboardUrl,
+  }).catch(() => {});
 
   return {
     id: users[0].id,

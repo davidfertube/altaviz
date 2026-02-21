@@ -41,25 +41,25 @@ const staggerContainer = {
 const VALUES = [
   {
     icon: ShieldCheck,
-    title: 'Safety First',
+    title: 'Safety Is Not Negotiable',
     description:
-      'Every feature we build starts with the same question: does this make pipeline operations safer? Public safety and environmental protection are non-negotiable priorities in everything we do.',
+      'Every feature we build starts with the same question: does this make pipeline operations safer? Public safety and environmental protection drive every decision we make.',
   },
   {
     icon: BarChart3,
-    title: 'Data-Driven',
+    title: 'Data Over Gut Feel',
     description:
-      'Decisions should come from data, not gut feel. We turn raw SCADA telemetry into actionable intelligence so operators know exactly where to focus before problems escalate.',
+      'Decisions should come from data, not intuition. We turn raw SCADA telemetry into actionable intelligence so operators know exactly where to focus before problems escalate.',
   },
   {
     icon: HardHat,
-    title: 'Operator-Built',
+    title: 'Built in the Field',
     description:
       'Our team has spent years in control rooms and field offices. Altaviz is built by people who understand the reality of running pipeline infrastructure day-to-day.',
   },
   {
     icon: FileCheck,
-    title: 'Regulatory Aligned',
+    title: 'Compliance by Default',
     description:
       'Compliance is not an afterthought. Automated reporting for 49 CFR 192/195, PHMSA Mega Rule, and EPA Subpart W is built into the platform from the ground up.',
   },
@@ -119,17 +119,17 @@ export default function AboutPage() {
               className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1C1917] leading-[1.08] tracking-tight mb-6"
               variants={fadeUp}
             >
-              Building the future of{' '}
-              <span className="text-[#C4A77D]">pipeline integrity</span>
+              Built by pipeline people.{' '}
+              <span className="text-[#C4A77D]">For pipeline people.</span>
             </motion.h1>
             <motion.p
               className="text-lg sm:text-xl text-[#78716C] max-w-2xl mx-auto leading-relaxed"
               variants={fadeUp}
             >
-              Altaviz was founded to modernize how oil and gas operators protect
-              their pipeline infrastructure. We believe predictive intelligence
-              should be accessible to every operator, not just the largest
-              enterprises.
+              We&#39;ve spent years in control rooms, field offices, and compressor stations.
+              Altaviz was built because we saw firsthand how much time and money is lost
+              when operators fly blind between inspections. Predictive intelligence should
+              be accessible to every operator — not just the supermajors.
             </motion.p>
           </motion.div>
         </div>
@@ -207,8 +207,8 @@ export default function AboutPage() {
               <div className="space-y-4 text-white/60 text-base leading-relaxed">
                 <p>
                   Altaviz connects directly to your existing SCADA systems and
-                  historians. Our PySpark pipeline ingests real-time sensor data
-                  through a Bronze/Silver/Gold medallion architecture, feeding
+                  historians. Our data pipeline ingests real-time sensor data
+                  through a multi-layer validation architecture, feeding
                   ML models that learn the healthy baseline of every pipeline
                   segment in your network.
                 </p>
@@ -303,7 +303,7 @@ export default function AboutPage() {
               By the Numbers
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917]">
-              Proven impact across pipeline networks
+              Proven results across live pipelines
             </h2>
           </motion.div>
 
@@ -385,8 +385,8 @@ export default function AboutPage() {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-              Ready to modernize your{' '}
-              <span className="text-[#C4A77D]">integrity program?</span>
+              Your next shutdown{' '}
+              <span className="text-[#C4A77D]">doesn&#39;t have to be a surprise.</span>
             </h2>
             <p className="text-lg text-white/50 max-w-2xl mx-auto mb-10">
               Talk to our engineering team about connecting Altaviz to your
@@ -399,14 +399,14 @@ export default function AboutPage() {
                 href="/contact"
                 className="inline-flex items-center gap-2 text-base font-semibold text-[#1C1917] bg-white hover:bg-white/90 transition-colors px-8 py-3.5 rounded-full"
               >
-                Contact Sales
+                See It With Your Data
                 <ArrowRight className="size-4" />
               </Link>
               <Link
-                href="/signup"
+                href="/contact"
                 className="inline-flex items-center gap-2 text-base font-medium text-white/80 hover:text-white border border-white/20 hover:border-white/40 transition-all px-8 py-3.5 rounded-full"
               >
-                Get Started
+                Talk to an Engineer
               </Link>
             </div>
           </motion.div>

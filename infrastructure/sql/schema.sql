@@ -417,3 +417,29 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 CREATE INDEX IF NOT EXISTS idx_audit_logs_org_created ON audit_logs(organization_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON audit_logs(resource_type, resource_id);
+
+
+-- ============================================================================
+-- PIPELINE OBSERVABILITY
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS pipeline_runs (
+    id              SERIAL PRIMARY KEY,
+    run_id          UUID NOT NULL DEFAULT gen_random_uuid(),
+    started_at      TIMESTAMPTZ NOT NULL,
+    completed_at    TIMESTAMPTZ,
+    status          VARCHAR(20) CHECK (status IN ('running', 'success', 'failed', 'partial')),
+    bronze_rows     INT,
+    silver_rows     INT,
+    gold_rows       INT,
+    alerts_generated INT,
+    ml_models_run   INT,
+    duration_seconds DECIMAL(10, 2),
+    stage_durations JSONB,
+    error_message   TEXT,
+    organization_id UUID REFERENCES organizations(id),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_pipeline_runs_org ON pipeline_runs(organization_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_pipeline_runs_status ON pipeline_runs(status, created_at DESC);

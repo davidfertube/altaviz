@@ -26,26 +26,26 @@ export default function CtaBanner() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-            Ready to prevent your next{' '}
-            <span className="text-[#C4A77D]">unplanned shutdown?</span>
+            Your next shutdown{' '}
+            <span className="text-[#C4A77D]">doesn&#39;t have to be a surprise.</span>
           </h2>
           <p className="text-lg text-white/50 max-w-2xl mx-auto mb-10">
-            See Altaviz in action with your own fleet data. Our engineering team will walk you through a live demo tailored to your pipeline network.
+            See Altaviz running on your data. Our engineering team will walk you through a live demo using your actual pipeline network — not a generic slide deck.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
             <Link
-              href="/signup"
+              href="/contact"
               className="inline-flex items-center gap-2 text-base font-semibold text-[#1C1917] bg-white hover:bg-white/90 transition-colors px-8 py-3.5 rounded-full"
             >
-              Schedule Demo
+              See It With Your Data
               <ArrowRight className="size-4" />
             </Link>
             <Link
-              href="/signup"
+              href="/contact"
               className="inline-flex items-center gap-2 text-base font-medium text-white/80 hover:text-white border border-white/20 hover:border-white/40 transition-all px-8 py-3.5 rounded-full"
             >
-              Talk to Sales
+              Talk to an Engineer
             </Link>
           </div>
 

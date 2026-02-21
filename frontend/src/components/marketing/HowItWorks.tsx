@@ -8,29 +8,29 @@ const STEPS = [
     number: '01',
     title: 'Ingest',
     icon: Cable,
-    description: 'Connect existing SCADA systems, historians, or deploy edge sensors. PySpark pipeline processes 10,000+ readings per day through Bronze/Silver/Gold medallion architecture.',
-    detail: 'No rip-and-replace. Connects to OSIsoft PI, Honeywell Experion, and standard OPC-UA sources.',
+    description: 'Connect your existing SCADA systems and historians. Altaviz ingests pressure, temperature, vibration, and flow data — 10,000+ readings per day — without disrupting your current setup.',
+    detail: 'Supports OSIsoft PI, Honeywell Experion, Emerson DeltaV, and OPC-UA. Most integrations go live in under a week.',
   },
   {
     number: '02',
     title: 'Detect',
     icon: BrainCircuit,
-    description: 'Isolation Forest ML models baseline healthy behavior per pipeline segment. Anomaly scores flag degradation patterns 24-48 hours before threshold alerts.',
-    detail: 'Models retrain quarterly on your fleet data. Zero false-positive tuning included.',
+    description: 'Our ML models learn the healthy baseline of each pipeline segment. When sensor patterns start to deviate, you get an alert — 24 to 48 hours before a traditional threshold alarm.',
+    detail: 'Models retrain quarterly on your data. Our team tunes for zero false positives — so your crew trusts the alerts.',
   },
   {
     number: '03',
     title: 'Predict',
     icon: TrendingUp,
-    description: 'Temperature drift prediction, remaining useful life estimation, and EPA Subpart W emissions calculations run automatically on every data window.',
-    detail: 'Four ML models run in parallel across 1hr, 4hr, and 24hr aggregation windows.',
+    description: 'Temperature drift forecasts, remaining useful life estimates, and automated emissions calculations run continuously — giving you a clear picture of what is coming next.',
+    detail: 'Predictions update every hour across multiple time horizons — so you always have the latest picture.',
   },
   {
     number: '04',
     title: 'Act',
     icon: Bell,
-    description: 'Prioritized alerts route to the right team. Automated workflows escalate, resolve, and audit without manual intervention.',
-    detail: 'Configurable escalation: unacknowledged warnings auto-escalate to critical after 4 hours.',
+    description: 'The right alert reaches the right person. Unacknowledged warnings auto-escalate. Every action is logged for your audit trail.',
+    detail: 'Configurable escalation rules mean nothing falls through the cracks — even at 2 AM.',
   },
 ];
 
@@ -49,10 +49,10 @@ export default function HowItWorks() {
         >
           <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">How It Works</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
-            From raw sensor data to actionable intelligence
+            From your SCADA system to actionable alerts
           </h2>
           <p className="text-lg text-[#78716C] max-w-2xl mx-auto">
-            Four automated stages. No manual data wrangling. Results in under 30 seconds.
+            Connects to your existing infrastructure. No rip-and-replace. Live in under a week.
           </p>
         </motion.div>
 

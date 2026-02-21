@@ -303,10 +303,10 @@ function ShutdownReductionMockup() {
 /*  Stats data                                                         */
 /* ------------------------------------------------------------------ */
 const STATS = [
-  { value: 2400, suffix: '+', prefix: '', label: 'Miles Monitored', Viz: PipelineCoverageMockup },
-  { value: 48, suffix: 'hr', prefix: '', label: 'Avg Early Warning', Viz: EarlyWarningMockup },
-  { value: 99.7, suffix: '%', prefix: '', label: 'Monitoring Uptime', Viz: UptimeGridMockup },
-  { value: 40, suffix: '%', prefix: '', label: 'Fewer Unplanned Shutdowns', Viz: ShutdownReductionMockup },
+  { value: 2400, suffix: '+', prefix: '', label: 'Miles Under Watch', Viz: PipelineCoverageMockup },
+  { value: 48, suffix: 'hr', prefix: '', label: 'Hours of Advance Warning', Viz: EarlyWarningMockup },
+  { value: 99.7, suffix: '%', prefix: '', label: 'Platform Uptime', Viz: UptimeGridMockup },
+  { value: 40, suffix: '%', prefix: '', label: 'Fewer Emergency Shutdowns', Viz: ShutdownReductionMockup },
 ];
 
 /* ================================================================== */
@@ -326,10 +326,10 @@ export default function Stats() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
-            Measured impact
+            Proven results across live pipelines
           </h2>
           <p className="text-lg text-[#78716C] max-w-xl mx-auto">
-            Deployed across transmission and gathering systems
+            Real numbers from real deployments — not lab results.
           </p>
         </motion.div>
 

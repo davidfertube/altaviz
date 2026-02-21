@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAppSession, meetsRoleLevel } from '@/lib/session';
 import { query } from '@/lib/db';
+import { logAuditEvent } from '@/lib/audit';
+import { sendTeamInviteEmail } from '@/lib/email';
 
 const VALID_ROLES = ['admin', 'operator', 'viewer'];
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -41,6 +43,25 @@ export async function POST(request: NextRequest) {
        RETURNING id, email, role`,
       [session.organizationId, email.toLowerCase(), role]
     );
+
+    logAuditEvent({
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: 'team.invite',
+      resourceType: 'user',
+      resourceId: user.id,
+      ipAddress: request.headers.get('x-forwarded-for') || undefined,
+      details: { email: email.toLowerCase(), role },
+    });
+
+    const acceptUrl = `${request.nextUrl.origin}/login`;
+    sendTeamInviteEmail({
+      to: email.toLowerCase(),
+      organizationName: session.organizationName,
+      inviterName: session.name || session.email,
+      role,
+      acceptUrl,
+    }).catch(() => {});
 
     return NextResponse.json({
       success: true,

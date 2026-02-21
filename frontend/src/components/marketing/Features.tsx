@@ -280,18 +280,18 @@ function ComplianceMockup() {
 /* ------------------------------------------------------------------ */
 const SHOWCASES = [
   {
-    title: 'Fleet Health at a Glance',
-    description: 'Monitor vibration, temperature, pressure, and gas flow across every pipeline. Color-coded status. One-click drill-down.',
+    title: 'See Every Pipeline. Instantly.',
+    description: 'Live health scores for every pipeline segment — color-coded by status. Drill down to any compressor, any sensor, in one click.',
     Mockup: FleetOverviewMockup,
   },
   {
-    title: 'ML-Powered Early Warning',
-    description: 'Isolation Forest models trained on healthy baselines catch degradation 24-48 hours before threshold alerts fire.',
+    title: 'Catch Problems 48 Hours Early',
+    description: 'Our models learn what "normal" looks like for each pipeline segment, then alert you when something starts to drift — days before a threshold alarm fires.',
     Mockup: AnomalyDetectionMockup,
   },
   {
-    title: 'Built-in Regulatory Compliance',
-    description: 'Automated EPA Subpart W emissions tracking. PHMSA-ready reporting for 49 CFR 192 integrity management.',
+    title: 'Compliance Reports in One Click',
+    description: 'EPA Subpart W emissions calculated automatically from live sensor data. PHMSA-ready audit reports generated on demand — no spreadsheets, no manual data entry.',
     Mockup: ComplianceMockup,
   },
 ];
@@ -313,10 +313,10 @@ export default function Features() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
-            One platform. Full visibility.
+            One platform. Complete pipeline visibility.
           </h2>
           <p className="text-lg text-[#78716C] max-w-2xl mx-auto">
-            From sensor ingestion to compliance reporting.
+            From the sensor on the compressor to the report on the regulator&#39;s desk.
           </p>
         </motion.div>
 

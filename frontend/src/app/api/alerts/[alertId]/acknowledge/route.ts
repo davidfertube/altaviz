@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { acknowledgeAlert } from '@/lib/queries';
-import { getAppSession } from '@/lib/session';
-import { meetsRoleLevel } from '@/lib/session';
+import { getAppSession, meetsRoleLevel } from '@/lib/session';
+import { logAuditEvent } from '@/lib/audit';
 
 export async function PATCH(
   request: NextRequest,
@@ -27,6 +27,17 @@ export async function PATCH(
     if (!updated) {
       return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
     }
+
+    logAuditEvent({
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: 'alert.acknowledge',
+      resourceType: 'alert',
+      resourceId: alertId,
+      ipAddress: request.headers.get('x-forwarded-for') || undefined,
+      details: { acknowledgedBy, severity: updated.severity },
+    });
+
     return NextResponse.json(updated);
   } catch (error) {
     const { handleApiError } = await import('@/lib/errors');

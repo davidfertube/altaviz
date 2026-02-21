@@ -62,7 +62,7 @@ export default function Footer() {
               <span className="text-sm font-semibold text-[#1C1917]">Altaviz</span>
             </Link>
             <p className="text-xs text-[#78716C] leading-relaxed mb-6 max-w-[200px]">
-              Predictive maintenance intelligence for pipeline operators.
+              48-hour advance warning for pipeline operators.
             </p>
 
             {/* CTA */}

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { resolveAlert } from '@/lib/queries';
 import { getAppSession, meetsRoleLevel } from '@/lib/session';
+import { logAuditEvent } from '@/lib/audit';
 
 export async function PATCH(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ alertId: string }> }
 ) {
   try {
@@ -20,6 +21,17 @@ export async function PATCH(
     if (!updated) {
       return NextResponse.json({ error: 'Alert not found' }, { status: 404 });
     }
+
+    logAuditEvent({
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: 'alert.resolve',
+      resourceType: 'alert',
+      resourceId: alertId,
+      ipAddress: request.headers.get('x-forwarded-for') || undefined,
+      details: { severity: updated.severity },
+    });
+
     return NextResponse.json(updated);
   } catch (error) {
     const { handleApiError } = await import('@/lib/errors');

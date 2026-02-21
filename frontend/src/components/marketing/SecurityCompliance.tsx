@@ -52,21 +52,21 @@ export default function SecurityCompliance() {
           >
             <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">Security & Compliance</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
-              Enterprise-grade security.{' '}
-              <span className="text-[#C4A77D]">Industry-specific compliance.</span>
+              Your data. Your control.{' '}
+              <span className="text-[#C4A77D]">Fully compliant.</span>
             </h2>
             <p className="text-base text-[#78716C] leading-relaxed mb-6">
-              Every query is scoped to your organization. Multi-tenant data isolation ensures your fleet data
-              is never accessible to other customers. All API endpoints are rate-limited, audit-logged, and
-              protected by JWT authentication with role-based access control.
+              Your fleet data is isolated at every level — no other customer can ever access it.
+              All access is audit-logged, encrypted in transit and at rest, and protected by
+              role-based permissions. Built for the same security standards your enterprise IT team demands.
             </p>
             <ul className="space-y-3">
               {[
-                'Multi-tenant data isolation with organization-scoped queries',
-                'Encrypted at rest and in transit (TLS 1.3)',
-                'Full audit trail for every data access and configuration change',
-                'Role-based access control with JWT authentication',
-                'Rate limiting: 60 req/min API, 10 req/min auth endpoints',
+                'Complete data isolation — your fleet data is never shared',
+                'Encrypted at rest and in transit (TLS 1.3, AES-256)',
+                'Full audit trail for every access and configuration change',
+                'Role-based access: Owner, Admin, Operator, Viewer',
+                'SOC 2 Type II controls with annual third-party audits',
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2.5 text-sm text-[#78716C]">
                   <Shield className="size-4 text-[#C4A77D] mt-0.5 shrink-0" />

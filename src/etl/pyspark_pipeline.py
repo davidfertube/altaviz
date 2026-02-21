@@ -27,6 +27,7 @@ from pyspark.sql import SparkSession
 # Import ETL modules
 from src.etl.utils import create_spark_session, load_config, setup_logging, Timer, log_dataframe_stats
 from src.etl.schemas import SENSOR_SCHEMA, METADATA_SCHEMA, MAINTENANCE_SCHEMA
+from src.etl.pipeline_observer import PipelineObserver
 from src.etl.data_quality import create_silver_layer, calculate_quality_metrics
 from src.etl.transformations import create_gold_layer, aggregate_for_dashboard
 from src.etl.database_writer import (
@@ -565,6 +566,8 @@ def run_pipeline(
         skip_db: If True, skip database export
     """
     pipeline_start = datetime.now()
+    observer = PipelineObserver()
+    observer.start()
 
     logger.info("=" * 80)
     logger.info("ALTAVIZ ETL PIPELINE STARTING")
@@ -581,6 +584,7 @@ def run_pipeline(
         spark = create_spark_session()
 
         # BRONZE LAYER
+        bronze_start = datetime.now()
         if not skip_bronze:
             sensor_df, metadata_df, maintenance_df = load_bronze_layer(spark)
             bronze_df = sensor_df
@@ -591,30 +595,53 @@ def run_pipeline(
             maintenance_path = etl_config['data_paths']['maintenance_logs']
             metadata_df = spark.read.schema(METADATA_SCHEMA).csv(metadata_path, header=True)
             maintenance_df = spark.read.schema(MAINTENANCE_SCHEMA).csv(maintenance_path, header=True)
+        bronze_rows = bronze_df.count()
+        observer.record_stage('bronze', row_count=bronze_rows,
+                              duration_seconds=(datetime.now() - bronze_start).total_seconds())
 
         # SILVER LAYER
+        silver_start = datetime.now()
         if not skip_silver:
             silver_df, quality_metrics = process_silver_layer(spark, bronze_df)
         else:
             silver_df = read_silver_layer(spark)
+        silver_rows = silver_df.count()
+        observer.record_stage('silver', row_count=silver_rows,
+                              duration_seconds=(datetime.now() - silver_start).total_seconds())
 
         # GOLD LAYER
+        gold_start = datetime.now()
         if not skip_gold:
             gold_df = process_gold_layer(spark, silver_df)
         else:
             gold_df = read_gold_layer(spark)
+        gold_rows = gold_df.count()
+        observer.record_stage('gold', row_count=gold_rows,
+                              duration_seconds=(datetime.now() - gold_start).total_seconds())
 
         # ML INFERENCE
+        ml_start = datetime.now()
         if not skip_ml:
             ml_results = run_ml_inference(spark, gold_df, metadata_df)
+            models_run = sum(1 for v in ml_results.values() if v is not None)
+            observer.record_ml(models_run)
+            observer.record_stage('ml', duration_seconds=(datetime.now() - ml_start).total_seconds())
         else:
             logger.info("Skipping ML inference stage (--skip-ml)")
+            observer.record_stage('ml', duration_seconds=0, status='skipped')
 
         # DATABASE EXPORT
+        db_start = datetime.now()
         if not skip_db:
             export_to_database(spark, gold_df, metadata_df, maintenance_df, quality_metrics)
+            observer.record_stage('database', duration_seconds=(datetime.now() - db_start).total_seconds())
+        else:
+            observer.record_stage('database', duration_seconds=0, status='skipped')
 
         # Pipeline complete
+        observer.complete(status='success')
+        observer.log_summary()
+
         pipeline_end = datetime.now()
         duration = (pipeline_end - pipeline_start).total_seconds()
 
@@ -623,12 +650,19 @@ def run_pipeline(
         logger.info(f"Duration: {duration:.2f} seconds")
         logger.info("=" * 80)
 
+        # Write observer metrics to database
+        if not skip_db:
+            observer.write_to_database()
+
         # Stop Spark
         spark.stop()
 
         return True
 
     except Exception as e:
+        observer.complete(status='failed', error=str(e))
+        observer.log_summary()
+
         logger.error("=" * 80)
         logger.error("PIPELINE FAILED")
         logger.error(f"Error: {e}")
@@ -636,6 +670,10 @@ def run_pipeline(
 
         import traceback
         traceback.print_exc()
+
+        # Try to write failure metrics
+        if not skip_db:
+            observer.write_to_database()
 
         return False
 

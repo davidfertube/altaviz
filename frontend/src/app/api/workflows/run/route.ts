@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAppSession } from '@/lib/session';
 import { runAllWorkflows, runAlertEscalation, runAlertAutoResolve, runDataFreshnessCheck, runStaleAlertCleanup } from '@/lib/workflows';
 import { safeCompare } from '@/lib/crypto';
+import { logAuditEvent } from '@/lib/audit';
 
 const WORKFLOW_MAP: Record<string, (orgId: string) => Promise<unknown>> = {
   all: runAllWorkflows,
@@ -58,6 +59,15 @@ export async function POST(request: NextRequest) {
     }
 
     const results = await runner(organizationId);
+
+    logAuditEvent({
+      organizationId,
+      action: 'workflow.execute',
+      resourceType: 'workflow',
+      resourceId: workflow,
+      ipAddress: request.headers.get('x-forwarded-for') || undefined,
+      details: { authMethod: isValidApiKey ? 'api_key' : 'session' },
+    });
 
     return NextResponse.json({ success: true, results });
   } catch (error) {

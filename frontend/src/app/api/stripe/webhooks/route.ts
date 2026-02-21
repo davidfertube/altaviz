@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getStripe } from '@/lib/stripe';
 import { query } from '@/lib/db';
+import { logAuditEvent } from '@/lib/audit';
 
 const TIER_MAP: Record<string, { tier: string; maxCompressors: number }> = {};
 if (process.env.STRIPE_PRICE_ID_PRO) {
@@ -143,6 +144,24 @@ export async function POST(request: NextRequest) {
           invoice.amount_due || undefined
         );
         break;
+      }
+    }
+
+    // Audit log for billing webhook events
+    const customerId = (() => {
+      const obj = event.data.object as unknown as Record<string, unknown>;
+      return (obj.customer as string) || undefined;
+    })();
+    if (customerId) {
+      const orgs = await query<{ id: string }>('SELECT id FROM organizations WHERE stripe_customer_id = $1', [customerId]);
+      if (orgs.length > 0) {
+        logAuditEvent({
+          organizationId: orgs[0].id,
+          action: 'billing.webhook',
+          resourceType: 'subscription',
+          resourceId: event.id,
+          details: { eventType: event.type },
+        });
       }
     }
 

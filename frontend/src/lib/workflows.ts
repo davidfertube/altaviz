@@ -1,4 +1,5 @@
 import { query } from './db';
+import { sendCriticalAlertEmail } from './email';
 
 export interface WorkflowResult {
   workflow: string;
@@ -25,6 +26,29 @@ export async function runAlertEscalation(organizationId: string, escalateAfterHo
      RETURNING id, compressor_id`,
     [organizationId, escalateAfterHours]
   );
+
+  if (escalated.length > 0) {
+    const admins = await query<{ email: string }>(
+      `SELECT u.email FROM users u
+       WHERE u.organization_id = $1 AND u.role IN ('owner', 'admin')`,
+      [organizationId]
+    );
+    const adminEmails = admins.map(a => a.email).filter(Boolean);
+    if (adminEmails.length > 0) {
+      const baseUrl = process.env.NEXTAUTH_URL || 'https://altaviz.vercel.app';
+      for (const alert of escalated) {
+        sendCriticalAlertEmail({
+          to: adminEmails,
+          alertId: alert.id,
+          segment: alert.compressor_id,
+          severity: 'critical',
+          description: `Warning auto-escalated to critical after ${escalateAfterHours}h without acknowledgment`,
+          timestamp: new Date().toISOString(),
+          alertUrl: `${baseUrl}/dashboard/alerts`,
+        }).catch(() => {});
+      }
+    }
+  }
 
   return {
     workflow: 'alert_escalation',

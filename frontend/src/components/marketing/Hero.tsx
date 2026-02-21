@@ -59,27 +59,27 @@ const ROI_METRICS = [
   {
     target: 61,
     suffix: '%',
-    label: 'Incidents Preventable',
+    label: 'Failures Caught Early',
     icon: ShieldCheck,
   },
   {
     target: 48,
     suffix: 'hr',
-    label: 'Advance Warning',
+    label: 'Warning Before Failure',
     icon: Clock,
   },
   {
     target: 2.1,
     suffix: 'M',
     prefix: '$',
-    label: 'Avg Incident Cost',
+    label: 'Avg Shutdown Cost',
     icon: AlertTriangle,
     decimals: 1,
   },
   {
     target: 10,
     suffix: 'K+',
-    label: 'Readings / Day',
+    label: 'Sensors Monitored Daily',
     icon: Database,
   },
 ];
@@ -273,16 +273,16 @@ export default function Hero() {
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#1C1917] leading-[1.05] tracking-tight mb-5"
               variants={itemVariants}
             >
-              ML Monitoring<br />
-              <span className="text-[#C4A77D]">for Pipeline Integrity</span>
+              Know Your Pipeline Is Safe.<br />
+              <span className="text-[#C4A77D]">Before the Alarm Goes Off.</span>
             </motion.h1>
 
             <motion.p
               className="text-lg text-[#78716C] max-w-lg mb-8 leading-relaxed"
               variants={itemVariants}
             >
-              ML-powered monitoring and predictive maintenance<br />
-              for transmission and gathering pipelines.
+              Altaviz monitors vibration, temperature, and pressure across your fleet
+              — and warns you 48 hours before problems become shutdowns.
             </motion.p>
 
             {/* CTAs */}
@@ -296,7 +296,7 @@ export default function Hero() {
                 className="h-12 px-8 text-base font-semibold rounded-full bg-[#1C1917] text-white shadow-lg shadow-[#1C1917]/15 hover:shadow-xl hover:bg-[#2D2D2D] transition-all border-0"
               >
                 <Link href="/contact">
-                  Schedule a Demo
+                  See It With Your Data
                   <ArrowRight className="size-4 ml-1" />
                 </Link>
               </Button>
@@ -308,7 +308,7 @@ export default function Hero() {
               >
                 <Link href="/signup">
                   <ArrowRight className="size-4 mr-1" />
-                  Get Started
+                  Start Free Pilot
                 </Link>
               </Button>
             </motion.div>

@@ -16,11 +16,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.altaviz.app'),
   title: {
-    default: 'Altaviz - Pipeline Integrity Management for Oil & Gas',
+    default: 'Altaviz - Predictive Pipeline Monitoring for Midstream Operators',
     template: '%s | Altaviz',
   },
-  description: 'Pipeline integrity management software for midstream oil and gas operators. Predict wall thinning, corrosion, and degradation 48 hours early. Reduce unplanned shutdowns by 73%. PHMSA-compliant monitoring across your pipeline network.',
+  description: 'Monitor vibration, temperature, and pressure across your pipeline fleet. Get 48-hour advance warning of failures. Reduce emergency shutdowns by 40%. Automated PHMSA and EPA compliance reporting.',
   keywords: [
     'pipeline integrity management',
     'predictive maintenance oil and gas',
@@ -36,17 +37,26 @@ export const metadata: Metadata = {
     'unplanned downtime reduction',
   ],
   authors: [{ name: 'Altaviz' }],
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32', type: 'image/x-icon' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   openGraph: {
-    title: 'Altaviz - Pipeline Integrity Management for Oil & Gas',
-    description: 'Stop emergency shutdowns before they start. Monitor vibration, temperature, and pressure across your pipeline network. Get 48-hour advance warning of failures.',
+    title: 'Altaviz - Predictive Pipeline Monitoring for Midstream Operators',
+    description: 'Get 48-hour advance warning of pipeline failures. Monitor vibration, temperature, and pressure across your fleet. Reduce emergency shutdowns by 40%.',
     type: 'website',
     siteName: 'Altaviz',
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Altaviz - Pipeline Integrity Management for Oil & Gas',
-    description: 'Stop emergency shutdowns before they start. Pipeline integrity management for midstream operators.',
+    title: 'Altaviz - Predictive Pipeline Monitoring for Midstream Operators',
+    description: 'Get 48-hour advance warning of pipeline failures. Predictive monitoring for midstream operators.',
   },
   robots: {
     index: true,

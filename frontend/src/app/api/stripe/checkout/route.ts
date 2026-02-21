@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAppSession, meetsRoleLevel } from '@/lib/session';
 import { createCheckoutSession } from '@/lib/stripe';
 import { getStripePriceId, type SubscriptionTier } from '@/lib/plans';
+import { logAuditEvent } from '@/lib/audit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +26,15 @@ export async function POST(request: NextRequest) {
       orgName: session.organizationName,
       priceId,
       returnUrl: `${request.nextUrl.origin}/dashboard/settings/billing`,
+    });
+
+    logAuditEvent({
+      userId: session.userId,
+      organizationId: session.organizationId,
+      action: 'billing.checkout',
+      resourceType: 'subscription',
+      ipAddress: request.headers.get('x-forwarded-for') || undefined,
+      details: { tier, priceId },
     });
 
     return NextResponse.json({ url });
