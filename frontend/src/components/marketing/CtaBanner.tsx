@@ -57,7 +57,7 @@ export default function CtaBanner() {
           >
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 text-base font-semibold text-[#1C1917] bg-white hover:bg-white/90 transition-colors px-14 py-3.5 rounded-full"
+              className="inline-flex items-center gap-2 text-base font-semibold text-[#1C1917] bg-white hover:bg-white/90 transition-colors px-20 py-4 rounded-full shadow-lg"
             >
               Start Free Pilot
               <ArrowRight className="size-4" />

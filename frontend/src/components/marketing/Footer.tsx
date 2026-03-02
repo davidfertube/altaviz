@@ -68,7 +68,7 @@ export default function Footer() {
             {/* CTA */}
             <Link
               href="/signup"
-              className="inline-flex text-xs font-medium px-4 py-2 rounded-lg bg-[#1C1917] text-white hover:bg-[#2D2D2D] transition-colors"
+              className="inline-flex text-xs font-medium px-6 py-2.5 rounded-full bg-[#1C1917] text-white hover:bg-[#2D2D2D] transition-colors"
             >
               Start Free Pilot
             </Link>

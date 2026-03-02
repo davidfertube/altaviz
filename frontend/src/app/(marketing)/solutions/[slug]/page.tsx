@@ -295,7 +295,7 @@ export default function SolutionPage({
             <Button
               asChild
               size="lg"
-              className="h-12 px-8 text-base font-semibold rounded-full bg-[#1C1917] text-white shadow-lg shadow-[#1C1917]/15 hover:shadow-xl hover:bg-[#2D2D2D] transition-all border-0"
+              className="h-14 w-full sm:w-auto px-20 text-base font-semibold rounded-full bg-[#1C1917] text-white shadow-lg shadow-[#1C1917]/15 hover:shadow-xl hover:bg-[#2D2D2D] transition-all border-0"
             >
               <Link href="/signup">
                 Get Started

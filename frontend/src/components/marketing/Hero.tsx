@@ -387,35 +387,35 @@ export default function Hero() {
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#1C1917] leading-[1.05] tracking-tight mb-5"
               variants={itemVariants}
             >
-              Stop Pipeline Failures Before They Cost You Millions.
+              Predict Pipeline Failures Before They Happen.
             </motion.h1>
 
             <motion.p
               className="text-lg text-[#78716C] max-w-lg mb-8 leading-relaxed"
               variants={itemVariants}
             >
-              AI agents monitor your pipeline fleet 24/7 and catch failures 48 hours early — saving $125K–$500K per hour of avoided downtime.
+              Agentic monitoring for your fleet 24/7 — catching failures 48 hours early.
             </motion.p>
 
             {/* CTAs */}
             <motion.div
-              className="flex flex-col sm:flex-row items-start gap-3 mb-6"
+              className="flex flex-col sm:flex-row items-start gap-3 mb-8"
               variants={itemVariants}
             >
               <Button
                 asChild
                 size="lg"
-                className="h-14 px-14 text-base font-semibold rounded-full bg-[#1C1917] text-white shadow-lg shadow-[#1C1917]/15 hover:shadow-xl hover:bg-[#2D2D2D] transition-all border-0"
+                className="h-14 w-full sm:w-auto px-20 text-base font-semibold rounded-full bg-[#1C1917] text-white shadow-lg shadow-[#1C1917]/15 hover:shadow-xl hover:bg-[#2D2D2D] transition-all border-0"
               >
                 <Link href="/signup">
                   Start Free Pilot
-                  <ArrowRight className="size-4 ml-1" />
+                  <ArrowRight className="size-4 ml-2" />
                 </Link>
               </Button>
             </motion.div>
 
             {/* Trust badges */}
-            <motion.div className="flex flex-wrap items-center gap-3 mb-10" variants={itemVariants}>
+            <motion.div className="flex flex-wrap items-center gap-4 mb-10" variants={itemVariants}>
               {[
                 { icon: ShieldCheck, label: 'SOC 2 Type II' },
                 { icon: FileCheck, label: 'PHMSA Aligned' },
@@ -430,18 +430,19 @@ export default function Hero() {
 
             {/* ROI metrics */}
             <motion.div
-              className="grid grid-cols-2 sm:grid-cols-4 gap-4"
+              className="grid grid-cols-2 sm:grid-cols-4 gap-3"
               variants={itemVariants}
             >
               {ROI_METRICS.map(({ target, suffix, prefix, label, icon: Icon, ...rest }, idx) => (
-                <div key={label} className="flex items-center gap-2.5">
-                  <Icon className="size-4 text-[#C4A77D] shrink-0" />
-                  <div>
-                    <span className="text-xl font-bold font-mono text-[#1C1917]">
-                      <AnimatedCounter target={target} suffix={suffix} prefix={prefix} duration={2 + idx * 0.3} decimals={'decimals' in rest ? (rest as { decimals: number }).decimals : 0} />
-                    </span>
-                    <p className="text-[11px] text-[#A8A29E]">{label}</p>
-                  </div>
+                <div
+                  key={label}
+                  className="relative flex flex-col items-center text-center rounded-xl border border-[#E7E0D5]/80 bg-white/60 backdrop-blur-sm px-4 py-4 shadow-sm"
+                >
+                  <Icon className="size-4 text-[#C4A77D] mb-2" />
+                  <span className="text-2xl font-bold font-mono text-[#1C1917] leading-none">
+                    <AnimatedCounter target={target} suffix={suffix} prefix={prefix} duration={2 + idx * 0.3} decimals={'decimals' in rest ? (rest as { decimals: number }).decimals : 0} />
+                  </span>
+                  <p className="text-[11px] text-[#A8A29E] mt-1">{label}</p>
                 </div>
               ))}
             </motion.div>
