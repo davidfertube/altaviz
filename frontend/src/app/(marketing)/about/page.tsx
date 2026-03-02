@@ -98,9 +98,9 @@ export default function AboutPage() {
       {/*  Hero                                                         */}
       {/* ------------------------------------------------------------ */}
       <section className="relative py-24 sm:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-[#FAF9F6]">
-          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-[#C4A77D]/8 rounded-full blur-[128px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#A68B5B]/6 rounded-full blur-[128px]" />
+        <div className="absolute inset-0 bg-[#FAFAFA]">
+          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-[#F5C518]/8 rounded-full blur-[128px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#D4A80F]/6 rounded-full blur-[128px]" />
         </div>
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -110,20 +110,20 @@ export default function AboutPage() {
             animate="visible"
           >
             <motion.p
-              className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-4"
+              className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-4"
               variants={fadeUp}
             >
               About Altaviz
             </motion.p>
             <motion.h1
-              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1C1917] leading-[1.08] tracking-tight mb-6"
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#0A0A0A] leading-[1.08] tracking-tight mb-6"
               variants={fadeUp}
             >
               Built by compression people.{' '}
-              <span className="text-[#C4A77D]">For compression people.</span>
+              <span className="text-[#F5C518]">For compression people.</span>
             </motion.h1>
             <motion.p
-              className="text-lg sm:text-xl text-[#78716C] max-w-2xl mx-auto leading-relaxed"
+              className="text-lg sm:text-xl text-[#6B7280] max-w-2xl mx-auto leading-relaxed"
               variants={fadeUp}
             >
               We&#39;ve spent years in control rooms, field offices, and compressor stations.
@@ -158,12 +158,12 @@ export default function AboutPage() {
               viewport={{ once: true, margin: '-100px' }}
               transition={{ duration: 0.5 }}
             >
-              <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">
+              <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">
                 The Problem
               </p>
               <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
                 Compressor failures happen{' '}
-                <span className="text-[#C4A77D]">without warning</span>
+                <span className="text-[#F5C518]">without warning</span>
               </h2>
               <div className="space-y-4 text-white/60 text-base leading-relaxed">
                 <p>
@@ -195,12 +195,12 @@ export default function AboutPage() {
               viewport={{ once: true, margin: '-100px' }}
               transition={{ duration: 0.5, delay: 0.15 }}
             >
-              <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">
+              <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">
                 Our Approach
               </p>
               <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
                 Catch degradation{' '}
-                <span className="text-[#C4A77D]">before the alarm</span>
+                <span className="text-[#F5C518]">before the alarm</span>
               </h2>
               <div className="space-y-4 text-white/60 text-base leading-relaxed">
                 <p>
@@ -233,7 +233,7 @@ export default function AboutPage() {
       {/*  Values                                                       */}
       {/* ------------------------------------------------------------ */}
       <section className="relative py-24 sm:py-32">
-        <div className="absolute inset-0 bg-[#FAF9F6]" />
+        <div className="absolute inset-0 bg-[#FAFAFA]" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -243,13 +243,13 @@ export default function AboutPage() {
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.5 }}
           >
-            <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">
+            <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">
               Our Values
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4">
               What drives us
             </h2>
-            <p className="text-lg text-[#78716C] max-w-2xl mx-auto">
+            <p className="text-lg text-[#6B7280] max-w-2xl mx-auto">
               Every line of code, every model, every dashboard widget starts with
               these four principles.
             </p>
@@ -265,16 +265,16 @@ export default function AboutPage() {
             {VALUES.map(({ icon: Icon, title, description }) => (
               <motion.div
                 key={title}
-                className="rounded-2xl border border-[#E7E0D5] bg-white p-6 hover:border-[#C4A77D]/40 hover:shadow-lg hover:shadow-[#C4A77D]/5 transition-all"
+                className="rounded-2xl border border-[#E5E5E5] bg-white p-6 hover:border-[#F5C518]/40 hover:shadow-lg hover:shadow-[#F5C518]/5 transition-all"
                 variants={fadeUp}
               >
-                <div className="w-12 h-12 rounded-xl bg-[#C4A77D]/10 flex items-center justify-center mb-4">
-                  <Icon className="size-6 text-[#A68B5B]" />
+                <div className="w-12 h-12 rounded-xl bg-[#F5C518]/10 flex items-center justify-center mb-4">
+                  <Icon className="size-6 text-[#D4A80F]" />
                 </div>
-                <h3 className="text-lg font-semibold text-[#1C1917] mb-2">
+                <h3 className="text-lg font-semibold text-[#0A0A0A] mb-2">
                   {title}
                 </h3>
-                <p className="text-sm text-[#78716C] leading-relaxed">
+                <p className="text-sm text-[#6B7280] leading-relaxed">
                   {description}
                 </p>
               </motion.div>
@@ -287,7 +287,7 @@ export default function AboutPage() {
       {/*  By the Numbers                                               */}
       {/* ------------------------------------------------------------ */}
       <section className="relative py-24 sm:py-32">
-        <div className="absolute inset-0 bg-[#F5F0E8]" />
+        <div className="absolute inset-0 bg-[#F5F5F5]" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -297,10 +297,10 @@ export default function AboutPage() {
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.5 }}
           >
-            <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">
+            <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">
               By the Numbers
             </p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917]">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A]">
               Proven results across live fleets
             </h2>
           </motion.div>
@@ -315,16 +315,16 @@ export default function AboutPage() {
             {STATS.map(({ value, label, icon: Icon }) => (
               <motion.div
                 key={label}
-                className="rounded-2xl border border-[#E7E0D5] bg-white p-8 text-center hover:border-[#C4A77D]/40 hover:shadow-lg hover:shadow-[#C4A77D]/5 transition-all"
+                className="rounded-2xl border border-[#E5E5E5] bg-white p-8 text-center hover:border-[#F5C518]/40 hover:shadow-lg hover:shadow-[#F5C518]/5 transition-all"
                 variants={fadeUp}
               >
-                <div className="w-12 h-12 rounded-xl bg-[#C4A77D]/10 flex items-center justify-center mx-auto mb-4">
-                  <Icon className="size-6 text-[#A68B5B]" />
+                <div className="w-12 h-12 rounded-xl bg-[#F5C518]/10 flex items-center justify-center mx-auto mb-4">
+                  <Icon className="size-6 text-[#D4A80F]" />
                 </div>
-                <p className="text-3xl sm:text-4xl font-bold font-mono text-[#1C1917] mb-2">
+                <p className="text-3xl sm:text-4xl font-bold font-mono text-[#0A0A0A] mb-2">
                   {value}
                 </p>
-                <p className="text-sm text-[#78716C]">{label}</p>
+                <p className="text-sm text-[#6B7280]">{label}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -335,7 +335,7 @@ export default function AboutPage() {
       {/*  Location                                                     */}
       {/* ------------------------------------------------------------ */}
       <section className="relative py-16 sm:py-20">
-        <div className="absolute inset-0 bg-[#FAF9F6]" />
+        <div className="absolute inset-0 bg-[#FAFAFA]" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -345,14 +345,14 @@ export default function AboutPage() {
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.5 }}
           >
-            <div className="w-12 h-12 rounded-xl bg-[#C4A77D]/10 flex items-center justify-center shrink-0">
-              <MapPin className="size-6 text-[#A68B5B]" />
+            <div className="w-12 h-12 rounded-xl bg-[#F5C518]/10 flex items-center justify-center shrink-0">
+              <MapPin className="size-6 text-[#D4A80F]" />
             </div>
             <div>
-              <p className="text-lg font-semibold text-[#1C1917]">
+              <p className="text-lg font-semibold text-[#0A0A0A]">
                 Houston, Texas
               </p>
-              <p className="text-sm text-[#78716C]">
+              <p className="text-sm text-[#6B7280]">
                 Based in the energy capital of the world. Close to the operators,
                 compressor fleets, and regulatory bodies that shape our industry.
               </p>
@@ -384,7 +384,7 @@ export default function AboutPage() {
           >
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
               Your next shutdown{' '}
-              <span className="text-[#C4A77D]">doesn&#39;t have to be a surprise.</span>
+              <span className="text-[#F5C518]">doesn&#39;t have to be a surprise.</span>
             </h2>
             <p className="text-lg text-white/50 max-w-2xl mx-auto mb-10">
               Talk to our engineering team about connecting Altaviz to your
@@ -395,7 +395,7 @@ export default function AboutPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
                 href="/signup"
-                className="inline-flex items-center gap-2 text-base font-semibold text-[#1C1917] bg-white hover:bg-white/90 transition-colors px-8 py-3.5 rounded-full"
+                className="inline-flex items-center gap-2 text-base font-semibold text-[#0A0A0A] bg-white hover:bg-white/90 transition-colors px-8 py-3.5 rounded-full"
               >
                 Create Free Account
                 <ArrowRight className="size-4" />

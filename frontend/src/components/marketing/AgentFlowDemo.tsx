@@ -33,7 +33,7 @@ import { useInView } from 'framer-motion';
 const TABS = [
   { label: 'Fleet Monitoring', icon: Activity, color: '#10B981' },
   { label: 'Investigation', icon: BrainCircuit, color: '#8B5CF6' },
-  { label: 'Work Orders', icon: ClipboardCheck, color: '#C4A77D' },
+  { label: 'Work Orders', icon: ClipboardCheck, color: '#F5C518' },
   { label: 'Optimization', icon: TrendingUp, color: '#3B82F6' },
 ];
 
@@ -350,15 +350,15 @@ function InvestigationTab() {
       <AnimatePresence>
         {showReport && (
           <motion.div
-            className="mt-5 rounded-xl bg-white/[0.03] border border-[#C4A77D]/30 p-4"
-            style={{ boxShadow: '0 0 20px rgba(196,167,125,0.08)' }}
+            className="mt-5 rounded-xl bg-white/[0.03] border border-[#F5C518]/30 p-4"
+            style={{ boxShadow: '0 0 20px rgba(245,197,24,0.08)' }}
             initial={{ opacity: 0, y: 16, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0 }}
             transition={springPop}
           >
             <div className="flex items-center gap-2 mb-2">
-              <BrainCircuit className="size-4 text-[#C4A77D]" />
+              <BrainCircuit className="size-4 text-[#F5C518]" />
               <span className="text-[11px] font-semibold text-white/70">Root Cause Identified</span>
             </div>
             <p className="text-sm font-bold text-white/80 mb-1">Bearing Wear</p>
@@ -380,11 +380,11 @@ function InvestigationTab() {
 /*  Tab 3: Work Orders                                                 */
 /* ------------------------------------------------------------------ */
 const WO_STATES = [
-  { label: 'Draft', color: '#78716C' },
+  { label: 'Draft', color: '#6B7280' },
   { label: 'Pending', color: '#F59E0B' },
   { label: 'Approved', color: '#3B82F6' },
   { label: 'Assigned', color: '#8B5CF6' },
-  { label: 'In Progress', color: '#C4A77D' },
+  { label: 'In Progress', color: '#F5C518' },
   { label: 'Completed', color: '#10B981' },
   { label: 'Verified', color: '#10B981' },
 ];
@@ -473,12 +473,12 @@ function WorkOrderTab() {
             transition={{ delay: 0.2, duration: 0.3 }}
           >
             {[
-              { icon: DollarSign, label: 'Est. Cost', value: '$2,400', color: 'text-[#C4A77D]' },
+              { icon: DollarSign, label: 'Est. Cost', value: '$2,400', color: 'text-[#F5C518]' },
               { icon: Clock, label: 'Est. Hours', value: '6h', color: 'text-blue-400' },
               { icon: Wrench, label: 'Shutdown', value: 'Yes', color: 'text-amber-400' },
             ].map((d) => (
               <div key={d.label} className="rounded-md bg-white/[0.02] border border-white/[0.04] p-2 text-center">
-                <d.icon className="size-3 mx-auto mb-0.5" style={{ color: d.color.includes('#') ? '#C4A77D' : undefined }} />
+                <d.icon className="size-3 mx-auto mb-0.5" style={{ color: d.color.includes('#') ? '#F5C518' : undefined }} />
                 <p className="text-[7px] text-white/20 mb-0.5">{d.label}</p>
                 <p className={`text-[9px] font-mono font-bold ${d.color}`}>{d.value}</p>
               </div>
@@ -512,8 +512,8 @@ function WorkOrderTab() {
         <AnimatePresence>
           {phase >= 5 && phase < 6 && (
             <motion.div
-              className="rounded-xl border border-[#C4A77D]/30 p-3"
-              style={{ boxShadow: '0 0 16px rgba(196,167,125,0.08)' }}
+              className="rounded-xl border border-[#F5C518]/30 p-3"
+              style={{ boxShadow: '0 0 16px rgba(245,197,24,0.08)' }}
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -524,13 +524,13 @@ function WorkOrderTab() {
                   animate={{ opacity: [1, 0.5, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  <ShieldCheck className="size-4 text-[#C4A77D]" />
+                  <ShieldCheck className="size-4 text-[#F5C518]" />
                 </motion.div>
-                <span className="text-[10px] font-semibold text-[#C4A77D]">Human Approval Required</span>
+                <span className="text-[10px] font-semibold text-[#F5C518]">Human Approval Required</span>
               </div>
               <p className="text-[8px] text-white/30 mb-2">Cost exceeds $1K threshold. Shutdown required.</p>
               <motion.button
-                className="px-3 py-1.5 rounded-md bg-[#C4A77D]/20 border border-[#C4A77D]/30 text-[9px] font-semibold text-[#C4A77D]"
+                className="px-3 py-1.5 rounded-md bg-[#F5C518]/20 border border-[#F5C518]/30 text-[9px] font-semibold text-[#F5C518]"
                 animate={{ scale: [1, 1.03, 1] }}
                 transition={{ duration: 1, repeat: Infinity }}
               >
@@ -550,14 +550,14 @@ function WorkOrderTab() {
       >
         <p className="text-[8px] text-white/25 uppercase tracking-wide mb-4">Status Timeline</p>
         <div className="relative">
-          <div className="absolute left-[7px] top-2 bottom-2 w-px bg-gradient-to-b from-[#C4A77D]/30 to-transparent" />
+          <div className="absolute left-[7px] top-2 bottom-2 w-px bg-gradient-to-b from-[#F5C518]/30 to-transparent" />
           <div className="space-y-4">
             {[
-              { status: 'Draft', time: '14:32', who: 'AI Agent', color: '#78716C' },
+              { status: 'Draft', time: '14:32', who: 'AI Agent', color: '#6B7280' },
               { status: 'Pending Approval', time: '14:32', who: 'System', color: '#F59E0B' },
               { status: 'Approved', time: '14:34', who: 'John Miller', color: '#3B82F6' },
               { status: 'Assigned', time: '14:35', who: 'Field Crew #4', color: '#8B5CF6' },
-              { status: 'In Progress', time: '14:48', who: 'Field Crew #4', color: '#C4A77D' },
+              { status: 'In Progress', time: '14:48', who: 'Field Crew #4', color: '#F5C518' },
             ].map((entry, i) => (
               <motion.div
                 key={entry.status}
@@ -664,10 +664,10 @@ function OptimizationTab() {
           {/* Scan line */}
           {phase >= 2 && phase < 3 && (
             <motion.div
-              className="absolute top-0 bottom-0 w-[2px] bg-[#C4A77D] z-10"
+              className="absolute top-0 bottom-0 w-[2px] bg-[#F5C518] z-10"
               style={{
                 left: `${scanX}%`,
-                boxShadow: '0 0 8px rgba(196,167,125,0.6), 0 0 16px rgba(196,167,125,0.3)',
+                boxShadow: '0 0 8px rgba(245,197,24,0.6), 0 0 16px rgba(245,197,24,0.3)',
               }}
             />
           )}
@@ -698,9 +698,9 @@ function OptimizationTab() {
               <span
                 className="text-[7px] font-semibold px-1.5 py-0.5 rounded-full border"
                 style={{
-                  color: rec.priority === 'urgent' ? '#EF4444' : rec.priority === 'high' ? '#F59E0B' : '#78716C',
-                  borderColor: rec.priority === 'urgent' ? '#EF444430' : rec.priority === 'high' ? '#F59E0B30' : '#78716C30',
-                  backgroundColor: rec.priority === 'urgent' ? '#EF444410' : rec.priority === 'high' ? '#F59E0B10' : '#78716C10',
+                  color: rec.priority === 'urgent' ? '#EF4444' : rec.priority === 'high' ? '#F59E0B' : '#6B7280',
+                  borderColor: rec.priority === 'urgent' ? '#EF444430' : rec.priority === 'high' ? '#F59E0B30' : '#6B728030',
+                  backgroundColor: rec.priority === 'urgent' ? '#EF444410' : rec.priority === 'high' ? '#F59E0B10' : '#6B728010',
                 }}
               >
                 {rec.priority}
@@ -747,8 +747,8 @@ function OptimizationTab() {
             transition={{ duration: 0.3 }}
           >
             <div className="flex items-start gap-2 max-w-[85%]">
-              <div className="w-5 h-5 rounded-full bg-[#C4A77D]/20 flex items-center justify-center shrink-0 mt-0.5">
-                <Bot className="size-2.5 text-[#C4A77D]" />
+              <div className="w-5 h-5 rounded-full bg-[#F5C518]/20 flex items-center justify-center shrink-0 mt-0.5">
+                <Bot className="size-2.5 text-[#F5C518]" />
               </div>
               <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2">
                 <p className="text-[9px] text-white/40 leading-relaxed">
@@ -792,7 +792,7 @@ export default function AgentFlowDemo() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">See It In Action</p>
+          <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">See It In Action</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white/90 mb-4">
             AI agents that monitor, investigate, and fix
           </h2>

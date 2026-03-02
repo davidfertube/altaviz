@@ -37,7 +37,7 @@ const STEPS = [
 export default function HowItWorks() {
   return (
     <section id="how-it-works" className="relative py-24 sm:py-32">
-      <div className="absolute inset-0 bg-[#FAF9F6]" />
+      <div className="absolute inset-0 bg-[#FAFAFA]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -47,11 +47,11 @@ export default function HowItWorks() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">How It Works</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
+          <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">How It Works</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4">
             From your SCADA system to work orders in the field
           </h2>
-          <p className="text-lg text-[#78716C] max-w-2xl mx-auto">
+          <p className="text-lg text-[#6B7280] max-w-2xl mx-auto">
             Less than 25% of operators use predictive maintenance today. Go live in under a week.
           </p>
         </motion.div>
@@ -59,12 +59,12 @@ export default function HowItWorks() {
         {/* Vertical timeline */}
         <div className="relative max-w-3xl mx-auto">
           {/* Connecting line */}
-          <div className="absolute left-8 sm:left-10 top-0 bottom-0 w-px bg-gradient-to-b from-[#C4A77D]/30 via-[#C4A77D]/20 to-transparent" />
+          <div className="absolute left-8 sm:left-10 top-0 bottom-0 w-px bg-gradient-to-b from-[#F5C518]/30 via-[#F5C518]/20 to-transparent" />
 
           {/* Animated glowing dot that travels down */}
           <motion.div
-            className="absolute left-[29px] sm:left-[37px] w-[5px] h-[5px] rounded-full bg-[#C4A77D] z-20"
-            style={{ boxShadow: '0 0 8px rgba(196,167,125,0.6), 0 0 16px rgba(196,167,125,0.3)' }}
+            className="absolute left-[29px] sm:left-[37px] w-[5px] h-[5px] rounded-full bg-[#F5C518] z-20"
+            style={{ boxShadow: '0 0 8px rgba(245,197,24,0.6), 0 0 16px rgba(245,197,24,0.3)' }}
             initial={{ top: 0, opacity: 0 }}
             whileInView={{ top: '100%', opacity: [0, 1, 1, 0] }}
             viewport={{ once: true, margin: '-100px' }}
@@ -85,25 +85,25 @@ export default function HowItWorks() {
                 {/* Step icon */}
                 <div className="relative z-10 shrink-0">
                   <motion.div
-                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border border-[#E7E0D5] flex flex-col items-center justify-center shadow-sm"
-                    whileInView={{ borderColor: ['rgba(231,224,213,1)', 'rgba(196,167,125,0.5)', 'rgba(231,224,213,1)'] }}
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border border-[#E5E5E5] flex flex-col items-center justify-center shadow-sm"
+                    whileInView={{ borderColor: ['rgba(231,224,213,1)', 'rgba(245,197,24,0.5)', 'rgba(231,224,213,1)'] }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.5 + i * 0.7, duration: 0.6 }}
                   >
-                    <step.icon className="size-5 sm:size-6 text-[#C4A77D] mb-1" />
-                    <span className="text-[9px] font-bold text-[#A8A29E] font-mono">{step.number}</span>
+                    <step.icon className="size-5 sm:size-6 text-[#F5C518] mb-1" />
+                    <span className="text-[9px] font-bold text-[#9CA3AF] font-mono">{step.number}</span>
                   </motion.div>
                 </div>
 
                 {/* Step content */}
                 <div className="pt-2 pb-2">
-                  <h3 className="text-xl sm:text-2xl font-bold text-[#1C1917] mb-2">
+                  <h3 className="text-xl sm:text-2xl font-bold text-[#0A0A0A] mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-sm sm:text-base text-[#78716C] leading-relaxed mb-2">
+                  <p className="text-sm sm:text-base text-[#6B7280] leading-relaxed mb-2">
                     {step.description}
                   </p>
-                  <p className="text-xs text-[#A8A29E] leading-relaxed">
+                  <p className="text-xs text-[#9CA3AF] leading-relaxed">
                     {step.detail}
                   </p>
                 </div>

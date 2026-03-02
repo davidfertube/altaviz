@@ -36,7 +36,7 @@ export default function CtaBanner() {
             }}
           >
             Your next shutdown{' '}
-            <span className="text-[#C4A77D]">doesn&#39;t have to cost you $500K.</span>
+            <span className="text-[#F5C518]">doesn&#39;t have to cost you $500K.</span>
           </motion.h2>
           <motion.p
             className="text-lg text-white/50 max-w-2xl mx-auto mb-10"
@@ -57,7 +57,7 @@ export default function CtaBanner() {
           >
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 text-base font-semibold text-[#1C1917] bg-white hover:bg-white/90 transition-colors px-20 py-4 rounded-full shadow-lg"
+              className="inline-flex items-center gap-2 text-base font-semibold text-[#0A0A0A] bg-white hover:bg-white/90 transition-colors px-20 py-4 rounded-full shadow-lg"
             >
               Start Free Pilot
               <ArrowRight className="size-4" />

@@ -14,7 +14,7 @@ const BADGES = [
     icon: FileCheck,
     title: '49 CFR 192 / PHMSA',
     description: 'Pipeline safety and integrity management compliance',
-    accent: '#C4A77D',
+    accent: '#F5C518',
   },
   {
     icon: Leaf,
@@ -38,14 +38,14 @@ const BADGES = [
     icon: Lock,
     title: 'SSO / SAML',
     description: 'Enterprise single sign-on and identity federation',
-    accent: '#C4A77D',
+    accent: '#F5C518',
   },
 ];
 
 export default function SecurityCompliance() {
   return (
     <section id="security" className="relative py-24 sm:py-32 overflow-hidden">
-      <div className="absolute inset-0 bg-[#F5F0E8]" />
+      <div className="absolute inset-0 bg-[#F5F5F5]" />
       {/* Ambient glow orbs */}
       <div className="absolute top-1/4 left-0 w-[400px] h-[400px] bg-[#6366F1]/5 rounded-full blur-[120px]" />
       <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-[#8B5CF6]/5 rounded-full blur-[120px]" />
@@ -59,12 +59,12 @@ export default function SecurityCompliance() {
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.5 }}
           >
-            <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">Security & Compliance</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
+            <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">Security & Compliance</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4">
               Your data. Your control.{' '}
-              <span className="text-[#C4A77D]">Fully compliant.</span>
+              <span className="text-[#F5C518]">Fully compliant.</span>
             </h2>
-            <p className="text-base text-[#78716C] leading-relaxed mb-6">
+            <p className="text-base text-[#6B7280] leading-relaxed mb-6">
               Your fleet data is isolated at every level — no other customer can ever access it.
               All access is audit-logged, encrypted in transit and at rest, and protected by
               role-based permissions. Built for the same security standards your enterprise IT team demands.
@@ -77,8 +77,8 @@ export default function SecurityCompliance() {
                 'Role-based access: Owner, Admin, Operator, Viewer',
                 'SOC 2 Type II controls with annual third-party audits',
               ].map((item) => (
-                <li key={item} className="flex items-start gap-2.5 text-sm text-[#78716C]">
-                  <Shield className="size-4 text-[#C4A77D] mt-0.5 shrink-0" />
+                <li key={item} className="flex items-start gap-2.5 text-sm text-[#6B7280]">
+                  <Shield className="size-4 text-[#F5C518] mt-0.5 shrink-0" />
                   {item}
                 </li>
               ))}
@@ -99,7 +99,7 @@ export default function SecurityCompliance() {
             {BADGES.map(({ icon: Icon, title, description, accent }) => (
               <motion.div
                 key={title}
-                className="group relative rounded-xl bg-white border border-[#E7E0D5] p-5 overflow-hidden"
+                className="group relative rounded-xl bg-white border border-[#E5E5E5] p-5 overflow-hidden"
                 variants={{
                   hidden: { opacity: 0, y: 24, scale: 0.95 },
                   visible: {
@@ -146,8 +146,8 @@ export default function SecurityCompliance() {
                   >
                     <Icon className="size-5" style={{ color: accent }} />
                   </motion.div>
-                  <p className="text-sm font-semibold text-[#1C1917] mb-1">{title}</p>
-                  <p className="text-xs text-[#A8A29E] leading-snug">{description}</p>
+                  <p className="text-sm font-semibold text-[#0A0A0A] mb-1">{title}</p>
+                  <p className="text-xs text-[#9CA3AF] leading-snug">{description}</p>
                 </div>
               </motion.div>
             ))}

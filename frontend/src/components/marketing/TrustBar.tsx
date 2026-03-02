@@ -33,11 +33,11 @@ const fadeInUp = {
 export default function TrustBar() {
   return (
     <section className="relative py-10 sm:py-14 overflow-hidden">
-      <div className="absolute inset-0 bg-[#FAF9F6]" />
+      <div className="absolute inset-0 bg-[#FAFAFA]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.p
-          className="text-center text-[11px] font-semibold text-[#A8A29E] uppercase tracking-[0.15em] mb-8"
+          className="text-center text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-[0.15em] mb-8"
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -56,7 +56,7 @@ export default function TrustBar() {
           {OPERATORS.map((name) => (
             <motion.span
               key={name}
-              className="text-sm sm:text-base font-semibold text-[#1C1917]/25 whitespace-nowrap tracking-tight hover:text-[#1C1917]/40 transition-colors"
+              className="text-sm sm:text-base font-semibold text-[#0A0A0A]/25 whitespace-nowrap tracking-tight hover:text-[#0A0A0A]/40 transition-colors"
               variants={fadeInUp}
             >
               {name}
@@ -65,7 +65,7 @@ export default function TrustBar() {
         </motion.div>
 
         <motion.p
-          className="text-center text-xs text-[#A8A29E] mt-6"
+          className="text-center text-xs text-[#9CA3AF] mt-6"
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

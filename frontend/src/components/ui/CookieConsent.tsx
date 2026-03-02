@@ -28,11 +28,11 @@ export default function CookieConsent() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] p-4">
-      <div className="max-w-3xl mx-auto rounded-xl border border-[#E7E0D5] bg-white shadow-xl shadow-black/5 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <p className="text-sm text-[#78716C] leading-relaxed flex-1">
+      <div className="max-w-3xl mx-auto rounded-xl border border-[#E5E5E5] bg-white shadow-xl shadow-black/5 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <p className="text-sm text-[#6B7280] leading-relaxed flex-1">
           We use essential cookies to run the platform and optional analytics cookies to improve
           our service. See our{' '}
-          <Link href="/privacy" className="text-[#A68B5B] hover:text-[#1C1917] underline underline-offset-2">
+          <Link href="/privacy" className="text-[#D4A80F] hover:text-[#0A0A0A] underline underline-offset-2">
             Privacy Policy
           </Link>{' '}
           for details.
@@ -40,13 +40,13 @@ export default function CookieConsent() {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={decline}
-            className="text-xs font-medium text-[#78716C] hover:text-[#1C1917] px-4 py-2 rounded-lg border border-[#E7E0D5] hover:border-[#C4A77D] transition-colors"
+            className="text-xs font-medium text-[#6B7280] hover:text-[#0A0A0A] px-4 py-2 rounded-lg border border-[#E5E5E5] hover:border-[#F5C518] transition-colors"
           >
             Decline
           </button>
           <button
             onClick={accept}
-            className="text-xs font-semibold text-white bg-[#1C1917] hover:bg-[#2D2D2D] px-4 py-2 rounded-lg transition-colors"
+            className="text-xs font-semibold text-white bg-[#0A0A0A] hover:bg-[#1A1A1A] px-4 py-2 rounded-lg transition-colors"
           >
             Accept
           </button>

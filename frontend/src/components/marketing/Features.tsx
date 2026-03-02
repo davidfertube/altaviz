@@ -39,7 +39,7 @@ function FleetOverviewMockup() {
       <div className="grid grid-cols-3 gap-2 mb-4">
         {[
           { label: 'Online', value: '4,612/4,700', color: 'text-emerald-400' },
-          { label: 'Avg Health', value: '94%', color: 'text-[#C4A77D]' },
+          { label: 'Avg Health', value: '94%', color: 'text-[#F5C518]' },
           { label: 'Active Alerts', value: '7', color: 'text-rose-400' },
         ].map((kpi) => (
           <motion.div
@@ -117,7 +117,7 @@ function AnomalyDetectionMockup() {
           <defs>
             <linearGradient id="anomGradTab" x1="0" y1="0" x2="300" y2="0" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="rgba(16,185,129,0.6)" />
-              <stop offset="60%" stopColor="rgba(196,167,125,0.6)" />
+              <stop offset="60%" stopColor="rgba(245,197,24,0.6)" />
               <stop offset="100%" stopColor="rgba(239,68,68,0.9)" />
             </linearGradient>
             <linearGradient id="anomFillTab" x1="0" y1="0" x2="0" y2="70" gradientUnits="userSpaceOnUse">
@@ -199,7 +199,7 @@ function AIAgentMockup() {
   const steps = [
     { label: 'Anomaly Detected', detail: 'COMP-2847 · Vibration drift +12%', color: '#EF4444', Icon: AlertTriangle },
     { label: 'Root Cause Found', detail: 'Bearing wear — 87% confidence', color: '#8B5CF6', Icon: BrainCircuit },
-    { label: 'Work Order Created', detail: 'WO-4821 · Priority: High · Est. $2,400', color: '#C4A77D', Icon: ClipboardCheck },
+    { label: 'Work Order Created', detail: 'WO-4821 · Priority: High · Est. $2,400', color: '#F5C518', Icon: ClipboardCheck },
     { label: 'Technician Assigned', detail: 'Field crew notified · ETA 4hr', color: '#10B981', Icon: CheckCircle },
   ];
 
@@ -283,7 +283,7 @@ export default function Features() {
 
   return (
     <section id="platform" className="section-viewport relative py-24 sm:py-32">
-      <div className="absolute inset-0 bg-[#FAF9F6]" />
+      <div className="absolute inset-0 bg-[#FAFAFA]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -293,10 +293,10 @@ export default function Features() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4">
             One platform. Complete fleet visibility.
           </h2>
-          <p className="text-lg text-[#78716C] max-w-2xl mx-auto">
+          <p className="text-lg text-[#6B7280] max-w-2xl mx-auto">
             From the sensor on the pipeline to the work order in the field.
           </p>
         </motion.div>
@@ -313,15 +313,15 @@ export default function Features() {
                   onClick={() => setActiveTab(i)}
                   className={`relative flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? 'text-[#1C1917]'
-                      : 'text-[#A8A29E] hover:text-[#78716C]'
+                      ? 'text-[#0A0A0A]'
+                      : 'text-[#9CA3AF] hover:text-[#6B7280]'
                   }`}
                 >
                   <TabIcon className="size-4" />
                   {tab.label}
                   {isActive && (
                     <motion.div
-                      className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full bg-[#C4A77D]"
+                      className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full bg-[#F5C518]"
                       layoutId="features-tab-indicator"
                       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
@@ -346,10 +346,10 @@ export default function Features() {
               <Mockup />
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-bold text-[#1C1917] mb-3">
+              <h3 className="text-2xl sm:text-3xl font-bold text-[#0A0A0A] mb-3">
                 {title}
               </h3>
-              <p className="text-base text-[#78716C] leading-relaxed max-w-md">
+              <p className="text-base text-[#6B7280] leading-relaxed max-w-md">
                 {description}
               </p>
             </div>

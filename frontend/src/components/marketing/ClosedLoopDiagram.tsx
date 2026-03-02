@@ -27,7 +27,7 @@ const AGENTS = [
     label: 'Work Order',
     description: 'Auto-generated plans with human-in-the-loop approval',
     icon: ClipboardCheck,
-    color: '#C4A77D',
+    color: '#F5C518',
     x: 200, y: 270,
   },
   {
@@ -59,7 +59,7 @@ export default function ClosedLoopDiagram() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">Continuous Improvement</p>
+          <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">Continuous Improvement</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-white/90 mb-4">
             Agents that learn from every fix
           </h2>
@@ -82,7 +82,7 @@ export default function ClosedLoopDiagram() {
               <motion.path
                 d={ORBIT_PATH}
                 fill="none"
-                stroke="rgba(196,167,125,0.08)"
+                stroke="rgba(245,197,24,0.08)"
                 strokeWidth="1.5"
                 initial={{ pathLength: 0 }}
                 whileInView={{ pathLength: 1 }}
@@ -95,10 +95,10 @@ export default function ClosedLoopDiagram() {
                 <motion.circle
                   key={i}
                   r="3"
-                  fill="#C4A77D"
+                  fill="#F5C518"
                   style={{
                     offsetPath: `path('${ORBIT_PATH}')`,
-                    filter: 'drop-shadow(0 0 4px rgba(196,167,125,0.6))',
+                    filter: 'drop-shadow(0 0 4px rgba(245,197,24,0.6))',
                   }}
                   initial={{ offsetDistance: `${offset * 100}%`, opacity: 0 }}
                   whileInView={{ offsetDistance: `${(offset + 1) * 100}%`, opacity: [0, 0.8, 0.8, 0.8, 0] }}
@@ -171,7 +171,7 @@ export default function ClosedLoopDiagram() {
                 y="148"
                 textAnchor="middle"
                 className="text-[8px] font-mono uppercase tracking-wider"
-                fill="rgba(196,167,125,0.3)"
+                fill="rgba(245,197,24,0.3)"
                 animate={{ opacity: [0.2, 0.5, 0.2] }}
                 transition={{ duration: 3, repeat: Infinity }}
               >
@@ -182,7 +182,7 @@ export default function ClosedLoopDiagram() {
                 cy="150"
                 r="25"
                 fill="none"
-                stroke="rgba(196,167,125,0.06)"
+                stroke="rgba(245,197,24,0.06)"
                 strokeWidth="1"
                 strokeDasharray="3 3"
                 animate={{ rotate: 360 }}
@@ -224,7 +224,7 @@ export default function ClosedLoopDiagram() {
               {['Scan', 'Investigate', 'Plan', 'Learn', 'Repeat'].map((step, i) => (
                 <div key={step} className="flex items-center gap-1">
                   <span className="text-[8px] text-white/20 font-mono">{step}</span>
-                  {i < 4 && <span className="text-[8px] text-[#C4A77D]/30">&rarr;</span>}
+                  {i < 4 && <span className="text-[8px] text-[#F5C518]/30">&rarr;</span>}
                 </div>
               ))}
             </div>

@@ -78,7 +78,7 @@ function FAQCard({ question, answer, category }: FAQEntry) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="rounded-xl bg-white border border-[#E7E0D5] overflow-hidden">
+    <div className="rounded-xl bg-white border border-[#E5E5E5] overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
         className="flex items-start justify-between w-full text-left p-5 group"
@@ -92,13 +92,13 @@ function FAQCard({ question, answer, category }: FAQEntry) {
           >
             {category}
           </span>
-          <p className="text-sm sm:text-base font-medium text-[#1C1917] group-hover:text-[#A68B5B] transition-colors">
+          <p className="text-sm sm:text-base font-medium text-[#0A0A0A] group-hover:text-[#D4A80F] transition-colors">
             {question}
           </p>
         </div>
         <ChevronDown
           className={cn(
-            'size-5 text-[#A8A29E] shrink-0 mt-1 transition-transform duration-200',
+            'size-5 text-[#9CA3AF] shrink-0 mt-1 transition-transform duration-200',
             open && 'rotate-180'
           )}
         />
@@ -113,7 +113,7 @@ function FAQCard({ question, answer, category }: FAQEntry) {
             transition={{ duration: 0.25, ease: 'easeInOut' }}
           >
             <div className="px-5 pb-5">
-              <p className="text-sm text-[#78716C] leading-relaxed">{answer}</p>
+              <p className="text-sm text-[#6B7280] leading-relaxed">{answer}</p>
             </div>
           </motion.div>
         )}
@@ -144,7 +144,7 @@ export default function FAQ() {
 
   return (
     <section id="faq" className="relative py-24 sm:py-32">
-      <div className="absolute inset-0 bg-[#FAF9F6]" />
+      <div className="absolute inset-0 bg-[#FAFAFA]" />
 
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
@@ -155,13 +155,13 @@ export default function FAQ() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">
+          <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">
             FAQ
           </p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4">
             Frequently asked questions
           </h2>
-          <p className="text-lg text-[#78716C]">
+          <p className="text-lg text-[#6B7280]">
             Everything you need to know about the platform
           </p>
         </motion.div>
@@ -176,13 +176,13 @@ export default function FAQ() {
         >
           {/* Search input */}
           <div className="relative max-w-md mx-auto">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#A8A29E] pointer-events-none" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#9CA3AF] pointer-events-none" />
             <input
               type="text"
               placeholder="Search questions..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg bg-white border border-[#E7E0D5] text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/40 focus:border-[#C4A77D] transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 text-sm rounded-lg bg-white border border-[#E5E5E5] text-[#0A0A0A] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F5C518]/40 focus:border-[#F5C518] transition-colors"
             />
           </div>
 
@@ -195,8 +195,8 @@ export default function FAQ() {
                 className={cn(
                   'px-4 py-1.5 text-sm font-medium rounded-full transition-colors duration-200',
                   activeCategory === category
-                    ? 'bg-[#C4A77D] text-white'
-                    : 'bg-white border border-[#E7E0D5] text-[#78716C] hover:border-[#C4A77D] hover:text-[#A68B5B]'
+                    ? 'bg-[#F5C518] text-white'
+                    : 'bg-white border border-[#E5E5E5] text-[#6B7280] hover:border-[#F5C518] hover:text-[#D4A80F]'
                 )}
               >
                 {category}
@@ -247,7 +247,7 @@ export default function FAQ() {
         <AnimatePresence>
           {filteredFaqs.length === 0 && (
             <motion.p
-              className="text-center text-sm text-[#A8A29E] mt-8"
+              className="text-center text-sm text-[#9CA3AF] mt-8"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}

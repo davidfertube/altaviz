@@ -70,9 +70,9 @@ export default function LiveDemoTeaser() {
     {
       phase: 4,
       icon: ClipboardCheck,
-      color: '#C4A77D',
-      bgColor: 'bg-[#C4A77D]/10',
-      borderColor: 'border-[#C4A77D]/20',
+      color: '#F5C518',
+      bgColor: 'bg-[#F5C518]/10',
+      borderColor: 'border-[#F5C518]/20',
       title: 'WO-4821 auto-generated',
       detail: 'Priority: Urgent · Est. $2,400 · Bearing replacement',
     },
@@ -80,7 +80,7 @@ export default function LiveDemoTeaser() {
 
   return (
     <section className="relative py-24 sm:py-32">
-      <div className="absolute inset-0 bg-[#FAF9F6]" />
+      <div className="absolute inset-0 bg-[#FAFAFA]" />
 
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
@@ -91,11 +91,11 @@ export default function LiveDemoTeaser() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">Try It Yourself</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
+          <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">Try It Yourself</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4">
             From anomaly to work order in seconds
           </h2>
-          <p className="text-lg text-[#78716C] max-w-lg mx-auto leading-relaxed">
+          <p className="text-lg text-[#6B7280] max-w-lg mx-auto leading-relaxed">
             Click the asset to simulate a bearing failure. Watch AI agents detect, diagnose, and generate a repair plan.
           </p>
         </motion.div>
@@ -141,11 +141,11 @@ export default function LiveDemoTeaser() {
                 {/* Click hint */}
                 {!triggered && (
                   <motion.div
-                    className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[#C4A77D]/20 border border-[#C4A77D]/30"
+                    className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[#F5C518]/20 border border-[#F5C518]/30"
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                   >
-                    <span className="text-[11px] text-[#C4A77D] font-semibold whitespace-nowrap">Click to break</span>
+                    <span className="text-[11px] text-[#F5C518] font-semibold whitespace-nowrap">Click to break</span>
                   </motion.div>
                 )}
               </button>

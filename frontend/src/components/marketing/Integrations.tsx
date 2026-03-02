@@ -53,7 +53,7 @@ function categoryColor(cat: string): string {
     case 'Protocol':
       return '#EF4444';
     default:
-      return '#C4A77D';
+      return '#F5C518';
   }
 }
 
@@ -70,7 +70,7 @@ function DesktopDiagram() {
           cy={CY}
           r="52"
           fill="none"
-          stroke="#C4A77D"
+          stroke="#F5C518"
           strokeWidth="1"
           opacity={0.15}
           animate={{ r: [52, 60, 52], opacity: [0.15, 0.06, 0.15] }}
@@ -81,7 +81,7 @@ function DesktopDiagram() {
           cy={CY}
           r="46"
           fill="none"
-          stroke="#C4A77D"
+          stroke="#F5C518"
           strokeWidth="0.5"
           opacity={0.08}
           animate={{ r: [46, 52, 46], opacity: [0.08, 0.03, 0.08] }}
@@ -100,7 +100,7 @@ function DesktopDiagram() {
                 y1={CY}
                 x2={x}
                 y2={y}
-                stroke="#C4A77D"
+                stroke="#F5C518"
                 strokeWidth="1"
                 strokeOpacity={0.15}
                 initial={{ pathLength: 0 }}
@@ -112,9 +112,9 @@ function DesktopDiagram() {
               {/* Traveling dot along the spoke */}
               <motion.circle
                 r="2.5"
-                fill="#C4A77D"
+                fill="#F5C518"
                 style={{
-                  filter: 'drop-shadow(0 0 3px rgba(196,167,125,0.6))',
+                  filter: 'drop-shadow(0 0 3px rgba(245,197,24,0.6))',
                 }}
                 initial={{ cx: CX, cy: CY, opacity: 0 }}
                 whileInView={{
@@ -147,8 +147,8 @@ function DesktopDiagram() {
             cx={CX}
             cy={CY}
             r="42"
-            fill="#FAF9F6"
-            stroke="#C4A77D"
+            fill="#FAFAFA"
+            stroke="#F5C518"
             strokeWidth="2"
           />
           {/* Inner fill */}
@@ -157,7 +157,7 @@ function DesktopDiagram() {
             cy={CY}
             r="38"
             fill="white"
-            stroke="#E7E0D5"
+            stroke="#E5E5E5"
             strokeWidth="1"
           />
           {/* Hub text */}
@@ -167,7 +167,7 @@ function DesktopDiagram() {
             textAnchor="middle"
             dominantBaseline="central"
             className="text-[13px] font-bold"
-            fill="#1C1917"
+            fill="#0A0A0A"
           >
             Altaviz
           </text>
@@ -177,7 +177,7 @@ function DesktopDiagram() {
             textAnchor="middle"
             dominantBaseline="central"
             className="text-[7px] font-medium uppercase tracking-wider"
-            fill="#C4A77D"
+            fill="#F5C518"
           >
             Data Hub
           </text>
@@ -208,7 +208,7 @@ function DesktopDiagram() {
                 height="44"
                 rx="10"
                 fill="white"
-                stroke="#E7E0D5"
+                stroke="#E5E5E5"
                 strokeWidth="1"
               />
               {/* Category color accent (top edge) */}
@@ -235,7 +235,7 @@ function DesktopDiagram() {
                 y={y - 3}
                 dominantBaseline="central"
                 className="text-[9px] font-semibold"
-                fill="#1C1917"
+                fill="#0A0A0A"
               >
                 {integration.name}
               </text>
@@ -245,7 +245,7 @@ function DesktopDiagram() {
                 y={y + 11}
                 dominantBaseline="central"
                 className="text-[7px]"
-                fill="#A8A29E"
+                fill="#9CA3AF"
               >
                 {integration.category}
               </text>
@@ -284,7 +284,7 @@ function MobileList() {
               {/* Connecting line (except before first item) */}
               {i > 0 && (
                 <motion.div
-                  className="w-px h-6 bg-gradient-to-b from-[#C4A77D]/20 to-[#C4A77D]/10"
+                  className="w-px h-6 bg-gradient-to-b from-[#F5C518]/20 to-[#F5C518]/10"
                   variants={{
                     hidden: { scaleY: 0 },
                     visible: {
@@ -298,7 +298,7 @@ function MobileList() {
 
               {/* Integration card */}
               <motion.div
-                className="flex items-center gap-3 rounded-xl bg-white border border-[#E7E0D5] px-5 py-3 w-full hover:border-[#C4A77D]/40 hover:shadow-sm transition-colors"
+                className="flex items-center gap-3 rounded-xl bg-white border border-[#E5E5E5] px-5 py-3 w-full hover:border-[#F5C518]/40 hover:shadow-sm transition-colors"
                 variants={{
                   hidden: { opacity: 0, y: 16 },
                   visible: {
@@ -314,10 +314,10 @@ function MobileList() {
                   style={{ backgroundColor: catColor, opacity: 0.4 }}
                 />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-[#1C1917]">
+                  <p className="text-sm font-medium text-[#0A0A0A]">
                     {integration.name}
                   </p>
-                  <p className="text-[10px] text-[#A8A29E]">
+                  <p className="text-[10px] text-[#9CA3AF]">
                     {integration.category}
                   </p>
                 </div>
@@ -337,21 +337,21 @@ function MobileList() {
             },
           }}
         >
-          <div className="w-px h-8 bg-gradient-to-b from-[#C4A77D]/20 to-[#C4A77D]/40" />
+          <div className="w-px h-8 bg-gradient-to-b from-[#F5C518]/20 to-[#F5C518]/40" />
 
           {/* Traveling dot animation on mobile */}
           <motion.div
-            className="w-2 h-2 rounded-full bg-[#C4A77D] shadow-[0_0_6px_rgba(196,167,125,0.5)]"
+            className="w-2 h-2 rounded-full bg-[#F5C518] shadow-[0_0_6px_rgba(245,197,24,0.5)]"
             animate={{ y: [-4, 4, -4], opacity: [0.4, 0.9, 0.4] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           />
 
-          <div className="w-px h-4 bg-gradient-to-b from-[#C4A77D]/40 to-[#C4A77D]/20" />
+          <div className="w-px h-4 bg-gradient-to-b from-[#F5C518]/40 to-[#F5C518]/20" />
         </motion.div>
 
         {/* Central hub node */}
         <motion.div
-          className="flex flex-col items-center justify-center w-24 h-24 rounded-full bg-white border-2 border-[#C4A77D] shadow-[0_0_20px_rgba(196,167,125,0.15)]"
+          className="flex flex-col items-center justify-center w-24 h-24 rounded-full bg-white border-2 border-[#F5C518] shadow-[0_0_20px_rgba(245,197,24,0.15)]"
           variants={{
             hidden: { opacity: 0, scale: 0.5 },
             visible: {
@@ -361,8 +361,8 @@ function MobileList() {
             },
           }}
         >
-          <span className="text-sm font-bold text-[#1C1917]">Altaviz</span>
-          <span className="text-[9px] font-medium text-[#C4A77D] uppercase tracking-wider">
+          <span className="text-sm font-bold text-[#0A0A0A]">Altaviz</span>
+          <span className="text-[9px] font-medium text-[#F5C518] uppercase tracking-wider">
             Data Hub
           </span>
         </motion.div>
@@ -377,7 +377,7 @@ function MobileList() {
 export default function Integrations() {
   return (
     <section className="relative py-16 sm:py-20 overflow-hidden">
-      <div className="absolute inset-0 bg-[#FAF9F6]" />
+      <div className="absolute inset-0 bg-[#FAFAFA]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section header */}
@@ -388,13 +388,13 @@ export default function Integrations() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">
+          <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">
             Integrations
           </p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-[#1C1917] mb-3">
+          <h2 className="text-2xl sm:text-3xl font-bold text-[#0A0A0A] mb-3">
             Connects to the systems you already run
           </h2>
-          <p className="text-base text-[#78716C] max-w-xl mx-auto">
+          <p className="text-base text-[#6B7280] max-w-xl mx-auto">
             No rip-and-replace. Altaviz ingests data from standard SCADA
             systems, historians, and cloud platforms.
           </p>

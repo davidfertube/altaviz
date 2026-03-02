@@ -25,11 +25,11 @@ export default function CaseStudyTeaser() {
             viewport={{ once: true, margin: '-100px' }}
             transition={{ duration: 0.5 }}
           >
-            <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-6">Results</p>
+            <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-6">Results</p>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-snug mb-6">
               One bearing failure caught{' '}
-              <span className="text-[#C4A77D]">two days early</span>{' '}
+              <span className="text-[#F5C518]">two days early</span>{' '}
               paid for six months of Altaviz.
             </h2>
 
@@ -39,7 +39,7 @@ export default function CaseStudyTeaser() {
 
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 text-sm font-medium text-[#C4A77D] hover:text-[#D4C5A9] transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-medium text-[#F5C518] hover:text-[#FFD84D] transition-colors"
             >
               Start monitoring your fleet
               <ArrowRight className="size-4" />
@@ -66,13 +66,13 @@ export default function CaseStudyTeaser() {
                   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const } },
                 }}
                 whileHover={{
-                  borderColor: 'rgba(196, 167, 125, 0.3)',
-                  boxShadow: '0 0 20px rgba(196, 167, 125, 0.1)',
+                  borderColor: 'rgba(245, 197, 24, 0.3)',
+                  boxShadow: '0 0 20px rgba(245, 197, 24, 0.1)',
                   transition: { duration: 0.2 },
                 }}
               >
-                <Icon className="size-5 text-[#C4A77D]/60 mb-3" />
-                <p className="text-2xl sm:text-3xl font-bold font-mono text-[#C4A77D] mb-1">{value}</p>
+                <Icon className="size-5 text-[#F5C518]/60 mb-3" />
+                <p className="text-2xl sm:text-3xl font-bold font-mono text-[#F5C518] mb-1">{value}</p>
                 <p className="text-xs text-white/40 leading-snug">{label}</p>
               </motion.div>
             ))}

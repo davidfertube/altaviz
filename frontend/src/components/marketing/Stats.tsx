@@ -101,12 +101,12 @@ function EarlyWarningMockup() {
         <defs>
           <linearGradient id="warnGrad" x1="0" y1="0" x2="260" y2="0" gradientUnits="userSpaceOnUse">
             <stop offset="0%" stopColor="rgba(16,185,129,0.7)" />
-            <stop offset="60%" stopColor="rgba(196,167,125,0.7)" />
+            <stop offset="60%" stopColor="rgba(245,197,24,0.7)" />
             <stop offset="100%" stopColor="rgba(239,68,68,0.9)" />
           </linearGradient>
           <linearGradient id="warnFill" x1="0" y1="0" x2="0" y2="80" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="rgba(196,167,125,0.06)" />
-            <stop offset="100%" stopColor="rgba(196,167,125,0)" />
+            <stop offset="0%" stopColor="rgba(245,197,24,0.06)" />
+            <stop offset="100%" stopColor="rgba(245,197,24,0)" />
           </linearGradient>
         </defs>
 
@@ -175,11 +175,11 @@ function EarlyWarningMockup() {
           viewport={{ once: true }}
           transition={{ delay: 1.8 }}
         >
-          <line x1="135" y1="68" x2="253" y2="68" stroke="rgba(196,167,125,0.5)" strokeWidth="0.5" />
-          <polygon points="135,66 138,68 135,70" fill="rgba(196,167,125,0.5)" />
-          <polygon points="253,66 250,68 253,70" fill="rgba(196,167,125,0.5)" />
-          <rect x="178" y="64" width="24" height="8" rx="2" fill="rgba(196,167,125,0.1)" />
-          <text x="190" y="69.5" textAnchor="middle" fill="rgba(196,167,125,0.8)" fontSize="5" fontFamily="monospace" fontWeight="bold">48hr</text>
+          <line x1="135" y1="68" x2="253" y2="68" stroke="rgba(245,197,24,0.5)" strokeWidth="0.5" />
+          <polygon points="135,66 138,68 135,70" fill="rgba(245,197,24,0.5)" />
+          <polygon points="253,66 250,68 253,70" fill="rgba(245,197,24,0.5)" />
+          <rect x="178" y="64" width="24" height="8" rx="2" fill="rgba(245,197,24,0.1)" />
+          <text x="190" y="69.5" textAnchor="middle" fill="rgba(245,197,24,0.8)" fontSize="5" fontFamily="monospace" fontWeight="bold">48hr</text>
         </motion.g>
       </svg>
     </div>
@@ -314,7 +314,7 @@ const STATS = [
 export default function Stats() {
   return (
     <section id="impact" className="section-viewport relative py-24 sm:py-32">
-      <div className="absolute inset-0 bg-[#F5F0E8]" />
+      <div className="absolute inset-0 bg-[#F5F5F5]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -324,10 +324,10 @@ export default function Stats() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4">
             Proven results across live fleets
           </h2>
-          <p className="text-lg text-[#78716C] max-w-xl mx-auto">
+          <p className="text-lg text-[#6B7280] max-w-xl mx-auto">
             With $8.98B in pipeline damage since 2010, predictive maintenance isn&#39;t optional — it&#39;s survival.
           </p>
         </motion.div>
@@ -341,14 +341,14 @@ export default function Stats() {
               whileInView={{ opacity: 1, y: 0 }}
               whileHover={{
                 scale: 1.04,
-                borderColor: 'rgba(196, 167, 125, 0.3)',
-                boxShadow: '0 0 30px rgba(196, 167, 125, 0.12), 0 0 60px rgba(196, 167, 125, 0.05)',
+                borderColor: 'rgba(245, 197, 24, 0.3)',
+                boxShadow: '0 0 30px rgba(245, 197, 24, 0.12), 0 0 60px rgba(245, 197, 24, 0.05)',
               }}
               viewport={{ once: true, margin: '-80px' }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
             >
               <div className="text-center">
-                <div className="text-4xl sm:text-5xl font-bold text-[#C4A77D] group-hover:text-[#D4B98D] group-hover:drop-shadow-[0_0_8px_rgba(196,167,125,0.3)] transition-all">
+                <div className="text-4xl sm:text-5xl font-bold text-[#F5C518] group-hover:text-[#D4B98D] group-hover:drop-shadow-[0_0_8px_rgba(245,197,24,0.3)] transition-all">
                   <AnimatedCounter value={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
                 </div>
                 <p className="text-xs text-white/40 group-hover:text-white/60 mt-1 tracking-wide uppercase transition-colors">{stat.label}</p>

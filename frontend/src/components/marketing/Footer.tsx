@@ -5,36 +5,21 @@ import AltavizLogo from '@/components/brand/AltavizLogo';
 import { Shield, FileCheck, Leaf, Settings, Activity, Lock } from 'lucide-react';
 
 const FOOTER_LINKS = {
-  Platform: [
+  Product: [
     { label: 'Fleet Monitoring', href: '/signup' },
-    { label: 'Anomaly Detection', href: '/signup' },
     { label: 'AI Agents', href: '/signup' },
-    { label: 'Work Orders', href: '/signup' },
-    { label: 'Emissions Tracking', href: '/signup' },
     { label: 'Predictive Maintenance', href: '/signup' },
-  ],
-  Solutions: [
-    { label: 'Pipeline Operations', href: '/solutions/transmission-pipelines' },
-    { label: 'Station Operations', href: '/solutions/gathering-systems' },
-    { label: 'Reliability Engineers', href: '/solutions/reliability-engineers' },
-    { label: 'Compliance & Reporting', href: '/solutions/compliance-officers' },
-    { label: 'Field Technicians', href: '/solutions/field-operations' },
-  ],
-  Resources: [
-    { label: 'Changelog', href: '/changelog' },
-    { label: 'Documentation', href: '/signup' },
-    { label: 'API Reference', href: '/signup' },
   ],
   Company: [
     { label: 'About', href: '/about' },
-    { label: 'Support', href: 'mailto:support@altaviz.com' },
-    { label: 'Security', href: '/security' },
     { label: 'Pricing', href: '/pricing' },
+    { label: 'Security', href: '/security' },
+    { label: 'Changelog', href: '/changelog' },
+    { label: 'Support', href: 'mailto:support@altaviz.com' },
   ],
   Legal: [
     { label: 'Privacy Policy', href: '/privacy' },
     { label: 'Terms of Service', href: '/terms' },
-    { label: 'Security Policy', href: '/security' },
   ],
 };
 
@@ -49,26 +34,26 @@ const COMPLIANCE_BADGES = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-[#E7E0D5]/60 bg-[#FAF9F6]">
+    <footer className="border-t border-[#E5E5E5]/60 bg-[#FAFAFA]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         {/* Main grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-6">
           {/* Brand column */}
-          <div className="col-span-2 md:col-span-3 lg:col-span-1">
+          <div className="col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <div className="w-7 h-7 rounded-lg bg-[#C4A77D] flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-[#1A3A5C] flex items-center justify-center">
                 <AltavizLogo size={16} variant="white" />
               </div>
-              <span className="text-sm font-semibold text-[#1C1917]">Altaviz</span>
+              <span className="text-sm font-semibold text-[#0A0A0A]">Altaviz</span>
             </Link>
-            <p className="text-xs text-[#78716C] leading-relaxed mb-6 max-w-[200px]">
+            <p className="text-xs text-[#6B7280] leading-relaxed mb-6 max-w-[200px]">
               48-hour advance warning for pipeline operators.
             </p>
 
             {/* CTA */}
             <Link
               href="/signup"
-              className="inline-flex text-xs font-medium px-6 py-2.5 rounded-full bg-[#1C1917] text-white hover:bg-[#2D2D2D] transition-colors"
+              className="inline-flex text-xs font-medium px-6 py-2.5 rounded-full bg-[#F5C518] text-[#0A0A0A] hover:bg-[#FFD84D] transition-colors"
             >
               Start Free Pilot
             </Link>
@@ -77,7 +62,7 @@ export default function Footer() {
           {/* Link columns */}
           {Object.entries(FOOTER_LINKS).map(([category, links]) => (
             <div key={category}>
-              <p className="text-[11px] font-semibold text-[#1C1917] uppercase tracking-wider mb-3">
+              <p className="text-[11px] font-semibold text-[#0A0A0A] uppercase tracking-wider mb-3">
                 {category}
               </p>
               <ul className="space-y-2">
@@ -85,7 +70,7 @@ export default function Footer() {
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-xs text-[#78716C] hover:text-[#1C1917] transition-colors"
+                      className="text-xs text-[#6B7280] hover:text-[#0A0A0A] transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -97,11 +82,11 @@ export default function Footer() {
         </div>
 
         {/* Compliance badges */}
-        <div className="mt-12 pt-8 border-t border-[#E7E0D5]/40">
+        <div className="mt-12 pt-8 border-t border-[#E5E5E5]/40">
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
             {COMPLIANCE_BADGES.map(({ label, icon: Icon }) => (
-              <div key={label} className="flex items-center gap-1.5 text-[11px] text-[#A8A29E]">
-                <Icon className="size-3.5 text-[#C4A77D]/60" aria-hidden="true" />
+              <div key={label} className="flex items-center gap-1.5 text-[11px] text-[#9CA3AF]">
+                <Icon className="size-3.5 text-[#F5C518]/60" aria-hidden="true" />
                 <span>{label}</span>
               </div>
             ))}
@@ -109,12 +94,12 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-8 pt-6 border-t border-[#E7E0D5]/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#A8A29E]">
+        <div className="mt-8 pt-6 border-t border-[#E5E5E5]/40 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-[#9CA3AF]">
           <p>&copy; {new Date().getFullYear()} Altaviz, Inc. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <span>Houston, TX</span>
-            <span className="text-[#E7E0D5]">|</span>
-            <a href="mailto:support@altaviz.com" className="hover:text-[#1C1917] transition-colors">
+            <span className="text-[#E5E5E5]">|</span>
+            <a href="mailto:support@altaviz.com" className="hover:text-[#0A0A0A] transition-colors">
               Support
             </a>
           </div>

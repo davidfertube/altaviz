@@ -8,13 +8,13 @@
 // ---------------------------------------------------------------------------
 
 const BRAND = {
-  gold: '#C4A77D',
-  goldLight: '#D4BC9A',
-  text: '#1C1917',
+  gold: '#F5C518',
+  goldLight: '#FFD84D',
+  text: '#0A0A0A',
   textMuted: '#57534E',
   background: '#FAFAF9',
   surface: '#FFFFFF',
-  border: '#E7E5E4',
+  border: '#E5E5E5',
   critical: '#DC2626',
   criticalBg: '#FEF2F2',
   criticalBorder: '#FECACA',

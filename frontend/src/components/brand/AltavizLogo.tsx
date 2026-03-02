@@ -29,8 +29,8 @@ export default function AltavizLogo({
       {variant === 'color' && (
         <defs>
           <linearGradient id={gradientId} x1="16" y1="30" x2="16" y2="2" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#A68B5B" />
-            <stop offset="1" stopColor="#C4A77D" />
+            <stop stopColor="#D4A80F" />
+            <stop offset="1" stopColor="#F5C518" />
           </linearGradient>
         </defs>
       )}

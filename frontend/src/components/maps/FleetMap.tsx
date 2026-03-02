@@ -102,7 +102,7 @@ function FitBoundsComponent({
 
 function buildMarkerHtml(station: StationGroup, isSelected: boolean): string {
   const color = STATUS_COLORS[station.worstStatus];
-  const ringColor = isSelected ? '#C4A77D' : color;
+  const ringColor = isSelected ? '#F5C518' : color;
   const ringWidth = isSelected ? '3px' : '2px';
   const pipelineCount = station.compressors.length;
 
@@ -120,7 +120,7 @@ function buildMarkerHtml(station: StationGroup, isSelected: boolean): string {
         border-radius: 50%;
         background: white;
         border: ${ringWidth} solid ${ringColor};
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15)${isSelected ? ', 0 0 0 4px rgba(196,167,125,0.25)' : ''};
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15)${isSelected ? ', 0 0 0 4px rgba(245,197,24,0.25)' : ''};
         display: flex;
         align-items: center;
         justify-content: center;
@@ -138,7 +138,7 @@ function buildMarkerHtml(station: StationGroup, isSelected: boolean): string {
         font-family: Inter, -apple-system, sans-serif;
         font-size: 10px;
         font-weight: 600;
-        color: #1C1917;
+        color: #0A0A0A;
         white-space: nowrap;
       ">${station.station_name}</div>
     </div>
@@ -162,16 +162,16 @@ function buildPopupContent(station: StationGroup, linkPrefix: string): string {
     .map(
       c => `<li style="display:flex;align-items:center;gap:6px;padding:3px 0;">
         ${statusDot(c.health_status)}
-        <a href="${linkPrefix}/${c.compressor_id}" style="color:#1C1917;text-decoration:none;font-size:13px;font-weight:500;">${c.compressor_id}</a>
-        <span style="color:#A8A29E;font-size:11px;margin-left:auto;">${c.model}</span>
+        <a href="${linkPrefix}/${c.compressor_id}" style="color:#0A0A0A;text-decoration:none;font-size:13px;font-weight:500;">${c.compressor_id}</a>
+        <span style="color:#9CA3AF;font-size:11px;margin-left:auto;">${c.model}</span>
       </li>`
     )
     .join('');
 
   return `
     <div style="font-family:Inter,-apple-system,sans-serif;min-width:180px;">
-      <p style="font-weight:700;font-size:14px;color:#1C1917;margin:0 0 2px;">${station.station_name}</p>
-      <p style="font-size:11px;color:#78716C;margin:0 0 8px;">${summary.join(' · ')}</p>
+      <p style="font-weight:700;font-size:14px;color:#0A0A0A;margin:0 0 2px;">${station.station_name}</p>
+      <p style="font-size:11px;color:#6B7280;margin:0 0 8px;">${summary.join(' · ')}</p>
       <ul style="list-style:none;margin:0;padding:0;">${pipelineList}</ul>
     </div>
   `;

@@ -32,7 +32,7 @@ interface FlowConnectorProps {
  */
 export default function FlowConnector({
   path,
-  color = 'rgba(196,167,125,0.3)',
+  color = 'rgba(245,197,24,0.3)',
   strokeWidth = 1,
   duration = 1.2,
   delay = 0,
@@ -62,10 +62,10 @@ export default function FlowConnector({
       {showDot && (
         <motion.circle
           r={dotRadius}
-          fill="#C4A77D"
+          fill="#F5C518"
           style={{
             offsetPath: `path('${path}')`,
-            filter: `drop-shadow(0 0 ${dotRadius}px rgba(196,167,125,0.6))`,
+            filter: `drop-shadow(0 0 ${dotRadius}px rgba(245,197,24,0.6))`,
           }}
           initial={{ offsetDistance: '0%', opacity: 0 }}
           whileInView={{

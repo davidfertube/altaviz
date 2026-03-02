@@ -255,7 +255,7 @@ export default function SolutionPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6]">
+    <div className="min-h-screen bg-[#FAFAFA]">
       {/* Hero */}
       <section className="pt-32 pb-16 sm:pt-40 sm:pb-20">
         <motion.div
@@ -265,25 +265,25 @@ export default function SolutionPage({
           animate="visible"
         >
           <motion.p
-            className="text-sm font-medium text-[#C4A77D] uppercase tracking-wider mb-4"
+            className="text-sm font-medium text-[#F5C518] uppercase tracking-wider mb-4"
             variants={itemVariants}
           >
             Solutions
           </motion.p>
           <motion.h1
-            className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#1C1917] leading-[1.08] tracking-tight mb-6"
+            className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#0A0A0A] leading-[1.08] tracking-tight mb-6"
             variants={itemVariants}
           >
             {solution.title}
           </motion.h1>
           <motion.p
-            className="text-xl text-[#78716C] mb-4"
+            className="text-xl text-[#6B7280] mb-4"
             variants={itemVariants}
           >
             {solution.subtitle}
           </motion.p>
           <motion.p
-            className="text-base text-[#A8A29E] max-w-2xl mx-auto mb-10 leading-relaxed"
+            className="text-base text-[#9CA3AF] max-w-2xl mx-auto mb-10 leading-relaxed"
             variants={itemVariants}
           >
             {solution.description}
@@ -295,7 +295,7 @@ export default function SolutionPage({
             <Button
               asChild
               size="lg"
-              className="h-14 w-full sm:w-auto px-20 text-base font-semibold rounded-full bg-[#1C1917] text-white shadow-lg shadow-[#1C1917]/15 hover:shadow-xl hover:bg-[#2D2D2D] transition-all border-0"
+              className="h-14 w-full sm:w-auto px-20 text-base font-semibold rounded-full bg-[#0A0A0A] text-white shadow-lg shadow-[#0A0A0A]/15 hover:shadow-xl hover:bg-[#1A1A1A] transition-all border-0"
             >
               <Link href="/signup">
                 Get Started
@@ -306,7 +306,7 @@ export default function SolutionPage({
               asChild
               variant="outline"
               size="lg"
-              className="h-12 px-8 text-base font-medium rounded-full border-[#E7E0D5] text-[#78716C] hover:text-[#1C1917] hover:border-[#C4A77D] hover:bg-[#C4A77D]/5 bg-transparent"
+              className="h-12 px-8 text-base font-medium rounded-full border-[#E5E5E5] text-[#6B7280] hover:text-[#0A0A0A] hover:border-[#F5C518] hover:bg-[#F5C518]/5 bg-transparent"
             >
               <Link href="/pricing">See Pricing</Link>
             </Button>
@@ -327,13 +327,13 @@ export default function SolutionPage({
             {solution.metrics.map((metric) => (
               <motion.div
                 key={metric.label}
-                className="text-center p-6 rounded-2xl bg-white border border-[#E7E0D5]/60"
+                className="text-center p-6 rounded-2xl bg-white border border-[#E5E5E5]/60"
                 variants={itemVariants}
               >
-                <p className="text-3xl sm:text-4xl font-bold text-[#1C1917] font-mono">
+                <p className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] font-mono">
                   {metric.value}
                 </p>
-                <p className="text-sm text-[#78716C] mt-1">{metric.label}</p>
+                <p className="text-sm text-[#6B7280] mt-1">{metric.label}</p>
               </motion.div>
             ))}
           </div>
@@ -350,13 +350,13 @@ export default function SolutionPage({
           variants={containerVariants}
         >
           <motion.h2
-            className="text-3xl sm:text-4xl font-bold text-[#1C1917] text-center mb-4"
+            className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] text-center mb-4"
             variants={itemVariants}
           >
             How Altaviz Helps
           </motion.h2>
           <motion.p
-            className="text-base text-[#78716C] text-center max-w-xl mx-auto mb-12"
+            className="text-base text-[#6B7280] text-center max-w-xl mx-auto mb-12"
             variants={itemVariants}
           >
             Purpose-built capabilities for {solution.title.toLowerCase()}.
@@ -367,16 +367,16 @@ export default function SolutionPage({
               return (
                 <motion.div
                   key={feature.title}
-                  className="p-6 rounded-2xl bg-white border border-[#E7E0D5]/60 hover:border-[#C4A77D]/30 hover:shadow-lg transition-all"
+                  className="p-6 rounded-2xl bg-white border border-[#E5E5E5]/60 hover:border-[#F5C518]/30 hover:shadow-lg transition-all"
                   variants={itemVariants}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-[#C4A77D]/10 flex items-center justify-center mb-4">
-                    <Icon className="size-5 text-[#A68B5B]" />
+                  <div className="w-10 h-10 rounded-xl bg-[#F5C518]/10 flex items-center justify-center mb-4">
+                    <Icon className="size-5 text-[#D4A80F]" />
                   </div>
-                  <h3 className="text-lg font-semibold text-[#1C1917] mb-2">
+                  <h3 className="text-lg font-semibold text-[#0A0A0A] mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-[#78716C] leading-relaxed">
+                  <p className="text-sm text-[#6B7280] leading-relaxed">
                     {feature.description}
                   </p>
                 </motion.div>
@@ -396,7 +396,7 @@ export default function SolutionPage({
           variants={containerVariants}
         >
           <motion.div
-            className="p-10 sm:p-14 rounded-3xl bg-[#1C1917]"
+            className="p-10 sm:p-14 rounded-3xl bg-[#0A0A0A]"
             variants={itemVariants}
           >
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
@@ -409,7 +409,7 @@ export default function SolutionPage({
               <Button
                 asChild
                 size="lg"
-                className="h-12 px-8 text-base font-semibold rounded-full bg-white text-[#1C1917] hover:bg-white/90 transition-all border-0"
+                className="h-12 px-8 text-base font-semibold rounded-full bg-white text-[#0A0A0A] hover:bg-white/90 transition-all border-0"
               >
                 <Link href="/signup">
                   Create Free Account

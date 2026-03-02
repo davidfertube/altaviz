@@ -7,9 +7,11 @@
 /* === Altaviz Theme Configuration === */
 @theme inline {
   /* Altaviz brand colors */
-  --color-primary: #C4A77D;
-  --color-primary-light: #D4C5A9;
-  --color-primary-dark: #A68B5B;
+  --color-primary: #F5C518;
+  --color-primary-light: #FFD84D;
+  --color-primary-dark: #D4A80F;
+  --color-navy: #1A3A5C;
+  --color-navy-light: #2563EB;
   --color-healthy: #2CA02C;
   --color-healthy-light: #47C747;
   --color-warning: #FF7F0E;
@@ -76,74 +78,74 @@
 /* Light mode (default) — Altaviz branded */
 :root {
   --radius: 0.625rem;
-  --background: #FAF9F6;
-  --foreground: #1C1917;
+  --background: #FAFAFA;
+  --foreground: #0A0A0A;
   --surface: #FFFFFF;
-  --surface-hover: #F5F0E8;
+  --surface-hover: #F5F5F5;
   --card: #FFFFFF;
-  --card-foreground: #1C1917;
+  --card-foreground: #0A0A0A;
   --popover: #FFFFFF;
-  --popover-foreground: #1C1917;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F5F0E8;
-  --secondary-foreground: #1C1917;
-  --muted: #F5F0E8;
-  --muted-foreground: #78716C;
-  --accent: #F5F0E8;
-  --accent-foreground: #1C1917;
+  --popover-foreground: #0A0A0A;
+  --primary-foreground: #0A0A0A;
+  --secondary: #F5F5F5;
+  --secondary-foreground: #0A0A0A;
+  --muted: #F5F5F5;
+  --muted-foreground: #6B7280;
+  --accent: #F5F5F5;
+  --accent-foreground: #0A0A0A;
   --destructive: #D62728;
-  --border: #E7E0D5;
-  --input: #E7E0D5;
-  --ring: #C4A77D;
-  --chart-1: #C4A77D;
+  --border: #E5E5E5;
+  --input: #E5E5E5;
+  --ring: #F5C518;
+  --chart-1: #F5C518;
   --chart-2: #2CA02C;
   --chart-3: #FF7F0E;
   --chart-4: #D62728;
-  --chart-5: #A68B5B;
+  --chart-5: #2563EB;
   --sidebar: #FFFFFF;
-  --sidebar-foreground: #1C1917;
-  --sidebar-primary: #C4A77D;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #F5F0E8;
-  --sidebar-accent-foreground: #1C1917;
-  --sidebar-border: #E7E0D5;
-  --sidebar-ring: #C4A77D;
+  --sidebar-foreground: #0A0A0A;
+  --sidebar-primary: #F5C518;
+  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-accent: #F5F5F5;
+  --sidebar-accent-foreground: #0A0A0A;
+  --sidebar-border: #E5E5E5;
+  --sidebar-ring: #F5C518;
 }
 
 /* Dark mode — Altaviz branded */
 .dark {
-  --background: #0D1117;
+  --background: #0A0F1A;
   --foreground: #E6EDF3;
-  --surface: #161B22;
-  --surface-hover: #1C2333;
-  --card: #161B22;
+  --surface: #111827;
+  --surface-hover: #1F2937;
+  --card: #111827;
   --card-foreground: #E6EDF3;
-  --popover: #161B22;
+  --popover: #111827;
   --popover-foreground: #E6EDF3;
-  --primary-foreground: #FFFFFF;
-  --secondary: #1C2333;
+  --primary-foreground: #0A0A0A;
+  --secondary: #1F2937;
   --secondary-foreground: #E6EDF3;
-  --muted: #1C2333;
+  --muted: #1F2937;
   --muted-foreground: #8B949E;
-  --accent: #1C2333;
+  --accent: #1F2937;
   --accent-foreground: #E6EDF3;
   --destructive: #E85D5E;
-  --border: #30363D;
-  --input: #30363D;
-  --ring: #4A9BD9;
-  --chart-1: #4A9BD9;
+  --border: #374151;
+  --input: #374151;
+  --ring: #F5C518;
+  --chart-1: #F5C518;
   --chart-2: #47C747;
   --chart-3: #FFB347;
   --chart-4: #E85D5E;
-  --chart-5: #B07CD8;
-  --sidebar: #161B22;
+  --chart-5: #2563EB;
+  --sidebar: #111827;
   --sidebar-foreground: #E6EDF3;
-  --sidebar-primary: #4A9BD9;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1C2333;
+  --sidebar-primary: #F5C518;
+  --sidebar-primary-foreground: #0A0A0A;
+  --sidebar-accent: #1F2937;
   --sidebar-accent-foreground: #E6EDF3;
-  --sidebar-border: #30363D;
-  --sidebar-ring: #4A9BD9;
+  --sidebar-border: #374151;
+  --sidebar-ring: #F5C518;
 }
 
 /* Scrollbar styling */

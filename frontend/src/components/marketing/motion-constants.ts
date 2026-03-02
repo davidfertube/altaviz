@@ -15,7 +15,7 @@ export const MOCKUP_COLORS = {
   bgCard: 'rgba(255,255,255,0.02)',
   borderSubtle: 'rgba(255,255,255,0.06)',
   borderCard: 'rgba(255,255,255,0.04)',
-  gold: '#C4A77D',
+  gold: '#F5C518',
   emerald: '#10B981',
   rose: '#EF4444',
   amber: '#F59E0B',

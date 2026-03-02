@@ -4,114 +4,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import AltavizLogo from '@/components/brand/AltavizLogo';
-import {
-  NavigationMenu,
-  NavigationMenuList,
-  NavigationMenuItem,
-  NavigationMenuTrigger,
-  NavigationMenuContent,
-  NavigationMenuLink,
-} from '@/components/ui/navigation-menu';
-import {
-  Menu,
-  X,
-  ChevronDown,
-  Activity,
-  Bell,
-  Leaf,
-  Shield,
-  GitBranch,
-  BookOpen,
-  Lock,
-  Building2,
-  Mail,
-  MapPin,
-} from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
-/* ------------------------------------------------------------------ */
-/*  Mega-menu item component                                           */
-/* ------------------------------------------------------------------ */
-function MegaMenuItem({
-  icon: Icon,
-  title,
-  description,
-  href = '#',
-}: {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  href?: string;
-}) {
-  return (
-    <NavigationMenuLink asChild>
-      <a
-        href={href}
-        className="flex items-start gap-3 rounded-lg p-3 hover:bg-[#F5F0E8] transition-colors group"
-      >
-        <div className="mt-0.5 rounded-md bg-[#C4A77D]/10 p-1.5 text-[#A68B5B] group-hover:bg-[#C4A77D]/20 transition-colors">
-          <Icon className="size-4" />
-        </div>
-        <div>
-          <p className="text-sm font-medium text-[#1C1917]">{title}</p>
-          <p className="text-xs text-[#A8A29E] leading-snug mt-0.5">{description}</p>
-        </div>
-      </a>
-    </NavigationMenuLink>
-  );
-}
+const NAV_LINKS = [
+  { href: '/#features', label: 'Product' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/about', label: 'About' },
+];
 
-/* ------------------------------------------------------------------ */
-/*  Mobile accordion group                                             */
-/* ------------------------------------------------------------------ */
-function MobileNavGroup({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div>
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center justify-between w-full text-sm font-medium text-[#1C1917] py-2.5 px-3 rounded-lg hover:bg-[#F0EBE1] transition-colors"
-      >
-        {label}
-        <ChevronDown className={cn('size-4 text-[#A8A29E] transition-transform duration-200', open && 'rotate-180')} />
-      </button>
-      {open && (
-        <div className="pl-4 pb-2 space-y-1">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MobileNavLink({
-  href,
-  label,
-  onClick,
-}: {
-  href: string;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <a
-      href={href}
-      onClick={onClick}
-      className="block text-sm text-[#78716C] hover:text-[#1C1917] py-2 px-3 rounded-lg hover:bg-[#F0EBE1] transition-colors"
-    >
-      {label}
-    </a>
-  );
-}
-
-/* ================================================================== */
-/*  Navbar                                                             */
-/* ================================================================== */
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -129,93 +29,44 @@ export default function Navbar() {
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
         scrolled
-          ? 'bg-white/80 backdrop-blur-xl border-b border-[#E7E0D5]'
-          : 'bg-[#FAF9F6]'
+          ? 'bg-white/80 backdrop-blur-xl border-b border-[#E5E5E5]'
+          : 'bg-[#FAFAFA]'
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-[#C4A77D] flex items-center justify-center text-[#C4A77D]">
+            <div className="w-9 h-9 rounded-xl bg-[#1A3A5C] flex items-center justify-center">
               <AltavizLogo size={22} variant="white" />
             </div>
-            <span className="text-xl font-bold text-[#1C1917] tracking-tight">Altaviz</span>
+            <span className="text-xl font-bold text-[#0A0A0A] tracking-tight">Altaviz</span>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:block">
-            <NavigationMenu>
-              <NavigationMenuList className="gap-1">
-                {/* ---- Product dropdown ---- */}
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-sm font-medium text-[#78716C] hover:text-[#1C1917] bg-transparent hover:bg-[#F5F0E8] data-[state=open]:bg-[#F5F0E8] data-[state=open]:text-[#1C1917]">
-                    Product
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="p-4 w-[320px]">
-                      <MegaMenuItem icon={MapPin} title="Fleet Monitoring" description="Interactive map and health dashboard" href="/solutions/transmission-pipelines" />
-                      <MegaMenuItem icon={Activity} title="Predictive Maintenance" description="ML-powered anomaly detection and RUL" href="/solutions/reliability-engineers" />
-                      <MegaMenuItem icon={Bell} title="AI Investigation" description="Automated root cause analysis and diagnostics" href="/solutions/reliability-engineers" />
-                      <MegaMenuItem icon={Leaf} title="Work Order Automation" description="AI-generated work orders with parts and cost" href="/solutions/field-operations" />
-                      <MegaMenuItem icon={Shield} title="Emissions & Compliance" description="EPA Subpart W and regulatory reporting" href="/solutions/compliance-officers" />
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-
-                {/* ---- Pricing direct link ---- */}
-                <NavigationMenuItem>
-                  <NavigationMenuLink asChild>
-                    <Link
-                      href="/pricing"
-                      className="inline-flex h-9 items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-[#78716C] hover:text-[#1C1917] hover:bg-[#F5F0E8] transition-colors"
-                    >
-                      Pricing
-                    </Link>
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-
-                {/* ---- Resources dropdown ---- */}
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-sm font-medium text-[#78716C] hover:text-[#1C1917] bg-transparent hover:bg-[#F5F0E8] data-[state=open]:bg-[#F5F0E8] data-[state=open]:text-[#1C1917]">
-                    Resources
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="p-2 w-[240px]">
-                      <MegaMenuItem icon={GitBranch} title="Changelog" description="Product updates and releases" href="/changelog" />
-                      <MegaMenuItem icon={Lock} title="Security" description="How we protect your data" href="/security" />
-                      <MegaMenuItem icon={BookOpen} title="Documentation" description="Available after sign-up" href="/signup" />
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-
-                {/* ---- Company dropdown ---- */}
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-sm font-medium text-[#78716C] hover:text-[#1C1917] bg-transparent hover:bg-[#F5F0E8] data-[state=open]:bg-[#F5F0E8] data-[state=open]:text-[#1C1917]">
-                    Company
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="p-2 w-[220px]">
-                      <MegaMenuItem icon={Building2} title="About" description="Our mission and team" href="/about" />
-                      <MegaMenuItem icon={Mail} title="Support" description="support@altaviz.com" href="mailto:support@altaviz.com" />
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              </NavigationMenuList>
-            </NavigationMenu>
+          <div className="hidden lg:flex items-center gap-1">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-sm font-medium text-[#6B7280] hover:text-[#0A0A0A] hover:bg-[#F5F5F5] transition-colors px-4 py-2 rounded-md"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
 
           {/* CTAs */}
           <div className="hidden lg:flex items-center gap-3 shrink-0">
             <Link
               href="/login"
-              className="text-sm font-medium text-[#78716C] hover:text-[#1C1917] transition-colors px-3 py-2"
+              className="text-sm font-medium text-[#6B7280] hover:text-[#0A0A0A] transition-colors px-3 py-2"
             >
               Sign In
             </Link>
             <Link
               href="/signup"
-              className="text-sm font-semibold text-white bg-[#1C1917] hover:bg-[#2D2D2D] transition-colors px-5 py-2.5 rounded-full"
+              className="text-sm font-semibold text-[#0A0A0A] bg-[#F5C518] hover:bg-[#FFD84D] transition-colors px-5 py-2.5 rounded-full"
             >
               Start Free Pilot
             </Link>
@@ -224,7 +75,7 @@ export default function Navbar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden text-[#78716C] hover:text-[#1C1917] p-2"
+            className="lg:hidden text-[#6B7280] hover:text-[#0A0A0A] p-2"
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
           >
@@ -235,41 +86,31 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="lg:hidden bg-white/95 backdrop-blur-xl border-t border-[#E7E0D5] max-h-[80vh] overflow-y-auto">
+        <div className="lg:hidden bg-white/95 backdrop-blur-xl border-t border-[#E5E5E5] max-h-[80vh] overflow-y-auto">
           <div className="px-4 py-4 space-y-1">
-            <MobileNavGroup label="Solutions">
-              <MobileNavLink href="/solutions/transmission-pipelines" label="Pipeline Operations" onClick={closeMobile} />
-              <MobileNavLink href="/solutions/gathering-systems" label="Station Operations" onClick={closeMobile} />
-              <MobileNavLink href="/solutions/reliability-engineers" label="Reliability Engineers" onClick={closeMobile} />
-              <MobileNavLink href="/solutions/compliance-officers" label="Compliance & Reporting" onClick={closeMobile} />
-              <MobileNavLink href="/solutions/field-operations" label="Field Technicians" onClick={closeMobile} />
-            </MobileNavGroup>
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={closeMobile}
+                className="block text-sm font-medium text-[#6B7280] hover:text-[#0A0A0A] py-2.5 px-3 rounded-lg hover:bg-[#F0F0F0] transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
 
-            <MobileNavLink href="/pricing" label="Pricing" onClick={closeMobile} />
-
-            <MobileNavGroup label="Resources">
-              <MobileNavLink href="/changelog" label="Changelog" onClick={closeMobile} />
-              <MobileNavLink href="/security" label="Security" onClick={closeMobile} />
-              <MobileNavLink href="/signup" label="Documentation" onClick={closeMobile} />
-            </MobileNavGroup>
-
-            <MobileNavGroup label="Company">
-              <MobileNavLink href="/about" label="About" onClick={closeMobile} />
-              <MobileNavLink href="mailto:support@altaviz.com" label="Support" onClick={closeMobile} />
-            </MobileNavGroup>
-
-            <div className="pt-3 border-t border-[#E7E0D5] space-y-2">
+            <div className="pt-3 border-t border-[#E5E5E5] space-y-2">
               <Link
                 href="/login"
                 onClick={closeMobile}
-                className="block text-sm font-medium text-[#78716C] hover:text-[#1C1917] py-2.5 px-3 rounded-lg hover:bg-[#F0EBE1] transition-colors"
+                className="block text-sm font-medium text-[#6B7280] hover:text-[#0A0A0A] py-2.5 px-3 rounded-lg hover:bg-[#F0F0F0] transition-colors"
               >
                 Sign In
               </Link>
               <Link
                 href="/signup"
                 onClick={closeMobile}
-                className="block text-sm font-semibold text-center text-white bg-[#1C1917] hover:bg-[#2D2D2D] transition-colors px-5 py-2.5 rounded-full"
+                className="block text-sm font-semibold text-center text-[#0A0A0A] bg-[#F5C518] hover:bg-[#FFD84D] transition-colors px-5 py-2.5 rounded-full"
               >
                 Start Free Pilot
               </Link>

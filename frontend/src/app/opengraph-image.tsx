@@ -34,7 +34,7 @@ export default async function Image() {
               width: '56px',
               height: '56px',
               borderRadius: '14px',
-              backgroundColor: '#C4A77D',
+              backgroundColor: '#F5C518',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -47,7 +47,7 @@ export default async function Image() {
               />
               <path
                 d="M6 20L11 20L13.5 16L16 24L18.5 16L21 20L26 20"
-                stroke="#C4A77D"
+                stroke="#F5C518"
                 strokeWidth="1.8"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -91,7 +91,7 @@ export default async function Image() {
             style={{
               fontSize: '48px',
               fontWeight: 700,
-              color: '#C4A77D',
+              color: '#F5C518',
               textAlign: 'center',
               lineHeight: 1.15,
             }}
@@ -143,7 +143,7 @@ export default async function Image() {
                 style={{
                   fontSize: '24px',
                   fontWeight: 700,
-                  color: '#C4A77D',
+                  color: '#F5C518',
                 }}
               >
                 {stat.value}

@@ -42,10 +42,10 @@ function LoginForm() {
 
   return (
     <>
-      <div className="rounded-2xl border border-[#E7E0D5] bg-white p-8 shadow-sm">
+      <div className="rounded-2xl border border-[#E5E5E5] bg-white p-8 shadow-sm">
         <form onSubmit={handleCredentialsLogin} className="space-y-4">
           <div className="space-y-1.5">
-            <label htmlFor="email" className="text-sm font-medium text-[#1C1917]">
+            <label htmlFor="email" className="text-sm font-medium text-[#0A0A0A]">
               Email
             </label>
             <input
@@ -55,11 +55,11 @@ function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
               required
-              className="w-full px-3 py-2.5 rounded-xl border border-[#E7E0D5] bg-[#FAF9F6] text-sm text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/50 focus:border-[#C4A77D]"
+              className="w-full px-3 py-2.5 rounded-xl border border-[#E5E5E5] bg-[#FAFAFA] text-sm text-[#0A0A0A] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F5C518]/50 focus:border-[#F5C518]"
             />
           </div>
           <div className="space-y-1.5">
-            <label htmlFor="password" className="text-sm font-medium text-[#1C1917]">
+            <label htmlFor="password" className="text-sm font-medium text-[#0A0A0A]">
               Password
             </label>
             <input
@@ -70,26 +70,26 @@ function LoginForm() {
               placeholder="Min. 8 characters"
               required
               minLength={8}
-              className="w-full px-3 py-2.5 rounded-xl border border-[#E7E0D5] bg-[#FAF9F6] text-sm text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:ring-2 focus:ring-[#C4A77D]/50 focus:border-[#C4A77D]"
+              className="w-full px-3 py-2.5 rounded-xl border border-[#E5E5E5] bg-[#FAFAFA] text-sm text-[#0A0A0A] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F5C518]/50 focus:border-[#F5C518]"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full text-sm font-semibold text-white bg-[#C4A77D] hover:bg-[#A68B5B] transition-colors px-6 py-3 rounded-xl disabled:opacity-50"
+            className="w-full text-sm font-semibold text-white bg-[#F5C518] hover:bg-[#D4A80F] transition-colors px-6 py-3 rounded-xl disabled:opacity-50"
           >
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
       </div>
 
-      <p className="text-center text-sm text-[#78716C] mt-6">
+      <p className="text-center text-sm text-[#6B7280] mt-6">
         Don&apos;t have an account?{' '}
-        <Link href="/signup" className="font-semibold text-[#C4A77D] hover:text-[#A68B5B]">
+        <Link href="/signup" className="font-semibold text-[#F5C518] hover:text-[#D4A80F]">
           Sign up
         </Link>
       </p>
-      <p className="text-center text-xs text-[#A8A29E] mt-2">
+      <p className="text-center text-xs text-[#9CA3AF] mt-2">
         By continuing, you agree to our Terms of Service and Privacy Policy.
       </p>
     </>
@@ -98,25 +98,25 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[#FAF9F6] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center p-4">
       <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-[#C4A77D]/8 rounded-full blur-[128px]" />
-        <div className="absolute bottom-1/3 right-1/3 w-[400px] h-[400px] bg-[#A68B5B]/6 rounded-full blur-[128px]" />
+        <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-[#F5C518]/8 rounded-full blur-[128px]" />
+        <div className="absolute bottom-1/3 right-1/3 w-[400px] h-[400px] bg-[#D4A80F]/6 rounded-full blur-[128px]" />
       </div>
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-[#C4A77D] flex items-center justify-center text-[#C4A77D]">
+            <div className="w-10 h-10 rounded-xl bg-[#F5C518] flex items-center justify-center text-[#F5C518]">
               <AltavizLogo size={24} variant="white" />
             </div>
-            <span className="text-2xl font-bold text-[#1C1917] tracking-tight">Altaviz</span>
+            <span className="text-2xl font-bold text-[#0A0A0A] tracking-tight">Altaviz</span>
           </Link>
-          <p className="text-[#78716C] text-sm">Sign in to your monitoring dashboard</p>
+          <p className="text-[#6B7280] text-sm">Sign in to your monitoring dashboard</p>
         </div>
 
         <Suspense fallback={
-          <div className="rounded-2xl border border-[#E7E0D5] bg-white p-8 text-center text-[#78716C] text-sm">
+          <div className="rounded-2xl border border-[#E5E5E5] bg-white p-8 text-center text-[#6B7280] text-sm">
             Loading...
           </div>
         }>

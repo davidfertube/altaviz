@@ -71,7 +71,7 @@ const PLANS = [
 const COMPARISON = [
   {
     category: 'Fleet Monitoring',
-    accent: '#C4A77D',
+    accent: '#F5C518',
     features: [
       { name: 'Pipeline segments monitored', pilot: '10', operations: '200', enterprise: 'Unlimited' },
       { name: 'Aggregation windows', pilot: '1hr', operations: '1hr, 4hr, 24hr', enterprise: 'All + custom' },
@@ -152,7 +152,7 @@ const COMPARISON = [
   },
   {
     category: 'Support & Onboarding',
-    accent: '#C4A77D',
+    accent: '#F5C518',
     features: [
       { name: 'Email support', pilot: true, operations: true, enterprise: true },
       { name: 'Priority support (< 4hr SLA)', pilot: false, operations: true, enterprise: true },
@@ -165,7 +165,7 @@ const COMPARISON = [
 
 function CellValue({ value }: { value: boolean | string }) {
   if (typeof value === 'string') {
-    return <span className="text-sm text-[#1C1917] font-medium">{value}</span>;
+    return <span className="text-sm text-[#0A0A0A] font-medium">{value}</span>;
   }
   return value ? (
     <motion.div
@@ -177,7 +177,7 @@ function CellValue({ value }: { value: boolean | string }) {
       <Check className="size-4 text-[#6366F1] mx-auto" />
     </motion.div>
   ) : (
-    <Minus className="size-4 text-[#E7E0D5] mx-auto" />
+    <Minus className="size-4 text-[#E5E5E5] mx-auto" />
   );
 }
 
@@ -193,7 +193,7 @@ function AnimatedSection({ section, index }: { section: typeof COMPARISON[0]; in
       transition={{ duration: 0.4, delay: index * 0.05 }}
     >
       {/* Category header */}
-      <div className="relative px-4 py-3 bg-[#FAF9F6]/50 border-b border-[#E7E0D5] overflow-hidden">
+      <div className="relative px-4 py-3 bg-[#FAFAFA]/50 border-b border-[#E5E5E5] overflow-hidden">
         <motion.div
           className="absolute left-0 top-0 bottom-0 w-[3px]"
           style={{ backgroundColor: section.accent }}
@@ -211,7 +211,7 @@ function AnimatedSection({ section, index }: { section: typeof COMPARISON[0]; in
           {section.category === 'Alerts & Notifications' && (
             <Zap className="size-3.5 text-[#F59E0B]" />
           )}
-          <span className="text-xs font-semibold text-[#A8A29E] uppercase tracking-wider">
+          <span className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">
             {section.category}
           </span>
         </div>
@@ -221,14 +221,14 @@ function AnimatedSection({ section, index }: { section: typeof COMPARISON[0]; in
         <motion.div
           key={feature.name}
           className={cn(
-            'grid grid-cols-4 items-center group/row hover:bg-[#FAF9F6]/80 transition-colors',
-            i < section.features.length - 1 && 'border-b border-[#E7E0D5]/50'
+            'grid grid-cols-4 items-center group/row hover:bg-[#FAFAFA]/80 transition-colors',
+            i < section.features.length - 1 && 'border-b border-[#E5E5E5]/50'
           )}
           initial={{ opacity: 0, x: -10 }}
           animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
           transition={{ duration: 0.3, delay: 0.1 + i * 0.04 }}
         >
-          <div className="px-4 py-3 text-sm text-[#78716C] group-hover/row:text-[#1C1917] transition-colors">
+          <div className="px-4 py-3 text-sm text-[#6B7280] group-hover/row:text-[#0A0A0A] transition-colors">
             {feature.name}
           </div>
           <div className="px-4 py-3 text-center"><CellValue value={feature.pilot} /></div>
@@ -245,7 +245,7 @@ export default function PricingTable() {
 
   return (
     <section id="pricing" className="relative py-24 sm:py-32 overflow-hidden">
-      <div className="absolute inset-0 bg-[#FAF9F6]" />
+      <div className="absolute inset-0 bg-[#FAFAFA]" />
       {/* Ambient glow */}
       <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#6366F1]/4 rounded-full blur-[140px]" />
       <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-[#8B5CF6]/4 rounded-full blur-[120px]" />
@@ -258,21 +258,21 @@ export default function PricingTable() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-3">Pricing</p>
-          <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
+          <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">Pricing</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4">
             Plans that scale with your fleet
           </h2>
-          <p className="text-lg text-[#78716C] max-w-xl mx-auto mb-8">
+          <p className="text-lg text-[#6B7280] max-w-xl mx-auto mb-8">
             Start with a pilot. Scale to enterprise.
           </p>
 
           {/* Annual/Monthly toggle */}
-          <div className="inline-flex items-center gap-3 bg-white rounded-full border border-[#E7E0D5] p-1">
+          <div className="inline-flex items-center gap-3 bg-white rounded-full border border-[#E5E5E5] p-1">
             <button
               onClick={() => setAnnual(false)}
               className={cn(
                 'text-sm font-medium px-4 py-2 rounded-full transition-all',
-                !annual ? 'bg-[#1C1917] text-white' : 'text-[#78716C] hover:text-[#1C1917]'
+                !annual ? 'bg-[#0A0A0A] text-white' : 'text-[#6B7280] hover:text-[#0A0A0A]'
               )}
             >
               Monthly
@@ -281,7 +281,7 @@ export default function PricingTable() {
               onClick={() => setAnnual(true)}
               className={cn(
                 'text-sm font-medium px-4 py-2 rounded-full transition-all flex items-center gap-2',
-                annual ? 'bg-[#1C1917] text-white' : 'text-[#78716C] hover:text-[#1C1917]'
+                annual ? 'bg-[#0A0A0A] text-white' : 'text-[#6B7280] hover:text-[#0A0A0A]'
               )}
             >
               Annual
@@ -304,7 +304,7 @@ export default function PricingTable() {
                 'relative rounded-2xl border flex flex-col',
                 plan.highlighted
                   ? 'border-[#6366F1]/30 bg-white shadow-xl shadow-[#6366F1]/10 overflow-visible pt-8 lg:pt-10 px-6 lg:px-8 pb-6 lg:pb-8'
-                  : 'border-[#E7E0D5] bg-white overflow-hidden p-6 lg:p-8'
+                  : 'border-[#E5E5E5] bg-white overflow-hidden p-6 lg:p-8'
               )}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -321,7 +321,7 @@ export default function PricingTable() {
               {/* Gradient accent line at top */}
               {plan.highlighted && (
                 <motion.div
-                  className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#C4A77D]"
+                  className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#F5C518]"
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: 1 }}
                   viewport={{ once: true }}
@@ -338,13 +338,13 @@ export default function PricingTable() {
               )}
 
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-[#1C1917] mb-1">{plan.name}</h3>
-                <p className="text-sm text-[#78716C] mb-4">{plan.description}</p>
+                <h3 className="text-lg font-semibold text-[#0A0A0A] mb-1">{plan.name}</h3>
+                <p className="text-sm text-[#6B7280] mb-4">{plan.description}</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold text-[#1C1917]">
+                  <span className="text-4xl font-bold text-[#0A0A0A]">
                     {annual ? plan.annualPrice : plan.monthlyPrice}
                   </span>
-                  <span className="text-sm text-[#A8A29E]">
+                  <span className="text-sm text-[#9CA3AF]">
                     {annual && plan.annualPeriod ? plan.annualPeriod : plan.period}
                   </span>
                 </div>
@@ -362,9 +362,9 @@ export default function PricingTable() {
                   >
                     <Check className={cn(
                       'size-4 mt-0.5 shrink-0',
-                      plan.highlighted ? 'text-[#6366F1]' : 'text-[#C4A77D]'
+                      plan.highlighted ? 'text-[#6366F1]' : 'text-[#F5C518]'
                     )} />
-                    <span className="text-sm text-[#78716C]">{feature}</span>
+                    <span className="text-sm text-[#6B7280]">{feature}</span>
                   </motion.li>
                 ))}
               </ul>
@@ -375,7 +375,7 @@ export default function PricingTable() {
                   'block text-center text-sm font-semibold py-3 rounded-full transition-all',
                   plan.highlighted
                     ? 'text-white bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5558E6] hover:to-[#7C54E8] shadow-lg shadow-[#6366F1]/20'
-                    : 'text-[#78716C] border border-[#E7E0D5] hover:border-[#6366F1] hover:text-[#1C1917]'
+                    : 'text-[#6B7280] border border-[#E5E5E5] hover:border-[#6366F1] hover:text-[#0A0A0A]'
                 )}
               >
                 {plan.cta}
@@ -391,21 +391,21 @@ export default function PricingTable() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <h3 className="text-xl font-bold text-[#1C1917] text-center mb-8">
+          <h3 className="text-xl font-bold text-[#0A0A0A] text-center mb-8">
             Full feature comparison
           </h3>
 
-          <div className="rounded-2xl border border-[#E7E0D5] bg-white overflow-hidden max-w-5xl mx-auto shadow-sm">
+          <div className="rounded-2xl border border-[#E5E5E5] bg-white overflow-hidden max-w-5xl mx-auto shadow-sm">
             {/* Header */}
-            <div className="grid grid-cols-4 border-b border-[#E7E0D5] bg-gradient-to-r from-[#FAF9F6] via-white to-[#FAF9F6]">
+            <div className="grid grid-cols-4 border-b border-[#E5E5E5] bg-gradient-to-r from-[#FAFAFA] via-white to-[#FAFAFA]">
               <div className="p-4" />
-              <div className="p-4 text-center text-sm font-semibold text-[#1C1917]">Pilot</div>
+              <div className="p-4 text-center text-sm font-semibold text-[#0A0A0A]">Pilot</div>
               <div className="p-4 text-center">
                 <span className="text-sm font-semibold bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
                   Operations
                 </span>
               </div>
-              <div className="p-4 text-center text-sm font-semibold text-[#1C1917]">Enterprise</div>
+              <div className="p-4 text-center text-sm font-semibold text-[#0A0A0A]">Enterprise</div>
             </div>
 
             {COMPARISON.map((section, idx) => (

@@ -112,8 +112,8 @@ export default function ChangelogPage() {
       {/*  Hero                                                         */}
       {/* ------------------------------------------------------------ */}
       <section className="relative py-24 sm:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-[#FAF9F6]">
-          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-[#C4A77D]/8 rounded-full blur-[128px]" />
+        <div className="absolute inset-0 bg-[#FAFAFA]">
+          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-[#F5C518]/8 rounded-full blur-[128px]" />
         </div>
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -123,20 +123,20 @@ export default function ChangelogPage() {
             animate="visible"
           >
             <motion.p
-              className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-4"
+              className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-4"
               variants={fadeUp}
             >
               Changelog
             </motion.p>
             <motion.h1
-              className="text-4xl sm:text-5xl font-bold text-[#1C1917] leading-[1.08] tracking-tight mb-5"
+              className="text-4xl sm:text-5xl font-bold text-[#0A0A0A] leading-[1.08] tracking-tight mb-5"
               variants={fadeUp}
             >
               What&apos;s new in{' '}
-              <span className="text-[#C4A77D]">Altaviz</span>
+              <span className="text-[#F5C518]">Altaviz</span>
             </motion.h1>
             <motion.p
-              className="text-lg text-[#78716C] max-w-2xl mx-auto leading-relaxed"
+              className="text-lg text-[#6B7280] max-w-2xl mx-auto leading-relaxed"
               variants={fadeUp}
             >
               Product updates, new features, and improvements to the platform.
@@ -151,11 +151,11 @@ export default function ChangelogPage() {
       {/*  Timeline                                                     */}
       {/* ------------------------------------------------------------ */}
       <section className="relative py-16 sm:py-24">
-        <div className="absolute inset-0 bg-[#FAF9F6]" />
+        <div className="absolute inset-0 bg-[#FAFAFA]" />
 
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Vertical connecting line */}
-          <div className="absolute left-8 sm:left-10 top-0 bottom-0 w-px bg-gradient-to-b from-[#C4A77D]/30 via-[#C4A77D]/20 to-transparent hidden sm:block" />
+          <div className="absolute left-8 sm:left-10 top-0 bottom-0 w-px bg-gradient-to-b from-[#F5C518]/30 via-[#F5C518]/20 to-transparent hidden sm:block" />
 
           <motion.div
             className="space-y-12 sm:space-y-16"
@@ -172,39 +172,39 @@ export default function ChangelogPage() {
               >
                 {/* Timeline node */}
                 <div className="relative z-10 shrink-0 hidden sm:block">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border border-[#E7E0D5] flex flex-col items-center justify-center shadow-sm">
-                    <entry.icon className="size-5 sm:size-6 text-[#C4A77D] mb-1" />
-                    <span className="text-[9px] font-bold text-[#A8A29E] font-mono">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white border border-[#E5E5E5] flex flex-col items-center justify-center shadow-sm">
+                    <entry.icon className="size-5 sm:size-6 text-[#F5C518] mb-1" />
+                    <span className="text-[9px] font-bold text-[#9CA3AF] font-mono">
                       {String(i + 1).padStart(2, '0')}
                     </span>
                   </div>
                 </div>
 
                 {/* Content card */}
-                <div className="flex-1 rounded-2xl border border-[#E7E0D5] bg-white p-6 sm:p-8 hover:border-[#C4A77D]/40 hover:shadow-lg hover:shadow-[#C4A77D]/5 transition-all">
+                <div className="flex-1 rounded-2xl border border-[#E5E5E5] bg-white p-6 sm:p-8 hover:border-[#F5C518]/40 hover:shadow-lg hover:shadow-[#F5C518]/5 transition-all">
                   {/* Date badge */}
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#F5F0E8] text-xs font-semibold text-[#A68B5B] font-mono">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full bg-[#F5F5F5] text-xs font-semibold text-[#D4A80F] font-mono">
                       {entry.date}
                     </span>
                   </div>
 
                   {/* Mobile icon (visible only on small screens) */}
                   <div className="flex items-center gap-3 mb-3 sm:hidden">
-                    <div className="w-10 h-10 rounded-lg bg-[#C4A77D]/10 flex items-center justify-center">
-                      <entry.icon className="size-5 text-[#A68B5B]" />
+                    <div className="w-10 h-10 rounded-lg bg-[#F5C518]/10 flex items-center justify-center">
+                      <entry.icon className="size-5 text-[#D4A80F]" />
                     </div>
-                    <h3 className="text-lg font-bold text-[#1C1917]">
+                    <h3 className="text-lg font-bold text-[#0A0A0A]">
                       {entry.title}
                     </h3>
                   </div>
 
                   {/* Desktop title (hidden on small screens) */}
-                  <h3 className="hidden sm:block text-xl font-bold text-[#1C1917] mb-3">
+                  <h3 className="hidden sm:block text-xl font-bold text-[#0A0A0A] mb-3">
                     {entry.title}
                   </h3>
 
-                  <p className="text-sm sm:text-base text-[#78716C] leading-relaxed mb-4">
+                  <p className="text-sm sm:text-base text-[#6B7280] leading-relaxed mb-4">
                     {entry.description}
                   </p>
 
@@ -233,12 +233,12 @@ export default function ChangelogPage() {
             transition={{ duration: 0.5 }}
           >
             <div className="relative z-10 shrink-0 hidden sm:block">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#F5F0E8] border border-[#E7E0D5] border-dashed flex items-center justify-center">
-                <span className="text-xs font-semibold text-[#A8A29E]">...</span>
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#F5F5F5] border border-[#E5E5E5] border-dashed flex items-center justify-center">
+                <span className="text-xs font-semibold text-[#9CA3AF]">...</span>
               </div>
             </div>
-            <div className="flex-1 rounded-2xl border border-dashed border-[#E7E0D5] bg-[#FAF9F6] p-6 sm:p-8 text-center sm:text-left">
-              <p className="text-sm text-[#78716C]">
+            <div className="flex-1 rounded-2xl border border-dashed border-[#E5E5E5] bg-[#FAFAFA] p-6 sm:p-8 text-center sm:text-left">
+              <p className="text-sm text-[#6B7280]">
                 More updates coming soon. Follow our changelog for the latest
                 features and improvements to the platform.
               </p>

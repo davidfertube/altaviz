@@ -94,7 +94,7 @@ function DataFlowMockup() {
   return (
     <div className="relative w-full max-w-[640px]">
       {/* Ambient glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/8 via-[#C4A77D]/6 to-blue-500/8 rounded-3xl blur-[80px]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/8 via-[#F5C518]/6 to-blue-500/8 rounded-3xl blur-[80px]" />
 
       <motion.div
         className="relative"
@@ -135,7 +135,7 @@ function DataFlowMockup() {
             <div className="grid grid-cols-4 gap-2 mb-4">
               {[
                 { label: 'Uptime', value: '99.7%', color: 'text-emerald-400', bar: 'bg-emerald-400', pct: '99.7%' },
-                { label: 'Fleet Health', value: '94%', color: 'text-[#C4A77D]', bar: 'bg-[#C4A77D]', pct: '94%' },
+                { label: 'Fleet Health', value: '94%', color: 'text-[#F5C518]', bar: 'bg-[#F5C518]', pct: '94%' },
                 { label: 'Avg RUL', value: '4.2d', color: 'text-blue-400', bar: 'bg-blue-400', pct: '70%' },
                 { label: 'Alerts', value: '3', color: 'text-rose-400', bar: 'bg-rose-400', pct: '15%' },
               ].map((kpi) => (
@@ -173,13 +173,13 @@ function DataFlowMockup() {
               <svg viewBox="0 0 400 60" className="w-full h-[52px]">
                 <defs>
                   <linearGradient id="heroGrad" x1="0" y1="0" x2="400" y2="0" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="rgba(196,167,125,0.7)" />
-                    <stop offset="70%" stopColor="rgba(196,167,125,0.5)" />
+                    <stop offset="0%" stopColor="rgba(245,197,24,0.7)" />
+                    <stop offset="70%" stopColor="rgba(245,197,24,0.5)" />
                     <stop offset="100%" stopColor="rgba(239,68,68,0.8)" />
                   </linearGradient>
                   <linearGradient id="heroFill" x1="0" y1="0" x2="0" y2="60" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="rgba(196,167,125,0.10)" />
-                    <stop offset="100%" stopColor="rgba(196,167,125,0)" />
+                    <stop offset="0%" stopColor="rgba(245,197,24,0.10)" />
+                    <stop offset="100%" stopColor="rgba(245,197,24,0)" />
                   </linearGradient>
                 </defs>
                 <line x1="0" y1="16" x2="400" y2="16" stroke="rgba(239,68,68,0.15)" strokeWidth="0.5" strokeDasharray="3 3" />
@@ -361,9 +361,9 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-[#FAF9F6]">
-        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#C4A77D]/8 rounded-full blur-[128px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#A68B5B]/6 rounded-full blur-[128px]" />
+      <div className="absolute inset-0 bg-[#FAFAFA]">
+        <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#F5C518]/8 rounded-full blur-[128px]" />
+        <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-[#2563EB]/6 rounded-full blur-[128px]" />
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -384,17 +384,17 @@ export default function Hero() {
             animate="visible"
           >
             <motion.h1
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#1C1917] leading-[1.05] tracking-tight mb-5"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#0A0A0A] leading-[1.05] tracking-tight mb-5"
               variants={itemVariants}
             >
-              Predict Pipeline Failures Before They Happen.
+              Predict Failures Early.
             </motion.h1>
 
             <motion.p
-              className="text-lg text-[#78716C] max-w-lg mb-8 leading-relaxed"
+              className="text-lg text-[#6B7280] max-w-lg mb-8 leading-relaxed"
               variants={itemVariants}
             >
-              Agentic monitoring for your fleet 24/7 — catching failures 48 hours early.
+              AI agents that catch pipeline failures 48 hours early.
             </motion.p>
 
             {/* CTAs */}
@@ -405,7 +405,7 @@ export default function Hero() {
               <Button
                 asChild
                 size="lg"
-                className="h-14 w-full sm:w-auto px-20 text-base font-semibold rounded-full bg-[#1C1917] text-white shadow-lg shadow-[#1C1917]/15 hover:shadow-xl hover:bg-[#2D2D2D] transition-all border-0"
+                className="h-14 w-full sm:w-auto px-20 text-base font-semibold rounded-full bg-[#F5C518] text-[#0A0A0A] shadow-lg shadow-[#F5C518]/25 hover:shadow-xl hover:bg-[#FFD84D] transition-all border-0"
               >
                 <Link href="/signup">
                   Start Free Pilot
@@ -421,8 +421,8 @@ export default function Hero() {
                 { icon: FileCheck, label: 'PHMSA Aligned' },
                 { icon: Leaf, label: 'EPA Subpart W' },
               ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-1.5 text-[11px] text-[#A8A29E]">
-                  <Icon className="size-3.5 text-[#C4A77D]/60" />
+                <div key={label} className="flex items-center gap-1.5 text-[11px] text-[#9CA3AF]">
+                  <Icon className="size-3.5 text-[#F5C518]/60" />
                   <span>{label}</span>
                 </div>
               ))}
@@ -436,13 +436,13 @@ export default function Hero() {
               {ROI_METRICS.map(({ target, suffix, prefix, label, icon: Icon, ...rest }, idx) => (
                 <div
                   key={label}
-                  className="relative flex flex-col items-center text-center rounded-xl border border-[#E7E0D5]/80 bg-white/60 backdrop-blur-sm px-4 py-4 shadow-sm"
+                  className="relative flex flex-col items-center text-center rounded-xl border border-[#E5E5E5]/80 bg-white/60 backdrop-blur-sm px-4 py-4 shadow-sm"
                 >
-                  <Icon className="size-4 text-[#C4A77D] mb-2" />
-                  <span className="text-2xl font-bold font-mono text-[#1C1917] leading-none">
+                  <Icon className="size-4 text-[#F5C518] mb-2" />
+                  <span className="text-2xl font-bold font-mono text-[#0A0A0A] leading-none">
                     <AnimatedCounter target={target} suffix={suffix} prefix={prefix} duration={2 + idx * 0.3} decimals={'decimals' in rest ? (rest as { decimals: number }).decimals : 0} />
                   </span>
-                  <p className="text-[11px] text-[#A8A29E] mt-1">{label}</p>
+                  <p className="text-[11px] text-[#9CA3AF] mt-1">{label}</p>
                 </div>
               ))}
             </motion.div>
