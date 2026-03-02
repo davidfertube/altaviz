@@ -22,7 +22,7 @@ const PLANS = [
       '30-day data retention',
       'Email support',
     ],
-    cta: 'Start Free Pilot',
+    cta: 'Get Started',
     highlighted: false,
   },
   {
@@ -42,7 +42,7 @@ const PLANS = [
       'API access',
       'Priority support',
     ],
-    cta: 'Start Free Pilot',
+    cta: 'Get Started',
     highlighted: true,
     badge: 'Most Popular',
   },
@@ -372,7 +372,7 @@ export default function PricingTable() {
               <Link
                 href={plan.name === 'Enterprise' ? 'mailto:sales@altaviz.com' : '/signup'}
                 className={cn(
-                  'block text-center text-sm font-semibold py-3 rounded-full transition-all',
+                  'block text-center text-base font-semibold py-4 rounded-full transition-all',
                   plan.highlighted
                     ? 'text-white bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5558E6] hover:to-[#7C54E8] shadow-lg shadow-[#6366F1]/20'
                     : 'text-[#6B7280] border border-[#E5E5E5] hover:border-[#6366F1] hover:text-[#0A0A0A]'

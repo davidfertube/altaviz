@@ -66,9 +66,9 @@ export default function Navbar() {
             </Link>
             <Link
               href="/signup"
-              className="text-sm font-semibold text-[#0A0A0A] bg-[#F5C518] hover:bg-[#FFD84D] transition-colors px-5 py-2.5 rounded-full"
+              className="text-sm font-semibold text-[#0A0A0A] bg-[#F5C518] hover:bg-[#FFD84D] transition-colors px-8 py-3 rounded-full"
             >
-              Start Free Pilot
+              Get Started
             </Link>
           </div>
 
@@ -110,9 +110,9 @@ export default function Navbar() {
               <Link
                 href="/signup"
                 onClick={closeMobile}
-                className="block text-sm font-semibold text-center text-[#0A0A0A] bg-[#F5C518] hover:bg-[#FFD84D] transition-colors px-5 py-2.5 rounded-full"
+                className="block text-sm font-semibold text-center text-[#0A0A0A] bg-[#F5C518] hover:bg-[#FFD84D] transition-colors px-8 py-3 rounded-full"
               >
-                Start Free Pilot
+                Get Started
               </Link>
             </div>
           </div>

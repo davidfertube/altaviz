@@ -13,10 +13,10 @@ export default function NotFound() {
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
         <div className="flex gap-3 justify-center">
-          <Button asChild className="bg-[#F5C518] hover:bg-[#FFD84D] text-[#0A0A0A] rounded-full px-6">
+          <Button asChild className="bg-[#F5C518] hover:bg-[#FFD84D] text-[#0A0A0A] rounded-full px-12 py-3 h-14 text-base">
             <Link href="/">Go Home</Link>
           </Button>
-          <Button asChild variant="outline" className="border-[#E5E5E5] text-[#0A0A0A] hover:bg-[#F5F5F5] rounded-full px-6">
+          <Button asChild variant="outline" className="border-[#E5E5E5] text-[#0A0A0A] hover:bg-[#F5F5F5] rounded-full px-12 py-3 h-14 text-base">
             <Link href="/signup">Get Started</Link>
           </Button>
         </div>

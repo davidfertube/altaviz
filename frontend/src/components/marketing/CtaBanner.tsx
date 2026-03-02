@@ -57,10 +57,10 @@ export default function CtaBanner() {
           >
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 text-base font-semibold text-[#0A0A0A] bg-white hover:bg-white/90 transition-colors px-20 py-4 rounded-full shadow-lg"
+              className="inline-flex items-center gap-2 text-lg font-semibold text-[#0A0A0A] bg-white hover:bg-white/90 transition-colors px-28 py-5 rounded-full shadow-lg"
             >
-              Start Free Pilot
-              <ArrowRight className="size-4" />
+              Get Started
+              <ArrowRight className="size-5" />
             </Link>
           </motion.div>
         </motion.div>

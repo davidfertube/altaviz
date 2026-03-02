@@ -295,18 +295,18 @@ export default function SolutionPage({
             <Button
               asChild
               size="lg"
-              className="h-14 w-full sm:w-auto px-20 text-base font-semibold rounded-full bg-[#0A0A0A] text-white shadow-lg shadow-[#0A0A0A]/15 hover:shadow-xl hover:bg-[#1A1A1A] transition-all border-0"
+              className="h-16 w-full sm:w-auto px-28 text-lg font-semibold rounded-full bg-[#0A0A0A] text-white shadow-lg shadow-[#0A0A0A]/15 hover:shadow-xl hover:bg-[#1A1A1A] transition-all border-0"
             >
               <Link href="/signup">
                 Get Started
-                <ArrowRight className="size-4 ml-1" />
+                <ArrowRight className="size-5 ml-1" />
               </Link>
             </Button>
             <Button
               asChild
               variant="outline"
               size="lg"
-              className="h-12 px-8 text-base font-medium rounded-full border-[#E5E5E5] text-[#6B7280] hover:text-[#0A0A0A] hover:border-[#F5C518] hover:bg-[#F5C518]/5 bg-transparent"
+              className="h-16 px-16 text-lg font-medium rounded-full border-[#E5E5E5] text-[#6B7280] hover:text-[#0A0A0A] hover:border-[#F5C518] hover:bg-[#F5C518]/5 bg-transparent"
             >
               <Link href="/pricing">See Pricing</Link>
             </Button>
@@ -409,18 +409,18 @@ export default function SolutionPage({
               <Button
                 asChild
                 size="lg"
-                className="h-12 px-8 text-base font-semibold rounded-full bg-white text-[#0A0A0A] hover:bg-white/90 transition-all border-0"
+                className="h-16 px-28 text-lg font-semibold rounded-full bg-white text-[#0A0A0A] hover:bg-white/90 transition-all border-0"
               >
                 <Link href="/signup">
-                  Create Free Account
-                  <ArrowRight className="size-4 ml-1" />
+                  Get Started
+                  <ArrowRight className="size-5 ml-1" />
                 </Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 size="lg"
-                className="h-12 px-8 text-base font-medium rounded-full border-white/20 text-white/80 hover:text-white hover:border-white/40 bg-transparent"
+                className="h-16 px-16 text-lg font-medium rounded-full border-white/20 text-white/80 hover:text-white hover:border-white/40 bg-transparent"
               >
                 <Link href="/pricing">See Pricing</Link>
               </Button>
