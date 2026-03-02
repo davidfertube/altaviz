@@ -15,25 +15,25 @@ const PLANS = [
     period: '30-day trial',
     description: 'Evaluate Altaviz on a small segment of your fleet.',
     features: [
-      'Up to 10 compressors',
+      'Up to 10 pipeline segments',
       '1-hour aggregation window',
       'Threshold-based alerts',
       'Fleet overview dashboard',
       '30-day data retention',
       'Email support',
     ],
-    cta: 'Start Pilot',
+    cta: 'Start Free Pilot',
     highlighted: false,
   },
   {
     name: 'Operations',
-    monthlyPrice: '$499',
-    annualPrice: '$399',
+    monthlyPrice: '$2,499',
+    annualPrice: '$1,999',
     period: '/month',
     annualPeriod: '/mo billed annually',
     description: 'Full monitoring with ML predictions for growing operations.',
     features: [
-      'Up to 200 compressors',
+      'Up to 200 pipeline segments',
       '1hr, 4hr, 24hr windows',
       'ML failure predictions',
       'AI agents (investigation + work orders)',
@@ -42,7 +42,7 @@ const PLANS = [
       'API access',
       'Priority support',
     ],
-    cta: 'Start Trial',
+    cta: 'Start Free Pilot',
     highlighted: true,
     badge: 'Most Popular',
   },
@@ -51,9 +51,9 @@ const PLANS = [
     monthlyPrice: 'Custom',
     annualPrice: 'Custom',
     period: 'annual contract',
-    description: 'Unlimited scale with SSO, SLA, and dedicated support.',
+    description: 'Unlimited scale with SSO, SLA, and dedicated support — starting at $50K/year.',
     features: [
-      'Unlimited compressors',
+      'Unlimited pipeline segments',
       'All aggregation windows',
       'Everything in Operations',
       'Autonomous fleet scans + optimization copilot',
@@ -63,7 +63,7 @@ const PLANS = [
       'Bulk export API',
       'On-prem deployment option',
     ],
-    cta: 'Get Started',
+    cta: 'Contact Sales',
     highlighted: false,
   },
 ];
@@ -73,10 +73,10 @@ const COMPARISON = [
     category: 'Fleet Monitoring',
     accent: '#C4A77D',
     features: [
-      { name: 'Compressors monitored', pilot: '10', operations: '200', enterprise: 'Unlimited' },
+      { name: 'Pipeline segments monitored', pilot: '10', operations: '200', enterprise: 'Unlimited' },
       { name: 'Aggregation windows', pilot: '1hr', operations: '1hr, 4hr, 24hr', enterprise: 'All + custom' },
       { name: 'Real-time fleet dashboard', pilot: true, operations: true, enterprise: true },
-      { name: 'Individual compressor drill-down', pilot: true, operations: true, enterprise: true },
+      { name: 'Individual asset drill-down', pilot: true, operations: true, enterprise: true },
       { name: 'Multi-basin fleet view', pilot: false, operations: true, enterprise: true },
       { name: 'Custom health score thresholds', pilot: false, operations: true, enterprise: true },
     ],
@@ -301,10 +301,10 @@ export default function PricingTable() {
             <motion.div
               key={plan.name}
               className={cn(
-                'relative rounded-2xl border p-6 lg:p-8 flex flex-col overflow-hidden',
+                'relative rounded-2xl border flex flex-col',
                 plan.highlighted
-                  ? 'border-[#6366F1]/30 bg-white shadow-xl shadow-[#6366F1]/10'
-                  : 'border-[#E7E0D5] bg-white'
+                  ? 'border-[#6366F1]/30 bg-white shadow-xl shadow-[#6366F1]/10 overflow-visible pt-8 lg:pt-10 px-6 lg:px-8 pb-6 lg:pb-8'
+                  : 'border-[#E7E0D5] bg-white overflow-hidden p-6 lg:p-8'
               )}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -330,8 +330,8 @@ export default function PricingTable() {
               )}
 
               {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="text-xs font-semibold text-white bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full px-4 py-1">
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+                  <span className="text-xs font-semibold text-white bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full px-4 py-1.5 shadow-lg shadow-[#6366F1]/25">
                     {plan.badge}
                   </span>
                 </div>
@@ -370,7 +370,7 @@ export default function PricingTable() {
               </ul>
 
               <Link
-                href="/signup"
+                href={plan.name === 'Enterprise' ? 'mailto:sales@altaviz.com' : '/signup'}
                 className={cn(
                   'block text-center text-sm font-semibold py-3 rounded-full transition-all',
                   plan.highlighted

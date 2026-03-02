@@ -215,15 +215,9 @@ export default function Navbar() {
             </Link>
             <Link
               href="/signup"
-              className="text-sm font-medium text-[#A68B5B] hover:text-[#1C1917] transition-colors px-3 py-2"
-            >
-              Get Started
-            </Link>
-            <Link
-              href="/signup"
               className="text-sm font-semibold text-white bg-[#1C1917] hover:bg-[#2D2D2D] transition-colors px-5 py-2.5 rounded-full"
             >
-              Start Free
+              Start Free Pilot
             </Link>
           </div>
 
@@ -244,7 +238,7 @@ export default function Navbar() {
         <div className="lg:hidden bg-white/95 backdrop-blur-xl border-t border-[#E7E0D5] max-h-[80vh] overflow-y-auto">
           <div className="px-4 py-4 space-y-1">
             <MobileNavGroup label="Solutions">
-              <MobileNavLink href="/solutions/transmission-pipelines" label="Gas Compression Fleets" onClick={closeMobile} />
+              <MobileNavLink href="/solutions/transmission-pipelines" label="Pipeline Operations" onClick={closeMobile} />
               <MobileNavLink href="/solutions/gathering-systems" label="Station Operations" onClick={closeMobile} />
               <MobileNavLink href="/solutions/reliability-engineers" label="Reliability Engineers" onClick={closeMobile} />
               <MobileNavLink href="/solutions/compliance-officers" label="Compliance & Reporting" onClick={closeMobile} />
@@ -275,16 +269,9 @@ export default function Navbar() {
               <Link
                 href="/signup"
                 onClick={closeMobile}
-                className="block text-sm font-medium text-[#A68B5B] hover:text-[#1C1917] py-2.5 px-3 rounded-lg hover:bg-[#F0EBE1] transition-colors"
-              >
-                Get Started
-              </Link>
-              <Link
-                href="/signup"
-                onClick={closeMobile}
                 className="block text-sm font-semibold text-center text-white bg-[#1C1917] hover:bg-[#2D2D2D] transition-colors px-5 py-2.5 rounded-full"
               >
-                Start Free
+                Start Free Pilot
               </Link>
             </div>
           </div>

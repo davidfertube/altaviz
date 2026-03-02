@@ -64,7 +64,7 @@ function FleetCoverageMockup() {
     <div className="space-y-1.5 mt-4">
       {compressors.map((comp, i) => (
         <div key={comp.id} className="flex items-center gap-2">
-          <span className="text-[7px] text-white/25 group-hover:text-white/40 transition-colors font-mono w-12 shrink-0">{comp.id}</span>
+          <span className="text-[8px] text-white/25 group-hover:text-white/40 transition-colors font-mono w-14 shrink-0">{comp.id}</span>
           <div className="flex-1 h-2.5 group-hover:h-3 transition-all rounded-full bg-white/[0.04] overflow-hidden">
             <motion.div
               className="h-full rounded-full transition-shadow group-hover:shadow-[0_0_8px_var(--bar-color)]"
@@ -76,7 +76,7 @@ function FleetCoverageMockup() {
             />
           </div>
           <motion.span
-            className="text-[7px] font-mono w-7 text-right shrink-0 group-hover:opacity-100 transition-opacity"
+            className="text-[8px] font-mono w-8 text-right shrink-0 group-hover:opacity-100 transition-opacity"
             style={{ color: colors[comp.status] }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 0.7 }}
@@ -302,7 +302,7 @@ function ShutdownReductionMockup() {
 /*  Stats data                                                         */
 /* ------------------------------------------------------------------ */
 const STATS = [
-  { value: 4700, suffix: '+', prefix: '', label: 'Compressors Monitored', Viz: FleetCoverageMockup },
+  { value: 4700, suffix: '+', prefix: '', label: 'Pipeline Assets Monitored', Viz: FleetCoverageMockup },
   { value: 48, suffix: 'hr', prefix: '', label: 'Hours of Advance Warning', Viz: EarlyWarningMockup },
   { value: 99.7, suffix: '%', prefix: '', label: 'Platform Uptime', Viz: UptimeGridMockup },
   { value: 40, suffix: '%', prefix: '', label: 'Fewer Emergency Shutdowns', Viz: ShutdownReductionMockup },
@@ -328,7 +328,7 @@ export default function Stats() {
             Proven results across live fleets
           </h2>
           <p className="text-lg text-[#78716C] max-w-xl mx-auto">
-            Real numbers from real deployments — not lab results.
+            With $8.98B in pipeline damage since 2010, predictive maintenance isn&#39;t optional — it&#39;s survival.
           </p>
         </motion.div>
 
@@ -336,7 +336,7 @@ export default function Stats() {
           {STATS.map((stat, i) => (
             <motion.div
               key={stat.label}
-              className="group rounded-2xl bg-[#0C1018] border border-white/[0.06] p-6 cursor-pointer"
+              className="group rounded-2xl bg-[#0C1018] border border-white/[0.06] p-8 min-h-[280px] cursor-pointer"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               whileHover={{
@@ -348,7 +348,7 @@ export default function Stats() {
               transition={{ duration: 0.5, delay: i * 0.1 }}
             >
               <div className="text-center">
-                <div className="text-3xl sm:text-4xl font-bold text-[#C4A77D] group-hover:text-[#D4B98D] group-hover:drop-shadow-[0_0_8px_rgba(196,167,125,0.3)] transition-all">
+                <div className="text-4xl sm:text-5xl font-bold text-[#C4A77D] group-hover:text-[#D4B98D] group-hover:drop-shadow-[0_0_8px_rgba(196,167,125,0.3)] transition-all">
                   <AnimatedCounter value={stat.value} suffix={stat.suffix} prefix={stat.prefix} />
                 </div>
                 <p className="text-xs text-white/40 group-hover:text-white/60 mt-1 tracking-wide uppercase transition-colors">{stat.label}</p>

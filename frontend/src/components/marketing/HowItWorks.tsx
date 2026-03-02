@@ -15,7 +15,7 @@ const STEPS = [
     number: '02',
     title: 'Detect',
     icon: BrainCircuit,
-    description: 'ML models learn the healthy baseline of each compressor. When sensor patterns start to deviate, you get an alert — 24 to 48 hours before a traditional threshold alarm.',
+    description: 'ML models learn the healthy baseline of each pipeline asset. When sensor patterns start to deviate, you get an alert — 24 to 48 hours before a traditional threshold alarm.',
     detail: 'Models retrain quarterly on your data. Tuned for zero false positives — so your crew trusts every alert.',
   },
   {
@@ -52,7 +52,7 @@ export default function HowItWorks() {
             From your SCADA system to work orders in the field
           </h2>
           <p className="text-lg text-[#78716C] max-w-2xl mx-auto">
-            Connects to your existing infrastructure. No rip-and-replace. Live in under a week.
+            Less than 25% of operators use predictive maintenance today. Go live in under a week.
           </p>
         </motion.div>
 

@@ -34,7 +34,7 @@ export default function CaseStudyTeaser() {
             </h2>
 
             <p className="text-base text-white/50 leading-relaxed mb-8 max-w-lg">
-              A high-utilization compressor showed early vibration drift that would have caused an emergency shutdown. Altaviz flagged it 48 hours out — and the AI agent generated a work order before the crew even knew there was a problem.
+              A high-utilization pipeline asset showed early vibration drift that would have caused an emergency shutdown. Altaviz flagged it 48 hours out — and the AI agent generated a work order before the crew even knew there was a problem.
             </p>
 
             <Link

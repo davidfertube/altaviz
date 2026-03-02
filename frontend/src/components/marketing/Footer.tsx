@@ -14,7 +14,7 @@ const FOOTER_LINKS = {
     { label: 'Predictive Maintenance', href: '/signup' },
   ],
   Solutions: [
-    { label: 'Gas Compression Fleets', href: '/solutions/transmission-pipelines' },
+    { label: 'Pipeline Operations', href: '/solutions/transmission-pipelines' },
     { label: 'Station Operations', href: '/solutions/gathering-systems' },
     { label: 'Reliability Engineers', href: '/solutions/reliability-engineers' },
     { label: 'Compliance & Reporting', href: '/solutions/compliance-officers' },
@@ -62,7 +62,7 @@ export default function Footer() {
               <span className="text-sm font-semibold text-[#1C1917]">Altaviz</span>
             </Link>
             <p className="text-xs text-[#78716C] leading-relaxed mb-6 max-w-[200px]">
-              48-hour advance warning for compressor fleet operators.
+              48-hour advance warning for pipeline operators.
             </p>
 
             {/* CTA */}
@@ -70,7 +70,7 @@ export default function Footer() {
               href="/signup"
               className="inline-flex text-xs font-medium px-4 py-2 rounded-lg bg-[#1C1917] text-white hover:bg-[#2D2D2D] transition-colors"
             >
-              Start Free
+              Start Free Pilot
             </Link>
           </div>
 

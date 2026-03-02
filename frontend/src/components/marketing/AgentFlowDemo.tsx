@@ -116,7 +116,7 @@ function FleetMonitoringTab() {
             return (
               <motion.div
                 key={comp.id}
-                className="w-16 h-16 rounded-lg bg-white/[0.02] border border-white/[0.04] flex flex-col items-center justify-center"
+                className="w-20 h-20 rounded-lg bg-white/[0.02] border border-white/[0.04] flex flex-col items-center justify-center"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={phase >= 1 ? { opacity: 1, scale: 1 } : {}}
                 transition={{ delay: i * 0.06, ...springPop }}
@@ -183,7 +183,7 @@ function FleetMonitoringTab() {
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="text-[8px] text-white/25 font-mono">Compressor</span>
+              <span className="text-[8px] text-white/25 font-mono">Asset</span>
               <span className="text-[9px] text-white/50 font-mono font-bold">COMP-002</span>
             </div>
             <div className="flex items-center gap-2">
@@ -637,7 +637,7 @@ function OptimizationTab() {
     <div ref={ref} className="space-y-4 min-h-[320px]">
       {/* Fleet scan grid */}
       <div className="relative rounded-xl bg-white/[0.02] border border-white/[0.04] p-4">
-        <p className="text-[8px] text-white/25 uppercase tracking-wide mb-3">Fleet Scan — 4,700 compressors</p>
+        <p className="text-[8px] text-white/25 uppercase tracking-wide mb-3">Fleet Scan — 4,700 pipeline assets</p>
         <div className="relative grid grid-cols-10 gap-1.5">
           {Array.from({ length: 20 }).map((_, i) => {
             const isFlagged = flagged.includes(i);
@@ -678,7 +678,7 @@ function OptimizationTab() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            3 compressors flagged for attention
+            3 assets flagged for attention
           </motion.p>
         )}
       </div>
@@ -832,7 +832,7 @@ export default function AgentFlowDemo() {
         </div>
 
         {/* Tab content */}
-        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-5 sm:p-8 min-h-[400px]">
+        <div className="rounded-2xl bg-white/[0.02] border border-white/[0.06] p-6 sm:p-10 min-h-[480px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}

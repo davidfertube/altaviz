@@ -254,15 +254,15 @@ const FEATURE_TABS = [
   {
     label: 'Fleet Overview',
     icon: Gauge,
-    title: 'See every compressor. In real time.',
-    description: 'Health scores, vibration trends, and thermal maps across your entire fleet — updated every 5 minutes. Drill down to any compressor, any sensor, in one click.',
+    title: 'See every pipeline asset. In real time.',
+    description: 'Health scores, vibration trends, and thermal maps across your entire fleet — updated every 5 minutes. Drill down to any asset, any sensor, in one click.',
     Mockup: FleetOverviewMockup,
   },
   {
     label: 'Anomaly Detection',
     icon: Activity,
     title: 'Catch failures 48 hours early',
-    description: 'ML models learn each compressor\u2019s normal behavior. When vibration, temperature, or pressure starts to drift — you know first.',
+    description: 'ML models learn each asset\u2019s normal behavior. When vibration, temperature, or pressure starts to drift — you know first.',
     Mockup: AnomalyDetectionMockup,
   },
   {
@@ -297,7 +297,7 @@ export default function Features() {
             One platform. Complete fleet visibility.
           </h2>
           <p className="text-lg text-[#78716C] max-w-2xl mx-auto">
-            From the sensor on the compressor to the work order in the field.
+            From the sensor on the pipeline to the work order in the field.
           </p>
         </motion.div>
 

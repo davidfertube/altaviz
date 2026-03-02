@@ -36,7 +36,7 @@ export default function CtaBanner() {
             }}
           >
             Your next shutdown{' '}
-            <span className="text-[#C4A77D]">doesn&#39;t have to be a surprise.</span>
+            <span className="text-[#C4A77D]">doesn&#39;t have to cost you $500K.</span>
           </motion.h2>
           <motion.p
             className="text-lg text-white/50 max-w-2xl mx-auto mb-10"
@@ -45,11 +45,11 @@ export default function CtaBanner() {
               visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const } },
             }}
           >
-            Start monitoring your compressor fleet in minutes. Free tier includes 10 compressors with full anomaly detection and AI-powered diagnostics.
+            Start monitoring your pipeline assets in minutes. Free pilot includes 10 segments with full anomaly detection and AI-powered diagnostics.
           </motion.p>
 
           <motion.div
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="flex items-center justify-center"
             variants={{
               hidden: { opacity: 0, y: 20 },
               visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const } },
@@ -57,16 +57,10 @@ export default function CtaBanner() {
           >
             <Link
               href="/signup"
-              className="inline-flex items-center gap-2 text-base font-semibold text-[#1C1917] bg-white hover:bg-white/90 transition-colors px-8 py-3.5 rounded-full"
+              className="inline-flex items-center gap-2 text-base font-semibold text-[#1C1917] bg-white hover:bg-white/90 transition-colors px-14 py-3.5 rounded-full"
             >
-              Create Free Account
+              Start Free Pilot
               <ArrowRight className="size-4" />
-            </Link>
-            <Link
-              href="/pricing"
-              className="inline-flex items-center gap-2 text-base font-medium text-white/80 hover:text-white border border-white/20 hover:border-white/40 transition-all px-8 py-3.5 rounded-full"
-            >
-              See Pricing
             </Link>
           </motion.div>
         </motion.div>

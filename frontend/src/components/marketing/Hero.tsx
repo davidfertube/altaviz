@@ -81,7 +81,7 @@ const ROI_METRICS = [
   {
     target: 4.7,
     suffix: 'K+',
-    label: 'Compressors Monitored',
+    label: 'Assets Monitored',
     icon: Gauge,
     decimals: 1,
   },
@@ -92,7 +92,7 @@ const ROI_METRICS = [
 /* ------------------------------------------------------------------ */
 function DataFlowMockup() {
   return (
-    <div className="relative w-full max-w-[520px]">
+    <div className="relative w-full max-w-[640px]">
       {/* Ambient glow */}
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/8 via-[#C4A77D]/6 to-blue-500/8 rounded-3xl blur-[80px]" />
 
@@ -105,7 +105,7 @@ function DataFlowMockup() {
         <div className="relative rounded-2xl overflow-hidden">
           <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-b from-white/[0.12] via-white/[0.04] to-transparent" />
 
-          <div className="relative rounded-2xl bg-[#0C1018] p-5">
+          <div className="relative rounded-2xl bg-[#0C1018] p-6">
             {/* Top bar */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -114,19 +114,19 @@ function DataFlowMockup() {
                   animate={{ opacity: [1, 0.4, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
-                <span className="text-[11px] font-medium text-white/50 tracking-wider uppercase font-mono">
+                <span className="text-[12px] font-medium text-white/50 tracking-wider uppercase font-mono">
                   Fleet Overview
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-[10px] text-white/25 font-mono">Last sync 4s ago</span>
+                <span className="text-[11px] text-white/25 font-mono">Last sync 4s ago</span>
                 <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                   <motion.div
                     className="w-1.5 h-1.5 rounded-full bg-emerald-400"
                     animate={{ opacity: [1, 0.4, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
-                  <span className="text-[9px] text-emerald-400 font-mono font-medium">LIVE</span>
+                  <span className="text-[10px] text-emerald-400 font-mono font-medium">LIVE</span>
                 </div>
               </div>
             </div>
@@ -143,8 +143,8 @@ function DataFlowMockup() {
                   key={kpi.label}
                   className="rounded-lg bg-white/[0.03] border border-white/[0.05] p-2.5"
                 >
-                  <p className="text-[8px] text-white/25 tracking-wide mb-1 uppercase">{kpi.label}</p>
-                  <p className={`text-lg font-bold font-mono ${kpi.color} leading-none mb-1.5`}>{kpi.value}</p>
+                  <p className="text-[9px] text-white/25 tracking-wide mb-1 uppercase">{kpi.label}</p>
+                  <p className={`text-xl font-bold font-mono ${kpi.color} leading-none mb-1.5`}>{kpi.value}</p>
                   <div className="w-full h-[2px] rounded-full bg-white/[0.06]">
                     <motion.div
                       className={`h-full rounded-full ${kpi.bar}`}
@@ -160,9 +160,9 @@ function DataFlowMockup() {
             {/* Vibration trend chart (animated line drawing) */}
             <div className="rounded-lg bg-white/[0.02] border border-white/[0.05] p-3 mb-3">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[8px] text-white/25 tracking-wide uppercase">Vibration Trend — COMP-2847</p>
+                <p className="text-[9px] text-white/25 tracking-wide uppercase">Vibration Trend — COMP-2847</p>
                 <motion.span
-                  className="text-[8px] text-rose-400/70 font-mono"
+                  className="text-[9px] text-rose-400/70 font-mono"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.5 }}
@@ -235,7 +235,7 @@ function DataFlowMockup() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 2.2, duration: 0.4 }}
             >
-              <p className="text-[8px] text-white/25 tracking-wide uppercase mb-2.5">AI Response Pipeline</p>
+              <p className="text-[9px] text-white/25 tracking-wide uppercase mb-2.5">AI Response Pipeline</p>
               <div className="flex items-center gap-1.5">
                 <motion.div
                   className="flex-1 flex items-center gap-1.5 rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-1.5"
@@ -244,7 +244,7 @@ function DataFlowMockup() {
                   transition={{ delay: 2.4, duration: 0.3, type: 'spring', stiffness: 300, damping: 20 }}
                 >
                   <AlertTriangle className="size-3 shrink-0 text-amber-400" />
-                  <span className="text-[8px] font-mono text-amber-400">Anomaly</span>
+                  <span className="text-[9px] font-mono text-amber-400">Anomaly</span>
                 </motion.div>
                 <motion.div
                   className="shrink-0"
@@ -261,7 +261,7 @@ function DataFlowMockup() {
                   transition={{ delay: 2.8, duration: 0.3, type: 'spring', stiffness: 300, damping: 20 }}
                 >
                   <BrainCircuit className="size-3 shrink-0 text-purple-400" />
-                  <span className="text-[8px] font-mono text-purple-400">Investigate</span>
+                  <span className="text-[9px] font-mono text-purple-400">Investigate</span>
                 </motion.div>
                 <motion.div
                   className="shrink-0"
@@ -278,7 +278,7 @@ function DataFlowMockup() {
                   transition={{ delay: 3.2, duration: 0.3, type: 'spring', stiffness: 300, damping: 20 }}
                 >
                   <ClipboardCheck className="size-3 shrink-0 text-emerald-400" />
-                  <span className="text-[8px] font-mono text-emerald-400">Work Order</span>
+                  <span className="text-[9px] font-mono text-emerald-400">Work Order</span>
                 </motion.div>
               </div>
             </motion.div>
@@ -286,8 +286,8 @@ function DataFlowMockup() {
             {/* Compressor fleet status */}
             <div className="rounded-lg bg-white/[0.02] border border-white/[0.05] p-3">
               <div className="flex items-center justify-between mb-2.5">
-                <p className="text-[8px] text-white/25 tracking-wide uppercase">Compressor Fleet</p>
-                <p className="text-[8px] text-white/20 font-mono">6 active</p>
+                <p className="text-[9px] text-white/25 tracking-wide uppercase">Pipeline Fleet</p>
+                <p className="text-[9px] text-white/20 font-mono">6 active</p>
               </div>
               <div className="grid grid-cols-6 gap-2">
                 {[
@@ -306,7 +306,7 @@ function DataFlowMockup() {
                   const color = colors[comp.status];
                   return (
                     <div key={comp.id} className="text-center">
-                      <div className="relative w-8 h-8 mx-auto mb-1">
+                      <div className="relative w-10 h-10 mx-auto mb-1">
                         <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
                           <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="2.5" />
                           <circle
@@ -317,11 +317,11 @@ function DataFlowMockup() {
                             strokeDasharray={`${comp.health * 0.942} 100`}
                           />
                         </svg>
-                        <span className="absolute inset-0 flex items-center justify-center text-[7px] font-mono text-white/40">
+                        <span className="absolute inset-0 flex items-center justify-center text-[8px] font-mono text-white/40">
                           {comp.health}
                         </span>
                       </div>
-                      <p className="text-[7px] text-white/20 font-mono">{comp.id}</p>
+                      <p className="text-[8px] text-white/20 font-mono">{comp.id}</p>
                     </div>
                   );
                 })}
@@ -387,14 +387,14 @@ export default function Hero() {
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#1C1917] leading-[1.05] tracking-tight mb-5"
               variants={itemVariants}
             >
-              Monitoring Agents for Pipeline Fleets.
+              Stop Pipeline Failures Before They Cost You Millions.
             </motion.h1>
 
             <motion.p
               className="text-lg text-[#78716C] max-w-lg mb-8 leading-relaxed"
               variants={itemVariants}
             >
-              48-hour advance warning. Zero undetected failures.
+              AI agents monitor your pipeline fleet 24/7 and catch failures 48 hours early — saving $125K–$500K per hour of avoided downtime.
             </motion.p>
 
             {/* CTAs */}
@@ -405,21 +405,11 @@ export default function Hero() {
               <Button
                 asChild
                 size="lg"
-                className="h-12 px-8 text-base font-semibold rounded-full bg-[#1C1917] text-white shadow-lg shadow-[#1C1917]/15 hover:shadow-xl hover:bg-[#2D2D2D] transition-all border-0"
+                className="h-14 px-14 text-base font-semibold rounded-full bg-[#1C1917] text-white shadow-lg shadow-[#1C1917]/15 hover:shadow-xl hover:bg-[#2D2D2D] transition-all border-0"
               >
                 <Link href="/signup">
                   Start Free Pilot
                   <ArrowRight className="size-4 ml-1" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-12 px-8 text-base font-medium rounded-full border-[#E7E0D5] text-[#78716C] hover:text-[#1C1917] hover:border-[#C4A77D] hover:bg-[#C4A77D]/5 bg-transparent"
-              >
-                <Link href="/pricing">
-                  See Pricing
                 </Link>
               </Button>
             </motion.div>
