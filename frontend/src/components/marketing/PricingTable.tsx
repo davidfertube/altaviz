@@ -1,10 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Check, Minus } from 'lucide-react';
+import { motion, useInView } from 'framer-motion';
+import { Check, Minus, Sparkles, BrainCircuit, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { useRef } from 'react';
 
 const PLANS = [
   {
@@ -70,6 +71,7 @@ const PLANS = [
 const COMPARISON = [
   {
     category: 'Fleet Monitoring',
+    accent: '#C4A77D',
     features: [
       { name: 'Compressors monitored', pilot: '10', operations: '200', enterprise: 'Unlimited' },
       { name: 'Aggregation windows', pilot: '1hr', operations: '1hr, 4hr, 24hr', enterprise: 'All + custom' },
@@ -81,6 +83,7 @@ const COMPARISON = [
   },
   {
     category: 'Predictive Intelligence',
+    accent: '#6366F1',
     features: [
       { name: 'Threshold-based alerts', pilot: true, operations: true, enterprise: true },
       { name: 'ML anomaly detection (Isolation Forest)', pilot: false, operations: true, enterprise: true },
@@ -93,6 +96,7 @@ const COMPARISON = [
   },
   {
     category: 'AI Agents & Automation',
+    accent: '#8B5CF6',
     features: [
       { name: 'AI diagnostic agent', pilot: false, operations: true, enterprise: true },
       { name: 'AI investigation agent (RAG)', pilot: false, operations: true, enterprise: true },
@@ -105,6 +109,7 @@ const COMPARISON = [
   },
   {
     category: 'Alerts & Notifications',
+    accent: '#F59E0B',
     features: [
       { name: 'Email alerts', pilot: true, operations: true, enterprise: true },
       { name: 'SMS alerts', pilot: false, operations: true, enterprise: true },
@@ -114,6 +119,7 @@ const COMPARISON = [
   },
   {
     category: 'Compliance & Reporting',
+    accent: '#10B981',
     features: [
       { name: 'EPA Subpart W emissions tracking', pilot: false, operations: true, enterprise: true },
       { name: 'PHMSA-aligned reporting', pilot: false, operations: true, enterprise: true },
@@ -124,6 +130,7 @@ const COMPARISON = [
   },
   {
     category: 'Data & Infrastructure',
+    accent: '#06B6D4',
     features: [
       { name: 'Data retention', pilot: '30 days', operations: '1 year', enterprise: 'Unlimited' },
       { name: 'REST API access', pilot: false, operations: true, enterprise: true },
@@ -134,6 +141,7 @@ const COMPARISON = [
   },
   {
     category: 'Security & Access',
+    accent: '#6366F1',
     features: [
       { name: 'Role-based access control (4 roles)', pilot: true, operations: true, enterprise: true },
       { name: 'SSO / SAML', pilot: false, operations: false, enterprise: true },
@@ -144,6 +152,7 @@ const COMPARISON = [
   },
   {
     category: 'Support & Onboarding',
+    accent: '#C4A77D',
     features: [
       { name: 'Email support', pilot: true, operations: true, enterprise: true },
       { name: 'Priority support (< 4hr SLA)', pilot: false, operations: true, enterprise: true },
@@ -159,9 +168,75 @@ function CellValue({ value }: { value: boolean | string }) {
     return <span className="text-sm text-[#1C1917] font-medium">{value}</span>;
   }
   return value ? (
-    <Check className="size-4 text-[#C4A77D] mx-auto" />
+    <motion.div
+      initial={{ scale: 0, opacity: 0 }}
+      whileInView={{ scale: 1, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.3, type: 'spring', stiffness: 400, damping: 15 }}
+    >
+      <Check className="size-4 text-[#6366F1] mx-auto" />
+    </motion.div>
   ) : (
     <Minus className="size-4 text-[#E7E0D5] mx-auto" />
+  );
+}
+
+function AnimatedSection({ section, index }: { section: typeof COMPARISON[0]; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '-50px' });
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0 }}
+      animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
+    >
+      {/* Category header */}
+      <div className="relative px-4 py-3 bg-[#FAF9F6]/50 border-b border-[#E7E0D5] overflow-hidden">
+        <motion.div
+          className="absolute left-0 top-0 bottom-0 w-[3px]"
+          style={{ backgroundColor: section.accent }}
+          initial={{ scaleY: 0 }}
+          animate={isInView ? { scaleY: 1 } : { scaleY: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        />
+        <div className="flex items-center gap-2">
+          {section.category === 'AI Agents & Automation' && (
+            <BrainCircuit className="size-3.5 text-[#8B5CF6]" />
+          )}
+          {section.category === 'Predictive Intelligence' && (
+            <Sparkles className="size-3.5 text-[#6366F1]" />
+          )}
+          {section.category === 'Alerts & Notifications' && (
+            <Zap className="size-3.5 text-[#F59E0B]" />
+          )}
+          <span className="text-xs font-semibold text-[#A8A29E] uppercase tracking-wider">
+            {section.category}
+          </span>
+        </div>
+      </div>
+      {/* Feature rows */}
+      {section.features.map((feature, i) => (
+        <motion.div
+          key={feature.name}
+          className={cn(
+            'grid grid-cols-4 items-center group/row hover:bg-[#FAF9F6]/80 transition-colors',
+            i < section.features.length - 1 && 'border-b border-[#E7E0D5]/50'
+          )}
+          initial={{ opacity: 0, x: -10 }}
+          animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
+          transition={{ duration: 0.3, delay: 0.1 + i * 0.04 }}
+        >
+          <div className="px-4 py-3 text-sm text-[#78716C] group-hover/row:text-[#1C1917] transition-colors">
+            {feature.name}
+          </div>
+          <div className="px-4 py-3 text-center"><CellValue value={feature.pilot} /></div>
+          <div className="px-4 py-3 text-center"><CellValue value={feature.operations} /></div>
+          <div className="px-4 py-3 text-center"><CellValue value={feature.enterprise} /></div>
+        </motion.div>
+      ))}
+    </motion.div>
   );
 }
 
@@ -169,8 +244,11 @@ export default function PricingTable() {
   const [annual, setAnnual] = useState(false);
 
   return (
-    <section id="pricing" className="relative py-24 sm:py-32">
+    <section id="pricing" className="relative py-24 sm:py-32 overflow-hidden">
       <div className="absolute inset-0 bg-[#FAF9F6]" />
+      {/* Ambient glow */}
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-[#6366F1]/4 rounded-full blur-[140px]" />
+      <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-[#8B5CF6]/4 rounded-full blur-[120px]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -223,9 +301,9 @@ export default function PricingTable() {
             <motion.div
               key={plan.name}
               className={cn(
-                'relative rounded-2xl border p-6 lg:p-8 flex flex-col',
+                'relative rounded-2xl border p-6 lg:p-8 flex flex-col overflow-hidden',
                 plan.highlighted
-                  ? 'border-[#C4A77D]/50 bg-white shadow-xl shadow-[#C4A77D]/10'
+                  ? 'border-[#6366F1]/30 bg-white shadow-xl shadow-[#6366F1]/10'
                   : 'border-[#E7E0D5] bg-white'
               )}
               initial={{ opacity: 0, y: 20 }}
@@ -235,14 +313,25 @@ export default function PricingTable() {
               whileHover={{
                 y: -4,
                 boxShadow: plan.highlighted
-                  ? '0 25px 50px -12px rgba(196, 167, 125, 0.15)'
+                  ? '0 25px 50px -12px rgba(99, 102, 241, 0.2)'
                   : '0 20px 40px -12px rgba(0, 0, 0, 0.08)',
                 transition: { duration: 0.2 },
               }}
             >
+              {/* Gradient accent line at top */}
+              {plan.highlighted && (
+                <motion.div
+                  className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-[#6366F1] via-[#8B5CF6] to-[#C4A77D]"
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                />
+              )}
+
               {plan.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="text-xs font-semibold text-white bg-[#C4A77D] rounded-full px-4 py-1">
+                  <span className="text-xs font-semibold text-white bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] rounded-full px-4 py-1">
                     {plan.badge}
                   </span>
                 </div>
@@ -262,11 +351,21 @@ export default function PricingTable() {
               </div>
 
               <ul className="space-y-3 mb-8 flex-1">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3">
-                    <Check className="size-4 text-[#C4A77D] mt-0.5 shrink-0" />
+                {plan.features.map((feature, fi) => (
+                  <motion.li
+                    key={feature}
+                    className="flex items-start gap-3"
+                    initial={{ opacity: 0, x: -8 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.3, delay: 0.2 + fi * 0.05 }}
+                  >
+                    <Check className={cn(
+                      'size-4 mt-0.5 shrink-0',
+                      plan.highlighted ? 'text-[#6366F1]' : 'text-[#C4A77D]'
+                    )} />
                     <span className="text-sm text-[#78716C]">{feature}</span>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
 
@@ -275,8 +374,8 @@ export default function PricingTable() {
                 className={cn(
                   'block text-center text-sm font-semibold py-3 rounded-full transition-all',
                   plan.highlighted
-                    ? 'text-white bg-[#1C1917] hover:bg-[#2D2D2D] shadow-lg shadow-[#1C1917]/15'
-                    : 'text-[#78716C] border border-[#E7E0D5] hover:border-[#C4A77D] hover:text-[#1C1917]'
+                    ? 'text-white bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:from-[#5558E6] hover:to-[#7C54E8] shadow-lg shadow-[#6366F1]/20'
+                    : 'text-[#78716C] border border-[#E7E0D5] hover:border-[#6366F1] hover:text-[#1C1917]'
                 )}
               >
                 {plan.cta}
@@ -296,39 +395,21 @@ export default function PricingTable() {
             Full feature comparison
           </h3>
 
-          <div className="rounded-2xl border border-[#E7E0D5] bg-white overflow-hidden max-w-5xl mx-auto">
+          <div className="rounded-2xl border border-[#E7E0D5] bg-white overflow-hidden max-w-5xl mx-auto shadow-sm">
             {/* Header */}
-            <div className="grid grid-cols-4 border-b border-[#E7E0D5] bg-[#FAF9F6]">
+            <div className="grid grid-cols-4 border-b border-[#E7E0D5] bg-gradient-to-r from-[#FAF9F6] via-white to-[#FAF9F6]">
               <div className="p-4" />
               <div className="p-4 text-center text-sm font-semibold text-[#1C1917]">Pilot</div>
-              <div className="p-4 text-center text-sm font-semibold text-[#C4A77D]">Operations</div>
+              <div className="p-4 text-center">
+                <span className="text-sm font-semibold bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] bg-clip-text text-transparent">
+                  Operations
+                </span>
+              </div>
               <div className="p-4 text-center text-sm font-semibold text-[#1C1917]">Enterprise</div>
             </div>
 
-            {COMPARISON.map((section) => (
-              <div key={section.category}>
-                {/* Category header */}
-                <div className="px-4 py-3 bg-[#FAF9F6]/50 border-b border-[#E7E0D5]">
-                  <span className="text-xs font-semibold text-[#A8A29E] uppercase tracking-wider">
-                    {section.category}
-                  </span>
-                </div>
-                {/* Feature rows */}
-                {section.features.map((feature, i) => (
-                  <div
-                    key={feature.name}
-                    className={cn(
-                      'grid grid-cols-4 items-center',
-                      i < section.features.length - 1 && 'border-b border-[#E7E0D5]/50'
-                    )}
-                  >
-                    <div className="px-4 py-3 text-sm text-[#78716C]">{feature.name}</div>
-                    <div className="px-4 py-3 text-center"><CellValue value={feature.pilot} /></div>
-                    <div className="px-4 py-3 text-center"><CellValue value={feature.operations} /></div>
-                    <div className="px-4 py-3 text-center"><CellValue value={feature.enterprise} /></div>
-                  </div>
-                ))}
-              </div>
+            {COMPARISON.map((section, idx) => (
+              <AnimatedSection key={section.category} section={section} index={idx} />
             ))}
           </div>
         </motion.div>

@@ -387,14 +387,13 @@ export default function Hero() {
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#1C1917] leading-[1.05] tracking-tight mb-5"
               variants={itemVariants}
             >
-              Know Before It Breaks.
+              Monitoring Agents for Pipeline Fleets.
             </motion.h1>
 
             <motion.p
               className="text-lg text-[#78716C] max-w-lg mb-8 leading-relaxed"
               variants={itemVariants}
             >
-              Autonomous monitoring agents for oil and gas pipeline fleets.
               48-hour advance warning. Zero undetected failures.
             </motion.p>
 

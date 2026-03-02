@@ -1,0 +1,22 @@
+<svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="flame-gradient" x1="256" y1="480" x2="256" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A68B5B"/>
+      <stop offset="1" stop-color="#C4A77D"/>
+    </linearGradient>
+  </defs>
+  <!-- Flame / energy drop -->
+  <path
+    d="M256 32C200 136 112 224 112 320C112 408 176 480 256 480C336 480 400 408 400 320C400 224 312 136 256 32Z"
+    fill="url(#flame-gradient)"
+  />
+  <!-- Monitoring pulse through center -->
+  <path
+    d="M96 320L176 320L216 264L256 376L296 264L336 320L416 320"
+    stroke="white"
+    stroke-width="28"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.92"
+  />
+</svg>

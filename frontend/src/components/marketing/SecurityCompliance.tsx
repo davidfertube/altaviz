@@ -8,38 +8,47 @@ const BADGES = [
     icon: Shield,
     title: 'SOC 2 Type II',
     description: 'Enterprise security controls audited annually',
+    accent: '#6366F1',
   },
   {
     icon: FileCheck,
     title: '49 CFR 192 / PHMSA',
     description: 'Pipeline safety and integrity management compliance',
+    accent: '#C4A77D',
   },
   {
     icon: Leaf,
     title: 'EPA Subpart W',
     description: 'Automated methane emissions monitoring and reporting',
+    accent: '#10B981',
   },
   {
     icon: Bot,
     title: 'AI Agent Guardrails',
     description: 'Cost caps, confidence thresholds, and human-in-the-loop approval gates',
+    accent: '#8B5CF6',
   },
   {
     icon: Activity,
     title: 'ISO 10816',
     description: 'Vibration severity evaluation for rotating machinery',
+    accent: '#06B6D4',
   },
   {
     icon: Lock,
     title: 'SSO / SAML',
     description: 'Enterprise single sign-on and identity federation',
+    accent: '#C4A77D',
   },
 ];
 
 export default function SecurityCompliance() {
   return (
-    <section id="security" className="relative py-24 sm:py-32">
+    <section id="security" className="relative py-24 sm:py-32 overflow-hidden">
       <div className="absolute inset-0 bg-[#F5F0E8]" />
+      {/* Ambient glow orbs */}
+      <div className="absolute top-1/4 left-0 w-[400px] h-[400px] bg-[#6366F1]/5 rounded-full blur-[120px]" />
+      <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-[#8B5CF6]/5 rounded-full blur-[120px]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
@@ -81,27 +90,65 @@ export default function SecurityCompliance() {
             className="grid grid-cols-2 gap-4"
             variants={{
               hidden: { opacity: 0 },
-              visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
+              visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
             }}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-80px' }}
           >
-            {BADGES.map(({ icon: Icon, title, description }) => (
+            {BADGES.map(({ icon: Icon, title, description, accent }) => (
               <motion.div
                 key={title}
-                className="rounded-xl bg-white border border-[#E7E0D5] p-5 hover:border-[#C4A77D]/40 hover:shadow-lg hover:shadow-[#C4A77D]/5 transition-colors"
+                className="group relative rounded-xl bg-white border border-[#E7E0D5] p-5 overflow-hidden"
                 variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+                  hidden: { opacity: 0, y: 24, scale: 0.95 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const },
+                  },
                 }}
-                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                whileHover={{
+                  y: -6,
+                  scale: 1.02,
+                  borderColor: accent,
+                  boxShadow: `0 20px 40px -12px ${accent}20, 0 0 0 1px ${accent}30`,
+                  transition: { duration: 0.25, ease: 'easeOut' },
+                }}
               >
-                <div className="w-10 h-10 rounded-lg bg-[#C4A77D]/10 flex items-center justify-center mb-3">
-                  <Icon className="size-5 text-[#A68B5B]" />
+                {/* Shimmer effect on hover */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{
+                    background: `linear-gradient(135deg, transparent 40%, ${accent}08 50%, transparent 60%)`,
+                  }}
+                />
+                {/* Accent top line */}
+                <motion.div
+                  className="absolute top-0 left-0 right-0 h-[2px]"
+                  style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }}
+                  initial={{ scaleX: 0, opacity: 0 }}
+                  whileInView={{ scaleX: 1, opacity: 0.6 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                />
+
+                <div className="relative">
+                  <motion.div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
+                    style={{ backgroundColor: `${accent}15` }}
+                    whileHover={{
+                      scale: 1.1,
+                      backgroundColor: `${accent}25`,
+                      transition: { duration: 0.2 },
+                    }}
+                  >
+                    <Icon className="size-5" style={{ color: accent }} />
+                  </motion.div>
+                  <p className="text-sm font-semibold text-[#1C1917] mb-1">{title}</p>
+                  <p className="text-xs text-[#A8A29E] leading-snug">{description}</p>
                 </div>
-                <p className="text-sm font-semibold text-[#1C1917] mb-1">{title}</p>
-                <p className="text-xs text-[#A8A29E] leading-snug">{description}</p>
               </motion.div>
             ))}
           </motion.div>
