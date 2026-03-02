@@ -1,7 +1,9 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { AlertTriangle, BrainCircuit, ClipboardCheck, CheckCircle } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { AlertTriangle, BrainCircuit, ClipboardCheck, CheckCircle, Activity, Gauge, Bot } from 'lucide-react';
+import { EASE_STANDARD } from './motion-constants';
 
 /* ------------------------------------------------------------------ */
 /*  Fleet Overview mockup                                              */
@@ -113,36 +115,32 @@ function AnomalyDetectionMockup() {
         </div>
         <svg viewBox="0 0 300 70" className="w-full h-16">
           <defs>
-            <linearGradient id="anomGrad" x1="0" y1="0" x2="300" y2="0" gradientUnits="userSpaceOnUse">
+            <linearGradient id="anomGradTab" x1="0" y1="0" x2="300" y2="0" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="rgba(16,185,129,0.6)" />
               <stop offset="60%" stopColor="rgba(196,167,125,0.6)" />
               <stop offset="100%" stopColor="rgba(239,68,68,0.9)" />
             </linearGradient>
-            <linearGradient id="anomFill" x1="0" y1="0" x2="0" y2="70" gradientUnits="userSpaceOnUse">
+            <linearGradient id="anomFillTab" x1="0" y1="0" x2="0" y2="70" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="rgba(239,68,68,0.08)" />
               <stop offset="100%" stopColor="rgba(239,68,68,0)" />
             </linearGradient>
           </defs>
-          {/* Warning threshold */}
           <line x1="0" y1="20" x2="300" y2="20" stroke="rgba(245,158,11,0.25)" strokeWidth="0.5" strokeDasharray="3 3" />
           <text x="300" y="18" textAnchor="end" className="text-[5px] fill-amber-400/40 font-mono">WARN 6.0</text>
-          {/* Critical threshold */}
           <line x1="0" y1="10" x2="300" y2="10" stroke="rgba(239,68,68,0.25)" strokeWidth="0.5" strokeDasharray="3 3" />
           <text x="300" y="8" textAnchor="end" className="text-[5px] fill-rose-400/40 font-mono">CRIT 8.0</text>
-          {/* Area fill */}
           <motion.path
             d="M0,50 L30,48 L60,50 L90,46 L120,44 L150,40 L180,35 L210,28 L240,22 L270,16 L300,12 L300,70 L0,70 Z"
-            fill="url(#anomFill)"
+            fill="url(#anomFillTab)"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.6 }}
           />
-          {/* Line */}
           <motion.path
             d="M0,50 L30,48 L60,50 L90,46 L120,44 L150,40 L180,35 L210,28 L240,22 L270,16 L300,12"
             fill="none"
-            stroke="url(#anomGrad)"
+            stroke="url(#anomGradTab)"
             strokeWidth="1.5"
             strokeLinecap="round"
             initial={{ pathLength: 0 }}
@@ -150,12 +148,9 @@ function AnomalyDetectionMockup() {
             viewport={{ once: true }}
             transition={{ duration: 1.2, delay: 0.3 }}
           />
-          {/* Anomaly marker */}
           <motion.circle
             cx="270" cy="16" r="4"
-            fill="none"
-            stroke="#EF4444"
-            strokeWidth="1"
+            fill="none" stroke="#EF4444" strokeWidth="1"
             initial={{ scale: 0 }}
             whileInView={{ scale: [0, 1.5, 1] }}
             viewport={{ once: true }}
@@ -198,7 +193,7 @@ function AnomalyDetectionMockup() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  AI Agent Pipeline mockup (replaces EPA Compliance)                 */
+/*  AI Agent Pipeline mockup                                           */
 /* ------------------------------------------------------------------ */
 function AIAgentMockup() {
   const steps = [
@@ -210,7 +205,6 @@ function AIAgentMockup() {
 
   return (
     <div className="rounded-2xl bg-[#0C1018] p-5 border border-white/[0.06]">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider">AI Agent Pipeline</span>
         <motion.span
@@ -222,11 +216,8 @@ function AIAgentMockup() {
         </motion.span>
       </div>
 
-      {/* Steps */}
       <div className="relative">
-        {/* Connecting line */}
         <div className="absolute left-[19px] top-5 bottom-5 w-px bg-gradient-to-b from-rose-500/30 via-purple-500/20 to-emerald-500/30" />
-
         <div className="space-y-2.5">
           {steps.map((step, i) => (
             <motion.div
@@ -237,21 +228,16 @@ function AIAgentMockup() {
               viewport={{ once: true }}
               transition={{ delay: 0.3 + i * 0.4, duration: 0.4 }}
             >
-              {/* Step icon */}
               <div
                 className="relative z-10 w-[38px] h-[38px] rounded-lg flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${step.color}15`, border: `1px solid ${step.color}30` }}
               >
                 <step.Icon className="size-4" style={{ color: step.color }} />
               </div>
-
-              {/* Content */}
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-semibold text-white/60">{step.label}</p>
                 <p className="text-[8px] text-white/25 font-mono truncate">{step.detail}</p>
               </div>
-
-              {/* Step number */}
               <span className="text-[7px] font-mono text-white/10 shrink-0">{String(i + 1).padStart(2, '0')}</span>
             </motion.div>
           ))}
@@ -262,20 +248,26 @@ function AIAgentMockup() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Platform showcase data                                             */
+/*  Tab definitions                                                    */
 /* ------------------------------------------------------------------ */
-const SHOWCASES = [
+const FEATURE_TABS = [
   {
+    label: 'Fleet Overview',
+    icon: Gauge,
     title: 'See every compressor. In real time.',
     description: 'Health scores, vibration trends, and thermal maps across your entire fleet — updated every 5 minutes. Drill down to any compressor, any sensor, in one click.',
     Mockup: FleetOverviewMockup,
   },
   {
+    label: 'Anomaly Detection',
+    icon: Activity,
     title: 'Catch failures 48 hours early',
     description: 'ML models learn each compressor\u2019s normal behavior. When vibration, temperature, or pressure starts to drift — you know first.',
     Mockup: AnomalyDetectionMockup,
   },
   {
+    label: 'AI Agents',
+    icon: Bot,
     title: 'AI investigates. You approve.',
     description: 'When Altaviz detects a problem, AI agents trace root cause, check maintenance history, and generate a work order — complete with parts list and cost estimate.',
     Mockup: AIAgentMockup,
@@ -283,16 +275,19 @@ const SHOWCASES = [
 ];
 
 /* ================================================================== */
-/*  Platform Section                                                   */
+/*  Platform Section (Tab-Based)                                       */
 /* ================================================================== */
 export default function Features() {
+  const [activeTab, setActiveTab] = useState(0);
+  const { title, description, Mockup } = FEATURE_TABS[activeTab];
+
   return (
     <section id="platform" className="section-viewport relative py-24 sm:py-32">
       <div className="absolute inset-0 bg-[#FAF9F6]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
@@ -306,33 +301,60 @@ export default function Features() {
           </p>
         </motion.div>
 
-        <div className="space-y-16 lg:space-y-24">
-          {SHOWCASES.map(({ title, description, Mockup }, i) => {
-            const isReversed = i % 2 === 1;
-            return (
-              <motion.div
-                key={title}
-                className={`grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center ${isReversed ? 'lg:direction-rtl' : ''}`}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.6 }}
-              >
-                <div className={isReversed ? 'lg:order-2' : ''}>
-                  <Mockup />
-                </div>
-                <div className={isReversed ? 'lg:order-1' : ''}>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-[#1C1917] mb-3">
-                    {title}
-                  </h3>
-                  <p className="text-base text-[#78716C] leading-relaxed max-w-md">
-                    {description}
-                  </p>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+        {/* Tab bar */}
+        <LayoutGroup>
+          <div className="flex items-center justify-center gap-2 mb-10">
+            {FEATURE_TABS.map((tab, i) => {
+              const isActive = activeTab === i;
+              const TabIcon = tab.icon;
+              return (
+                <button
+                  key={tab.label}
+                  onClick={() => setActiveTab(i)}
+                  className={`relative flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'text-[#1C1917]'
+                      : 'text-[#A8A29E] hover:text-[#78716C]'
+                  }`}
+                >
+                  <TabIcon className="size-4" />
+                  {tab.label}
+                  {isActive && (
+                    <motion.div
+                      className="absolute bottom-0 left-2 right-2 h-[2px] rounded-full bg-[#C4A77D]"
+                      layoutId="features-tab-indicator"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </LayoutGroup>
+
+        {/* Tab content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.4, ease: EASE_STANDARD }}
+          >
+            <div>
+              <Mockup />
+            </div>
+            <div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-[#1C1917] mb-3">
+                {title}
+              </h3>
+              <p className="text-base text-[#78716C] leading-relaxed max-w-md">
+                {description}
+              </p>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </section>
   );

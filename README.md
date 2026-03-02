@@ -181,8 +181,9 @@ altaviz/
 │   │   └── api/                     # 26+ API routes (org-scoped, validated, rate-limited)
 │   │       └── agent/               # 11 agent proxy routes → FastAPI sidecar
 │   ├── src/components/              # Reusable UI components
+│   │   ├── marketing/               # 15 marketing components (Hero, Features, AgentFlowDemo, etc.)
 │   │   └── agents/                  # 10 agent components (badges, cards, timeline, chat)
-│   ├── src/hooks/                   # SWR data fetching hooks
+│   ├── src/hooks/                   # SWR data fetching + animation hooks (useAutoTabs, useTypewriter)
 │   ├── src/lib/                     # Shared utilities
 │   │   ├── auth.ts                  # NextAuth.js v5 config (credentials, RBAC)
 │   │   ├── session.ts               # getAppSession() / requireSession() helpers
@@ -258,6 +259,8 @@ altaviz/
 ### Dashboard Features
 
 - B2B enterprise landing page with animated data flow visualizations
+- Interactive product demos: 4-tab auto-cycling agent walkthrough, closed-loop orbital diagram, click-to-break compressor demo
+- Tab-based feature showcase with animated SVG mockups (fleet overview, anomaly detection, AI pipeline)
 - Fleet overview with station map and color-coded compressor health
 - Compressor detail pages with radial gauges and time-series charts
 - Alert management with filtering, acknowledge, and resolve actions

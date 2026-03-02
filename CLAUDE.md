@@ -289,6 +289,14 @@ ETL_ORGANIZATION_ID=
 | `src/agents/shared/guardrails.py` | Tier limits, cost caps, confidence thresholds, rate limits |
 | `src/agents/shared/memory.py` | Agent session CRUD (token/cost tracking) |
 | `src/agents/shared/id_generator.py` | Sequential ID generation (WO-, INV-, OPT-, SNAP-) |
+| **Frontend — Marketing Animations** | |
+| `frontend/src/components/marketing/AgentFlowDemo.tsx` | 4-tab auto-cycling agent walkthrough (Fleet Monitoring, Investigation, Work Orders, Optimization) |
+| `frontend/src/components/marketing/ClosedLoopDiagram.tsx` | Orbital diagram: 4 agents in continuous feedback loop with traveling dots |
+| `frontend/src/components/marketing/LiveDemoTeaser.tsx` | Interactive click-to-break compressor demo with cascading AI response cards |
+| `frontend/src/components/marketing/FlowConnector.tsx` | Reusable SVG animated path + traveling dot utility |
+| `frontend/src/components/marketing/motion-constants.ts` | Shared easing curves, colors, animation variants |
+| `frontend/src/hooks/useAutoTabs.ts` | Auto-cycling tabs with manual override, viewport-aware |
+| `frontend/src/hooks/useTypewriter.ts` | Character-by-character text reveal with rAF |
 | **Frontend — Agent Pages** | |
 | `frontend/src/app/(dashboard)/dashboard/investigations/page.tsx` | Investigation list with severity filters |
 | `frontend/src/app/(dashboard)/dashboard/investigations/[invId]/page.tsx` | Investigation detail + feedback form |
