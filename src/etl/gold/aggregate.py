@@ -24,17 +24,22 @@ from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
 
+from src.etl.utils import load_config
+
 logger = logging.getLogger(__name__)
 
-# Threshold definitions (from config/thresholds.yaml)
-VIBRATION_WARNING = 6.0
-VIBRATION_CRITICAL = 8.0
-TEMP_WARNING = 240.0
-TEMP_CRITICAL = 260.0
-SUCTION_WARNING_LOW = 30.0
-SUCTION_CRITICAL_LOW = 20.0
-DISCHARGE_WARNING_HIGH = 1300.0
-DISCHARGE_CRITICAL_HIGH = 1400.0
+# Load thresholds from config/thresholds.yaml (never hardcode per CLAUDE.md)
+_thresholds = load_config('thresholds.yaml')
+_sensor = _thresholds['sensor_thresholds']
+
+VIBRATION_WARNING = float(_sensor['vibration_mms']['warning_threshold'])
+VIBRATION_CRITICAL = float(_sensor['vibration_mms']['critical_threshold'])
+TEMP_WARNING = float(_sensor['discharge_temp_f']['warning_threshold'])
+TEMP_CRITICAL = float(_sensor['discharge_temp_f']['critical_threshold'])
+SUCTION_WARNING_LOW = float(_sensor['suction_pressure_psi']['warning_threshold_low'])
+SUCTION_CRITICAL_LOW = float(_sensor['suction_pressure_psi']['critical_threshold_low'])
+DISCHARGE_WARNING_HIGH = float(_sensor['discharge_pressure_psi']['warning_threshold_high'])
+DISCHARGE_CRITICAL_HIGH = float(_sensor['discharge_pressure_psi']['critical_threshold_high'])
 
 
 def create_gold_layer(

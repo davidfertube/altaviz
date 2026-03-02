@@ -5,7 +5,7 @@ import { Scale, ArrowLeft } from 'lucide-react';
 export const metadata: Metadata = {
   title: 'Terms of Service - Altaviz',
   description:
-    'Altaviz terms of service for pipeline integrity management SaaS. Subscription terms, data ownership, ML disclaimers, and SLA commitments.',
+    'Altaviz terms of service for compressor fleet monitoring SaaS. Subscription terms, data ownership, ML disclaimers, and SLA commitments.',
 };
 
 const TOC = [
@@ -113,13 +113,14 @@ export default function TermsPage() {
                   2. Service Description
                 </h2>
                 <p className="text-sm text-[#78716C] leading-relaxed mb-3">
-                  Altaviz is a cloud-based pipeline integrity management platform that provides:
+                  Altaviz is a cloud-based compressor fleet monitoring platform that provides:
                 </p>
                 <ul className="space-y-2 text-sm text-[#78716C] leading-relaxed ml-4 list-disc">
-                  <li>Real-time monitoring of compressor and pipeline sensor data (vibration, temperature, pressure, flow rates)</li>
+                  <li>Real-time monitoring of compressor sensor data (vibration, temperature, pressure, flow rates)</li>
                   <li>Machine learning-powered predictive analytics including anomaly detection, temperature drift prediction, remaining useful life estimation, and emissions calculations</li>
+                  <li>AI-powered investigation agents and automated work order generation</li>
                   <li>Alert management with automated escalation, auto-resolution, and data freshness monitoring</li>
-                  <li>Regulatory compliance reporting for 49 CFR 192, 49 CFR 195, and EPA Subpart W</li>
+                  <li>Regulatory compliance reporting for EPA Subpart W and industry standards</li>
                   <li>Multi-tenant dashboards with role-based access control</li>
                   <li>Data ingestion via ETL pipeline (PySpark) and REST API</li>
                 </ul>

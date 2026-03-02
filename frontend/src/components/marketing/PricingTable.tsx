@@ -12,9 +12,9 @@ const PLANS = [
     monthlyPrice: '$0',
     annualPrice: '$0',
     period: '30-day trial',
-    description: 'Evaluate Altaviz on a small segment of your network.',
+    description: 'Evaluate Altaviz on a small segment of your fleet.',
     features: [
-      'Up to 5 pipelines',
+      'Up to 10 compressors',
       '1-hour aggregation window',
       'Threshold-based alerts',
       'Fleet overview dashboard',
@@ -32,9 +32,10 @@ const PLANS = [
     annualPeriod: '/mo billed annually',
     description: 'Full monitoring with ML predictions for growing operations.',
     features: [
-      'Up to 50 pipelines',
+      'Up to 200 compressors',
       '1hr, 4hr, 24hr windows',
       'ML failure predictions',
+      'AI agents (investigation + work orders)',
       'SMS + webhook alerts',
       '1-year data retention',
       'API access',
@@ -51,58 +52,104 @@ const PLANS = [
     period: 'annual contract',
     description: 'Unlimited scale with SSO, SLA, and dedicated support.',
     features: [
-      'Unlimited pipelines',
+      'Unlimited compressors',
       'All aggregation windows',
       'Everything in Operations',
+      'Autonomous fleet scans + optimization copilot',
       'SSO / SAML integration',
       'Custom integrations',
       'SLA + dedicated CSM',
       'Bulk export API',
       'On-prem deployment option',
     ],
-    cta: 'Contact Sales',
+    cta: 'Get Started',
     highlighted: false,
   },
 ];
 
 const COMPARISON = [
   {
-    category: 'Monitoring',
+    category: 'Fleet Monitoring',
     features: [
-      { name: 'Pipelines', pilot: '5', operations: '50', enterprise: 'Unlimited' },
+      { name: 'Compressors monitored', pilot: '10', operations: '200', enterprise: 'Unlimited' },
       { name: 'Aggregation windows', pilot: '1hr', operations: '1hr, 4hr, 24hr', enterprise: 'All + custom' },
-      { name: 'Real-time dashboard', pilot: true, operations: true, enterprise: true },
-      { name: 'Data retention', pilot: '30 days', operations: '1 year', enterprise: 'Unlimited' },
+      { name: 'Real-time fleet dashboard', pilot: true, operations: true, enterprise: true },
+      { name: 'Individual compressor drill-down', pilot: true, operations: true, enterprise: true },
+      { name: 'Multi-basin fleet view', pilot: false, operations: true, enterprise: true },
+      { name: 'Custom health score thresholds', pilot: false, operations: true, enterprise: true },
     ],
   },
   {
-    category: 'Intelligence',
+    category: 'Predictive Intelligence',
     features: [
-      { name: 'Threshold alerts', pilot: true, operations: true, enterprise: true },
-      { name: 'ML anomaly detection', pilot: false, operations: true, enterprise: true },
+      { name: 'Threshold-based alerts', pilot: true, operations: true, enterprise: true },
+      { name: 'ML anomaly detection (Isolation Forest)', pilot: false, operations: true, enterprise: true },
       { name: 'Temperature drift prediction', pilot: false, operations: true, enterprise: true },
-      { name: 'RUL estimation', pilot: false, operations: true, enterprise: true },
-      { name: 'Custom model training', pilot: false, operations: false, enterprise: true },
+      { name: 'Remaining Useful Life (RUL)', pilot: false, operations: true, enterprise: true },
+      { name: 'Emissions estimation (EPA factors)', pilot: false, operations: true, enterprise: true },
+      { name: 'Custom model training on your data', pilot: false, operations: false, enterprise: true },
+      { name: 'Quarterly model retraining', pilot: false, operations: true, enterprise: true },
     ],
   },
   {
-    category: 'Compliance',
+    category: 'AI Agents & Automation',
     features: [
-      { name: 'EPA Subpart W tracking', pilot: false, operations: true, enterprise: true },
-      { name: 'PHMSA reporting', pilot: false, operations: true, enterprise: true },
-      { name: 'Audit logs', pilot: false, operations: true, enterprise: true },
-      { name: 'Compliance exports', pilot: false, operations: false, enterprise: true },
+      { name: 'AI diagnostic agent', pilot: false, operations: true, enterprise: true },
+      { name: 'AI investigation agent (RAG)', pilot: false, operations: true, enterprise: true },
+      { name: 'Auto work order generation', pilot: false, operations: true, enterprise: true },
+      { name: 'Human-in-the-loop approval gates', pilot: false, operations: true, enterprise: true },
+      { name: 'Autonomous fleet scans', pilot: false, operations: false, enterprise: true },
+      { name: 'Optimization copilot (chat)', pilot: false, operations: false, enterprise: true },
+      { name: 'Knowledge base (learns from fixes)', pilot: false, operations: false, enterprise: true },
     ],
   },
   {
-    category: 'Support & Security',
+    category: 'Alerts & Notifications',
+    features: [
+      { name: 'Email alerts', pilot: true, operations: true, enterprise: true },
+      { name: 'SMS alerts', pilot: false, operations: true, enterprise: true },
+      { name: 'Webhook integrations', pilot: false, operations: true, enterprise: true },
+      { name: 'Custom escalation rules', pilot: false, operations: false, enterprise: true },
+    ],
+  },
+  {
+    category: 'Compliance & Reporting',
+    features: [
+      { name: 'EPA Subpart W emissions tracking', pilot: false, operations: true, enterprise: true },
+      { name: 'PHMSA-aligned reporting', pilot: false, operations: true, enterprise: true },
+      { name: 'Full audit logs', pilot: false, operations: true, enterprise: true },
+      { name: 'Compliance data exports', pilot: false, operations: false, enterprise: true },
+      { name: 'Custom regulatory reports', pilot: false, operations: false, enterprise: true },
+    ],
+  },
+  {
+    category: 'Data & Infrastructure',
+    features: [
+      { name: 'Data retention', pilot: '30 days', operations: '1 year', enterprise: 'Unlimited' },
+      { name: 'REST API access', pilot: false, operations: true, enterprise: true },
+      { name: 'Bulk export API', pilot: false, operations: false, enterprise: true },
+      { name: 'SCADA integrations (PI, Experion, DeltaV)', pilot: false, operations: true, enterprise: true },
+      { name: 'Custom integrations', pilot: false, operations: false, enterprise: true },
+    ],
+  },
+  {
+    category: 'Security & Access',
+    features: [
+      { name: 'Role-based access control (4 roles)', pilot: true, operations: true, enterprise: true },
+      { name: 'SSO / SAML', pilot: false, operations: false, enterprise: true },
+      { name: 'Encryption at rest + in transit', pilot: true, operations: true, enterprise: true },
+      { name: 'SOC 2 Type II compliance', pilot: true, operations: true, enterprise: true },
+      { name: 'On-premises deployment', pilot: false, operations: false, enterprise: true },
+    ],
+  },
+  {
+    category: 'Support & Onboarding',
     features: [
       { name: 'Email support', pilot: true, operations: true, enterprise: true },
-      { name: 'Priority support', pilot: false, operations: true, enterprise: true },
+      { name: 'Priority support (< 4hr SLA)', pilot: false, operations: true, enterprise: true },
       { name: 'Dedicated CSM', pilot: false, operations: false, enterprise: true },
-      { name: 'SSO / SAML', pilot: false, operations: false, enterprise: true },
       { name: 'SLA guarantee', pilot: false, operations: false, enterprise: true },
-      { name: 'API access', pilot: false, operations: true, enterprise: true },
+      { name: 'Technical onboarding (< 1 week)', pilot: false, operations: true, enterprise: true },
     ],
   },
 ];
@@ -185,6 +232,13 @@ export default function PricingTable() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-100px' }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
+              whileHover={{
+                y: -4,
+                boxShadow: plan.highlighted
+                  ? '0 25px 50px -12px rgba(196, 167, 125, 0.15)'
+                  : '0 20px 40px -12px rgba(0, 0, 0, 0.08)',
+                transition: { duration: 0.2 },
+              }}
             >
               {plan.badge && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">

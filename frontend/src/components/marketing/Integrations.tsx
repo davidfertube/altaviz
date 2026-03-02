@@ -5,11 +5,11 @@ import { motion } from 'framer-motion';
 const INTEGRATIONS = [
   { name: 'OSIsoft PI', category: 'Historian' },
   { name: 'Honeywell Experion', category: 'SCADA' },
+  { name: 'Detechtion IIoT', category: 'Compressor Monitoring' },
+  { name: 'Ariel SmartLink', category: 'Compressor OEM' },
   { name: 'Emerson DeltaV', category: 'SCADA' },
   { name: 'AVEVA', category: 'Historian' },
-  { name: 'AWS IoT', category: 'Cloud' },
   { name: 'Azure IoT Hub', category: 'Cloud' },
-  { name: 'Snowflake', category: 'Data' },
   { name: 'OPC-UA', category: 'Protocol' },
 ];
 
@@ -37,22 +37,30 @@ export default function Integrations() {
 
         <motion.div
           className="flex flex-wrap items-center justify-center gap-4 sm:gap-6"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
+          }}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-60px' }}
         >
           {INTEGRATIONS.map(({ name, category }) => (
-            <div
+            <motion.div
               key={name}
-              className="flex items-center gap-2.5 rounded-xl bg-white border border-[#E7E0D5] px-5 py-3 hover:border-[#C4A77D]/40 hover:shadow-sm transition-all"
+              className="flex items-center gap-2.5 rounded-xl bg-white border border-[#E7E0D5] px-5 py-3 hover:border-[#C4A77D]/40 hover:shadow-sm transition-colors"
+              variants={{
+                hidden: { opacity: 0, y: 16 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+              }}
+              whileHover={{ y: -2, transition: { duration: 0.2 } }}
             >
               <div className="w-2 h-2 rounded-full bg-[#C4A77D]/40" />
               <div>
                 <p className="text-sm font-medium text-[#1C1917]">{name}</p>
                 <p className="text-[10px] text-[#A8A29E]">{category}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </motion.div>
       </div>

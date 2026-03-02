@@ -28,20 +28,20 @@ export default function CaseStudyTeaser() {
             <p className="text-[11px] font-semibold text-[#C4A77D] uppercase tracking-[0.15em] mb-6">Results</p>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-snug mb-6">
-              One corrosion anomaly caught{' '}
+              One bearing failure caught{' '}
               <span className="text-[#C4A77D]">two days early</span>{' '}
               paid for six months of Altaviz.
             </h2>
 
             <p className="text-base text-white/50 leading-relaxed mb-8 max-w-lg">
-              A 24-inch transmission segment showed early vibration drift that would have triggered an emergency shutdown. Altaviz flagged it 48 hours out — giving the operations team time to schedule a planned repair instead.
+              A high-utilization compressor showed early vibration drift that would have caused an emergency shutdown. Altaviz flagged it 48 hours out — and the AI agent generated a work order before the crew even knew there was a problem.
             </p>
 
             <Link
-              href="/contact"
+              href="/signup"
               className="inline-flex items-center gap-2 text-sm font-medium text-[#C4A77D] hover:text-[#D4C5A9] transition-colors"
             >
-              See how it works with your data
+              Start monitoring your fleet
               <ArrowRight className="size-4" />
             </Link>
           </motion.div>
@@ -49,20 +49,32 @@ export default function CaseStudyTeaser() {
           {/* Right: Metrics grid */}
           <motion.div
             className="grid grid-cols-2 gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.15 } },
+            }}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
           >
             {METRICS.map(({ value, label, icon: Icon }) => (
-              <div
+              <motion.div
                 key={label}
                 className="rounded-xl bg-white/[0.04] border border-white/[0.06] p-6"
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+                }}
+                whileHover={{
+                  borderColor: 'rgba(196, 167, 125, 0.3)',
+                  boxShadow: '0 0 20px rgba(196, 167, 125, 0.1)',
+                  transition: { duration: 0.2 },
+                }}
               >
                 <Icon className="size-5 text-[#C4A77D]/60 mb-3" />
                 <p className="text-2xl sm:text-3xl font-bold font-mono text-[#C4A77D] mb-1">{value}</p>
                 <p className="text-xs text-white/40 leading-snug">{label}</p>
-              </div>
+              </motion.div>
             ))}
           </motion.div>
         </div>

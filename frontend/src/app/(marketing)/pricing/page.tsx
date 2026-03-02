@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Pricing - Altaviz',
-  description: 'Pipeline integrity management pricing. Start with a pilot, scale to enterprise.',
+  description: 'Compressor fleet monitoring pricing. Start with a pilot, scale to enterprise.',
 };
 
 export default function PricingPage() {

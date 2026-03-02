@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -44,7 +44,7 @@ const FAQS = [
   },
   {
     question: 'How is pricing calculated for Enterprise?',
-    answer: 'Enterprise pricing is based on the number of monitored pipeline segments, data ingestion volume, and required support level. We offer annual contracts with custom SLAs. Contact our sales team for a detailed quote based on your fleet size and requirements.',
+    answer: 'Enterprise pricing is based on the number of monitored pipeline segments, data ingestion volume, and required support level. We offer annual contracts with custom SLAs. Start a free pilot to evaluate the platform, then work with our team to scope an enterprise deployment based on your fleet size and requirements.',
   },
 ];
 
@@ -67,11 +67,19 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
           )}
         />
       </button>
-      {open && (
-        <div className="pb-5 pr-8">
-          <p className="text-sm text-[#78716C] leading-relaxed">{answer}</p>
-        </div>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="pb-5 pr-8 overflow-hidden"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+          >
+            <p className="text-sm text-[#78716C] leading-relaxed">{answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -99,13 +107,24 @@ export default function FAQ() {
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.5, delay: 0.1 }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
+          }}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-60px' }}
         >
           {FAQS.map((faq) => (
-            <FAQItem key={faq.question} question={faq.question} answer={faq.answer} />
+            <motion.div
+              key={faq.question}
+              variants={{
+                hidden: { opacity: 0, y: 12 },
+                visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+              }}
+            >
+              <FAQItem question={faq.question} answer={faq.answer} />
+            </motion.div>
           ))}
         </motion.div>
       </div>

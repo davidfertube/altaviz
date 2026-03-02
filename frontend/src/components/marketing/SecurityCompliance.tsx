@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Shield, FileCheck, Leaf, Settings, Activity, Lock } from 'lucide-react';
+import { Shield, FileCheck, Leaf, Activity, Lock, Bot } from 'lucide-react';
 
 const BADGES = [
   {
@@ -20,9 +20,9 @@ const BADGES = [
     description: 'Automated methane emissions monitoring and reporting',
   },
   {
-    icon: Settings,
-    title: '49 CFR 195',
-    description: 'Hazardous liquid pipeline integrity management compliance',
+    icon: Bot,
+    title: 'AI Agent Guardrails',
+    description: 'Cost caps, confidence thresholds, and human-in-the-loop approval gates',
   },
   {
     icon: Activity,
@@ -79,22 +79,30 @@ export default function SecurityCompliance() {
           {/* Right: Badge grid */}
           <motion.div
             className="grid grid-cols-2 gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-100px' }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+            variants={{
+              hidden: { opacity: 0 },
+              visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
+            }}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-80px' }}
           >
             {BADGES.map(({ icon: Icon, title, description }) => (
-              <div
+              <motion.div
                 key={title}
-                className="rounded-xl bg-white border border-[#E7E0D5] p-5 hover:border-[#C4A77D]/40 hover:shadow-lg hover:shadow-[#C4A77D]/5 transition-all"
+                className="rounded-xl bg-white border border-[#E7E0D5] p-5 hover:border-[#C4A77D]/40 hover:shadow-lg hover:shadow-[#C4A77D]/5 transition-colors"
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+                }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
               >
                 <div className="w-10 h-10 rounded-lg bg-[#C4A77D]/10 flex items-center justify-center mb-3">
                   <Icon className="size-5 text-[#A68B5B]" />
                 </div>
                 <p className="text-sm font-semibold text-[#1C1917] mb-1">{title}</p>
                 <p className="text-xs text-[#A8A29E] leading-snug">{description}</p>
-              </div>
+              </motion.div>
             ))}
           </motion.div>
         </div>

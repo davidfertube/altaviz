@@ -3,8 +3,8 @@
 Production-grade data engineering platform for compressor fleet integrity management.
 Designed for Archrock-scale operations: 4,700+ compressors, 10 basins, 200+ stations.
 
-Stack: PySpark 3.5 + Delta Lake 3.0 | Azure Fabric / OneLake | Azure Event Hubs | MLflow | Pydantic AI | Terraform
-Status: Production architecture — Streaming + batch ETL, 4 ML models, AI diagnostics agent, fleet simulator, pipeline observability, data quality framework, infrastructure as code.
+Stack: PySpark 3.5 + Delta Lake 3.0 | Azure Fabric / OneLake | Azure Event Hubs | MLflow | Pydantic AI | pgvector | Terraform
+Status: Production architecture — Streaming + batch ETL, 4 ML models, 4 AI agents (closed-loop autonomous maintenance), fleet simulator, pipeline observability, data quality framework, infrastructure as code.
 
 ## Critical Rules
 
@@ -27,29 +27,21 @@ python -m src.data_simulator.fleet_simulator                    # Full fleet, 10
 python -m src.data_simulator.fleet_simulator --compressors 100  # Small test fleet
 python -m src.data_simulator.fleet_simulator --output eventhub  # Stream to Event Hubs
 
-# Legacy Simulator (10 compressors, original demo)
-python src/data_simulator/compressor_simulator.py
-
 # Production Pipeline (OneLake)
 python -m src.etl.pipeline                          # Full pipeline (batch mode)
 python -m src.etl.pipeline --mode stream            # Streaming from Event Hubs
 python -m src.etl.pipeline --skip-ml                # ETL only, no ML inference
 python -m src.etl.pipeline --skip-quality           # Skip data quality checks
 
-# Legacy Pipeline (local Delta + PostgreSQL)
-python src/etl/pyspark_pipeline.py                  # Original demo pipeline
-python src/etl/pyspark_pipeline.py --skip-ml        # Without ML
-python src/etl/pyspark_pipeline.py --skip-db        # Without database export
-
-# AI Diagnostics Agent
-python -m src.agents.run_diagnosis COMP-0003        # Run diagnosis (4-digit IDs at scale)
-uvicorn src.agents.api:app --port 8001              # Start diagnostics API
+# AI Agents (all 4 served via FastAPI sidecar)
+python -m src.agents.run_diagnosis COMP-0003        # Run diagnostics CLI
+uvicorn src.agents.api:app --port 8001              # Start agent API (all 4 agents)
 
 # Tests
 pytest tests/ -v                                    # All Python tests
 pytest tests/load/ -v                               # Fleet scale tests
 pytest tests/integration/ -v                        # Integration tests (requires Spark)
-pytest tests/unit/ -v                               # Unit tests
+pytest tests/unit/ -v                               # Unit tests (guardrails, state machine, models, IDs)
 
 # Infrastructure
 cd infrastructure/terraform && terraform plan       # Preview Azure changes
@@ -92,9 +84,18 @@ cd infrastructure/terraform && terraform apply      # Deploy infrastructure
 │  - Feature Store + MLflow Model Registry                                │
 ├──────────────────────────────────────────────────────────────────────────┤
 │  SERVING                                                                 │
-│  - Pydantic AI Diagnostics Agent (FastAPI sidecar)                      │
 │  - Pipeline Monitor (Azure Monitor + Teams alerts)                      │
 │  - OneLake SQL endpoint for BI (Power BI, Synapse)                      │
+├──────────────────────────────────────────────────────────────────────────┤
+│  AI AGENTS (Pydantic AI + FastAPI sidecar, port 8001)                    │
+│                                                                          │
+│  Fleet Optimization ──→ Investigation ──→ Work Order ──→ Knowledge Base │
+│  (proactive scans)      (RAG + evidence)   (HITL + state machine)       │
+│       ↑                                          │                       │
+│       └──────────── feedback loop ───────────────┘                       │
+│                                                                          │
+│  Shared: guardrails, tier limits, rate limits, session tracking          │
+│  Storage: pgvector embeddings, 7 agent tables, 2 agent views            │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -115,20 +116,45 @@ cd infrastructure/terraform && terraform apply      # Deploy infrastructure
 
 | Model | File | Algorithm | Purpose |
 |-------|------|-----------|---------|
-| Anomaly Detection | `src/ml/models/anomaly_detector.py` | Isolation Forest (scikit-learn) | Vibration pattern anomalies, 24-48hr early warning |
-| Temperature Drift | `src/ml/models/temp_drift_predictor.py` | Linear Regression (scipy) | Hours until temp warning/critical thresholds |
-| Emissions | `src/ml/models/emissions_estimator.py` | EPA Subpart W factors | CH4/CO2e emissions for OOOOb compliance |
-| RUL Prediction | `src/ml/models/rul_predictor.py` | Heuristic (rule-based) | Remaining Useful Life from sensor degradation |
+| Anomaly Detection | `src/ml/anomaly_detector.py` | Isolation Forest (scikit-learn) | Vibration pattern anomalies, 24-48hr early warning |
+| Temperature Drift | `src/ml/temp_drift_predictor.py` | Linear Regression (scipy) | Hours until temp warning/critical thresholds |
+| Emissions | `src/ml/emissions_estimator.py` | EPA Subpart W factors | CH4/CO2e emissions for OOOOb compliance |
+| RUL Prediction | `src/ml/rul_predictor.py` | Heuristic (rule-based) | Remaining Useful Life from sensor degradation |
 
 ML Lifecycle: Feature Store → MLflow Training → Model Registry → Batch Prediction → OneLake
 
-## AI Diagnostics Agent
+## AI Agents (4 total — closed-loop autonomous maintenance)
 
-- **Framework:** Pydantic AI (type-safe structured outputs)
-- **Agent:** `src/agents/diagnostics_agent.py` — 5 database tools
-- **API:** `src/agents/api.py` — FastAPI sidecar (port 8001)
-- **CLI:** `python -m src.agents.run_diagnosis COMP-0003`
-- **Output:** `DiagnosticReport` with root cause, contributing factors, actions
+**Framework:** Pydantic AI (type-safe structured outputs) | **API:** FastAPI sidecar (port 8001) | **Storage:** pgvector for RAG embeddings
+
+| Agent | File | Tools | Output | Purpose |
+|-------|------|-------|--------|---------|
+| Diagnostics | `src/agents/diagnostics_agent.py` | 5 DB tools | `DiagnosticReport` | Root cause analysis from sensor data |
+| Investigation | `src/agents/investigation_agent.py` | 12 tools | `InvestigationReport` | RAG-powered deep investigation with 7-step methodology, evidence chains, technician feedback |
+| Work Order | `src/agents/work_order_agent.py` | 10 tools | `WorkOrderPlan` | 9-state machine (draft→verified), HITL approval for high-risk (>$10K, shutdown >4hr, emergency) |
+| Fleet Optimization | `src/agents/optimization_agent.py` | 11 tools | `OptimizationRecommendation` | Proactive fleet scans, what-if simulation, conversational copilot |
+
+**Closed-loop flow:** Optimization (proactive scan) → Investigation (deep dive) → Work Order (execution) → Knowledge Base (learning)
+
+### Shared Agent Infrastructure (`src/agents/shared/`)
+
+| Module | Purpose |
+|--------|---------|
+| `db_tools.py` | 7 shared DB query functions (readings, alerts, predictions, maintenance, metadata, knowledge base, similar incidents) |
+| `models.py` | Pydantic models: `WorkOrderPlan`, `InvestigationReport`, `OptimizationRecommendation`, `EvidenceStep`, `DiagnosticReport` |
+| `guardrails.py` | Tier limits (free/pro/enterprise), cost caps ($10K), confidence thresholds (0.6), rate limits (10 WO/hr) |
+| `memory.py` | Agent session CRUD — tracks token usage, costs, durations |
+| `id_generator.py` | Sequential IDs: `WO-2026-00001`, `INV-2026-00001`, `OPT-2026-00001`, `SNAP-2026-02-26-daily` |
+
+### Work Order State Machine
+
+```
+draft → pending_approval → approved → assigned → in_progress → completed → verified
+                ↓                                                    ↑
+            rejected → draft (re-draft)              cancelled ←─────┘
+```
+
+Human approval required for: emergency/urgent priority, cost > $10K, shutdown > 4 hours.
 
 ## Data Quality Framework
 
@@ -141,7 +167,6 @@ ML Lifecycle: Feature Store → MLflow Training → Model Registry → Batch Pre
 - **Monitor:** `src/monitoring/metrics.py` — `PipelineMonitor` class
 - **Tracks:** Stage durations, row counts, rejection rates, ML results
 - **Destinations:** Structured logs, Azure Monitor (Log Analytics), Teams webhook on failure
-- **Legacy:** `src/etl/pipeline_observer.py` (PostgreSQL-based, demo mode)
 
 ## Failure Scenarios
 
@@ -181,10 +206,12 @@ TEAMS_WEBHOOK_URL=                 # Microsoft Teams alert webhook
 # ML
 MLFLOW_TRACKING_URI=               # MLflow server (default: file:./mlruns)
 
-# AI Agent
-DIAGNOSTICS_MODEL=openai:gpt-4o-mini
+# AI Agents
+OPENAI_API_KEY=sk-...                    # Required for RAG embeddings (text-embedding-3-small)
+DIAGNOSTICS_MODEL=openai:gpt-4o-mini     # LLM model for all 4 agents
+AGENT_API_URL=http://localhost:8001      # Agent FastAPI sidecar URL
 
-# Legacy (PostgreSQL for demo mode)
+# Legacy (PostgreSQL)
 DATABASE_URL=postgresql://...
 ETL_ORGANIZATION_ID=
 ```
@@ -216,14 +243,13 @@ ETL_ORGANIZATION_ID=
 |------|---------|
 | **Config** | |
 | `config/fabric_config.yaml` | Fabric workspace, lakehouses, Event Hubs, schedule |
-| `config/etl_config.yaml` | Window sizes, Spark config, data paths (legacy) |
+| `config/etl_config.yaml` | Window sizes, Spark config, data paths |
 | `config/thresholds.yaml` | Sensor ranges, station locations, alert rules |
-| `config/database.yaml` | PostgreSQL connection settings (legacy) |
+| `config/database.yaml` | PostgreSQL connection settings |
 | **Data Simulator** | |
 | `src/data_simulator/fleet_simulator.py` | 4,700 compressor fleet generator |
 | `src/data_simulator/compressor_profiles.py` | 7 compressor models, 10 basins, station definitions |
 | `src/data_simulator/failure_scenarios.py` | 6 failure modes with degradation curves |
-| `src/data_simulator/compressor_simulator.py` | Original 10-unit demo simulator |
 | **Ingestion** | |
 | `src/ingestion/event_hub_producer.py` | Stream telemetry to Azure Event Hubs |
 | `src/ingestion/event_hub_consumer.py` | Spark Structured Streaming from Event Hubs |
@@ -236,27 +262,57 @@ ETL_ORGANIZATION_ID=
 | `src/etl/silver/quality.py` | Data quality framework (5 check types) |
 | `src/etl/gold/aggregate.py` | Gold layer aggregations, alerts, fleet health |
 | `src/etl/schemas.py` | PySpark StructType schemas |
-| `src/etl/pyspark_pipeline.py` | Legacy demo pipeline (local Delta + PostgreSQL) |
-| `src/etl/database_writer.py` | Legacy PostgreSQL JDBC writer |
-| `src/etl/pipeline_observer.py` | Legacy pipeline observability |
+| `src/etl/utils.py` | Config loading, Spark session, logging |
 | **ML** | |
-| `src/ml/models/anomaly_detector.py` | Isolation Forest anomaly detection |
-| `src/ml/models/temp_drift_predictor.py` | Temperature drift predictor |
-| `src/ml/models/emissions_estimator.py` | EPA Subpart W emissions |
-| `src/ml/models/rul_predictor.py` | Remaining Useful Life heuristic |
+| `src/ml/anomaly_detector.py` | Isolation Forest anomaly detection |
+| `src/ml/temp_drift_predictor.py` | Temperature drift predictor |
+| `src/ml/emissions_estimator.py` | EPA Subpart W emissions |
+| `src/ml/rul_predictor.py` | Remaining Useful Life heuristic |
 | `src/ml/serving/batch_predictor.py` | Parallel batch inference for fleet |
 | `src/ml/serving/model_registry.py` | MLflow integration + model lifecycle |
 | `src/ml/feature_store/store.py` | Feature computation, serving, drift monitoring |
 | **Monitoring** | |
 | `src/monitoring/metrics.py` | Production pipeline monitor (Azure Monitor + Teams) |
-| **AI Agent** | |
-| `src/agents/diagnostics_agent.py` | Pydantic AI diagnostics agent |
-| `src/agents/api.py` | FastAPI sidecar (port 8001) |
+| **AI Agents** | |
+| `src/agents/diagnostics_agent.py` | Pydantic AI diagnostics agent (5 tools) |
+| `src/agents/investigation_agent.py` | Investigation agent (12 tools, RAG, evidence chains) |
+| `src/agents/knowledge_base.py` | Knowledge base CRUD + pgvector similarity search |
+| `src/agents/work_order_agent.py` | Work order agent (10 tools, HITL) |
+| `src/agents/work_order_state_machine.py` | 9-state machine with transition validation |
+| `src/agents/optimization_agent.py` | Fleet optimization copilot (11 tools, chat) |
+| `src/agents/fleet_scanner.py` | Proactive fleet anomaly scanner |
+| `src/agents/simulator.py` | What-if simulation engine |
+| `src/agents/api.py` | FastAPI sidecar (port 8001, all 4 agents) |
 | `src/agents/run_diagnosis.py` | CLI diagnostics runner |
+| `src/agents/shared/db_tools.py` | 7 shared database query functions |
+| `src/agents/shared/models.py` | Pydantic models (WorkOrderPlan, InvestigationReport, etc.) |
+| `src/agents/shared/guardrails.py` | Tier limits, cost caps, confidence thresholds, rate limits |
+| `src/agents/shared/memory.py` | Agent session CRUD (token/cost tracking) |
+| `src/agents/shared/id_generator.py` | Sequential ID generation (WO-, INV-, OPT-, SNAP-) |
+| **Frontend — Agent Pages** | |
+| `frontend/src/app/(dashboard)/dashboard/investigations/page.tsx` | Investigation list with severity filters |
+| `frontend/src/app/(dashboard)/dashboard/investigations/[invId]/page.tsx` | Investigation detail + feedback form |
+| `frontend/src/app/(dashboard)/dashboard/work-orders/page.tsx` | Work order kanban board + list view |
+| `frontend/src/app/(dashboard)/dashboard/work-orders/[woId]/page.tsx` | Work order detail + state transitions |
+| `frontend/src/app/(dashboard)/dashboard/optimization/page.tsx` | Optimization recommendations + fleet scan |
+| `frontend/src/app/(dashboard)/dashboard/optimization/chat/page.tsx` | Conversational optimization copilot |
+| **Frontend — Agent Components** | |
+| `frontend/src/components/agents/` | 10 components: ConfidenceBadge, SeverityBadge, PriorityBadge, StatusPill, EvidenceChain, WorkOrderCard, WorkOrderTimeline, RecommendationCard, ChatInterface, AgentActivityFeed |
+| `frontend/src/hooks/useAgents.ts` | 6 SWR hooks for agent data fetching |
+| **Frontend — Agent API Routes** | |
+| `frontend/src/app/api/agent/` | 11 proxy routes: investigations (CRUD + feedback), work-orders (CRUD + transition), optimization (scan, what-if, recommendations, chat), sessions |
 | **Infrastructure** | |
 | `infrastructure/terraform/main.tf` | Azure resources (Event Hubs, Key Vault, monitoring) |
-| `infrastructure/sql/schema.sql` | PostgreSQL DDL (legacy) |
+| `infrastructure/sql/schema.sql` | PostgreSQL DDL (20 tables, 5 views, triggers, seed data) |
 | **Tests** | |
+| `tests/test_schemas.py` | Schema validation tests |
+| `tests/test_anomaly_detector.py` | Isolation Forest anomaly detection tests |
+| `tests/test_temp_drift_predictor.py` | Temperature drift prediction tests |
+| `tests/test_emissions_estimator.py` | EPA Subpart W emissions estimation tests |
+| `tests/test_rul_predictor.py` | Remaining Useful Life prediction tests |
 | `tests/load/test_fleet_scale.py` | Fleet simulator, profiles, failure scenarios |
 | `tests/integration/test_onelake_connectivity.py` | OneLake, Bronze/Silver/Gold, quality |
-| `tests/unit/` | Schema, transformation, ML model unit tests |
+| `tests/unit/test_guardrails.py` | Agent guardrail tests (confidence, approval, tiers, rates) |
+| `tests/unit/test_state_machine.py` | Work order state machine transition tests |
+| `tests/unit/test_models.py` | Pydantic model validation tests |
+| `tests/unit/test_id_generator.py` | Sequential ID generation tests |

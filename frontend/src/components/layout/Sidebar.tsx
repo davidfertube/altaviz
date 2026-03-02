@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, Activity, Bell, CheckCircle, Menu, X, Settings } from 'lucide-react';
+import { LayoutGrid, Activity, Bell, CheckCircle, Menu, X, Settings, Search, Wrench, TrendingUp } from 'lucide-react';
 import { NAV_ITEMS } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -16,6 +16,9 @@ const ICONS: Record<string, React.ReactNode> = {
   grid: <LayoutGrid className="size-5" />,
   activity: <Activity className="size-5" />,
   bell: <Bell className="size-5" />,
+  search: <Search className="size-5" />,
+  wrench: <Wrench className="size-5" />,
+  'trending-up': <TrendingUp className="size-5" />,
   'check-circle': <CheckCircle className="size-5" />,
 };
 

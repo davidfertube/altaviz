@@ -192,3 +192,191 @@ export type HealthStatus = 'healthy' | 'warning' | 'critical';
 export type Severity = 'warning' | 'critical';
 export type WindowType = '1hr' | '4hr' | '24hr';
 export type TimeRange = '1h' | '4h' | '24h' | '7d';
+
+// === AGENT TABLES ===
+
+export type WorkOrderStatus =
+  | 'draft'
+  | 'pending_approval'
+  | 'approved'
+  | 'rejected'
+  | 'assigned'
+  | 'in_progress'
+  | 'completed'
+  | 'verified'
+  | 'cancelled';
+
+export type WorkOrderCategory =
+  | 'mechanical_repair'
+  | 'inspection'
+  | 'preventive'
+  | 'calibration'
+  | 'emissions_compliance'
+  | 'optimization'
+  | 'emergency_shutdown';
+
+export type WorkOrderPriority = 'emergency' | 'urgent' | 'high' | 'medium' | 'low';
+
+export interface WorkOrder {
+  id: string;
+  organization_id: string;
+  compressor_id: string;
+  title: string;
+  description: string | null;
+  priority: WorkOrderPriority;
+  category: WorkOrderCategory;
+  status: WorkOrderStatus;
+  source: 'agent' | 'manual' | 'investigation' | 'optimization';
+  source_id: string | null;
+  assigned_to: string | null;
+  estimated_hours: number | null;
+  estimated_cost: number | null;
+  actual_hours: number | null;
+  actual_cost: number | null;
+  parts_needed: { part_name: string; part_number?: string; quantity: number; estimated_cost?: number }[];
+  safety_considerations: string[];
+  requires_shutdown: boolean;
+  scheduled_date: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  completed_at: string | null;
+  completion_notes: string | null;
+  agent_session_id: string | null;
+  agent_confidence: number | null;
+  agent_reasoning: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkOrderTransition {
+  id: number;
+  work_order_id: string;
+  from_status: WorkOrderStatus | null;
+  to_status: WorkOrderStatus;
+  changed_by: string | null;
+  reason: string | null;
+  created_at: string;
+}
+
+export type InvestigationSeverity = 'healthy' | 'early_warning' | 'warning' | 'critical' | 'emergency';
+
+export interface EvidenceStep {
+  step_number: number;
+  finding: string;
+  source: string;
+  confidence: number;
+  supports_hypothesis: boolean;
+}
+
+export interface SimilarIncident {
+  compressor_id: string;
+  date: string;
+  failure_mode: string;
+  similarity_score: number;
+  outcome: string;
+}
+
+export interface KnowledgeSource {
+  doc_id: string;
+  title: string;
+  relevance_score: number;
+  excerpt: string;
+}
+
+export interface InvestigationReport {
+  id: string;
+  organization_id: string;
+  compressor_id: string;
+  root_cause: string;
+  failure_mode: string | null;
+  severity: InvestigationSeverity;
+  confidence: number;
+  evidence_chain: EvidenceStep[];
+  contributing_factors: string[];
+  similar_incidents: SimilarIncident[];
+  recommended_actions: { action: string; priority: string; estimated_downtime_hours?: number; rationale: string }[];
+  estimated_rul_hours: number | null;
+  estimated_repair_cost: number | null;
+  knowledge_sources: KnowledgeSource[];
+  agent_session_id: string | null;
+  feedback_rating: number | null;
+  feedback_correct: boolean | null;
+  feedback_text: string | null;
+  actual_root_cause: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RecommendationStatus = 'active' | 'accepted' | 'dismissed' | 'implemented' | 'expired';
+
+export interface OptimizationRecommendation {
+  id: string;
+  organization_id: string;
+  rec_type: 'load_balance' | 'deferred_maintenance' | 'emissions_reduction' | 'efficiency_improvement' | 'preventive_schedule' | 'fleet_reconfig';
+  scope: 'compressor' | 'station' | 'basin' | 'fleet';
+  target_ids: string[];
+  title: string;
+  description: string | null;
+  priority: 'critical' | 'high' | 'medium' | 'low' | 'informational';
+  estimated_savings_usd: number | null;
+  estimated_emissions_reduction_tonnes: number | null;
+  estimated_uptime_improvement_pct: number | null;
+  scenario_data: Record<string, unknown> | null;
+  confidence: number;
+  status: RecommendationStatus;
+  work_order_id: string | null;
+  agent_session_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AgentType = 'diagnostics' | 'investigation' | 'work_order' | 'optimization';
+
+export interface AgentSession {
+  session_id: string;
+  organization_id: string;
+  user_id: string | null;
+  agent_type: AgentType;
+  compressor_id: string | null;
+  trigger_type: string | null;
+  trigger_id: string | null;
+  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  result_type: string | null;
+  result_id: string | null;
+  total_tokens: number;
+  total_tool_calls: number;
+  duration_seconds: number;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface FleetSnapshot {
+  id: string;
+  organization_id: string;
+  snapshot_type: 'hourly' | 'daily' | 'weekly';
+  total_compressors: number;
+  health_distribution: Record<string, number>;
+  fleet_health_score: number;
+  total_emissions_tonnes: number | null;
+  avg_rul_days: number | null;
+  basin_metrics: Record<string, unknown> | null;
+  top_risks: Record<string, unknown>[];
+  created_at: string;
+}
+
+// === AGENT API RESPONSE TYPES ===
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface WhatIfResult {
+  scenario_type: string;
+  target_ids: string[];
+  baseline: Record<string, unknown>;
+  projected: Record<string, unknown>;
+  risk_assessment: string;
+  recommendation: string;
+  confidence: number;
+}

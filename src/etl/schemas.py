@@ -24,7 +24,6 @@ from pyspark.sql.types import (
     DoubleType,
     IntegerType,
     DateType,
-    FloatType
 )
 
 
@@ -32,7 +31,7 @@ from pyspark.sql.types import (
 # SENSOR READINGS SCHEMA
 # ============================================================================
 # Schema for raw sensor data from compressor units
-# Matches output from src/data_simulator/compressor_simulator.py
+# Matches output from src/data_simulator/fleet_simulator.py
 
 SENSOR_SCHEMA = StructType([
     # === IDENTIFIERS ===

@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Altaviz - Predictive Pipeline Monitoring for Midstream Operators';
+export const alt = 'Altaviz - Know Before It Breaks';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -85,7 +85,7 @@ export default async function Image() {
               lineHeight: 1.15,
             }}
           >
-            Know Your Pipeline Is Safe.
+            Know Before
           </span>
           <span
             style={{
@@ -96,7 +96,7 @@ export default async function Image() {
               lineHeight: 1.15,
             }}
           >
-            Before the Alarm Goes Off.
+            It Breaks.
           </span>
         </div>
 
@@ -109,7 +109,7 @@ export default async function Image() {
             maxWidth: '700px',
           }}
         >
-          Predictive pipeline monitoring for midstream operators
+          Autonomous monitoring agents for oil and gas pipeline fleets
         </span>
 
         {/* Bottom metrics bar */}
@@ -126,8 +126,8 @@ export default async function Image() {
           }}
         >
           {[
+            { value: '4,700+', label: 'Compressors' },
             { value: '48hr', label: 'Early Warning' },
-            { value: '40%', label: 'Fewer Shutdowns' },
             { value: '99.7%', label: 'Uptime' },
           ].map((stat) => (
             <div

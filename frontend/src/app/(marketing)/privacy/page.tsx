@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 const TOC = [
   { id: 'information-we-collect', label: 'Information We Collect' },
   { id: 'how-we-use-your-data', label: 'How We Use Your Data' },
-  { id: 'pipeline-data-isolation', label: 'Pipeline Data Isolation' },
+  { id: 'fleet-data-isolation', label: 'Fleet Data Isolation' },
   { id: 'data-sharing', label: 'Data Sharing' },
   { id: 'data-retention', label: 'Data Retention' },
   { id: 'your-rights', label: 'Your Rights' },
@@ -102,10 +102,10 @@ export default function PrivacyPage() {
                   SCADA and Sensor Telemetry
                 </h3>
                 <p className="text-sm text-[#78716C] leading-relaxed mb-3">
-                  Our core service ingests pipeline and compressor sensor data including, but not
+                  Our core service ingests compressor sensor telemetry including, but not
                   limited to, vibration readings, temperature measurements, pressure readings,
                   flow rates, and equipment metadata. This data is provided by your organization
-                  through our ingestion pipeline or API and is processed exclusively for the
+                  through our data ingestion pipeline or API and is processed exclusively for the
                   purposes described in this policy.
                 </p>
 
@@ -167,10 +167,10 @@ export default function PrivacyPage() {
                 </ul>
               </section>
 
-              {/* 3. Pipeline Data Isolation */}
-              <section id="pipeline-data-isolation">
+              {/* 3. Fleet Data Isolation */}
+              <section id="fleet-data-isolation">
                 <h2 className="text-xl font-semibold text-[#1C1917] mb-4">
-                  3. Pipeline Data Isolation
+                  3. Fleet Data Isolation
                 </h2>
                 <div className="rounded-xl border border-[#C4A77D]/30 bg-[#C4A77D]/5 p-5 mb-4">
                   <p className="text-sm text-[#1C1917] font-medium mb-2">

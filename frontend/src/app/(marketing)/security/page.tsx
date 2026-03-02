@@ -20,6 +20,7 @@ import {
   ClipboardList,
   Leaf,
   CreditCard,
+  Bot,
 } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -97,7 +98,7 @@ export default function SecurityPage() {
             <span className="text-[#C4A77D]">critical infrastructure data</span>
           </h1>
           <p className="text-base text-[#78716C] max-w-2xl mb-6">
-            Altaviz is purpose-built to protect sensitive pipeline telemetry and SCADA data.
+            Altaviz is purpose-built to protect sensitive compressor sensor telemetry and SCADA data.
             Every layer of our platform — from data ingestion to dashboard delivery — is
             designed with defense-in-depth security principles.
           </p>
@@ -158,6 +159,14 @@ export default function SecurityPage() {
             identity, action type, and affected resource. Audit logs are immutable and
             retained per your subscription agreement.
           </SecurityCard>
+
+          <SecurityCard icon={Bot} title="AI Agent Guardrails">
+            AI agents operate within strict safety boundaries: confidence thresholds
+            reject low-certainty diagnoses, cost caps ($10K per work order) prevent
+            runaway spending, human-in-the-loop approval gates require technician sign-off
+            before execution, rate limiting (10 work orders/hr) prevents automation storms,
+            and tier-based access control restricts agent capabilities by subscription level.
+          </SecurityCard>
         </div>
       </section>
 
@@ -204,10 +213,10 @@ export default function SecurityPage() {
                 SCADA Data Handling
               </p>
               <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
-                How we protect your pipeline telemetry
+                How we protect your fleet telemetry
               </h2>
               <p className="text-sm text-[#78716C] leading-relaxed mb-6">
-                Pipeline sensor data is among the most sensitive operational information in
+                Compressor sensor data is among the most sensitive operational information in
                 the energy sector. Our data handling practices are designed specifically for
                 SCADA and industrial telemetry workflows.
               </p>
@@ -302,7 +311,7 @@ export default function SecurityPage() {
           </h2>
           <p className="text-sm text-[#78716C] leading-relaxed max-w-2xl mb-8">
             Altaviz is designed to support compliance with the regulatory frameworks that
-            govern pipeline operations in the United States.
+            govern compressor fleet operations in the United States.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

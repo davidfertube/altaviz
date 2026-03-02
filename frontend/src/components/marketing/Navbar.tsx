@@ -25,7 +25,6 @@ import {
   Lock,
   Building2,
   Mail,
-  ArrowRight,
   MapPin,
 } from 'lucide-react';
 
@@ -157,9 +156,9 @@ export default function Navbar() {
                     <div className="p-4 w-[320px]">
                       <MegaMenuItem icon={MapPin} title="Fleet Monitoring" description="Interactive map and health dashboard" href="/solutions/transmission-pipelines" />
                       <MegaMenuItem icon={Activity} title="Predictive Maintenance" description="ML-powered anomaly detection and RUL" href="/solutions/reliability-engineers" />
-                      <MegaMenuItem icon={Bell} title="Alert Management" description="Prioritized alerts with auto-escalation" href="/solutions/field-operations" />
-                      <MegaMenuItem icon={Leaf} title="Emissions Compliance" description="EPA Subpart W tracking and reporting" href="/solutions/compliance-officers" />
-                      <MegaMenuItem icon={Shield} title="Security" description="RBAC, audit logs, and compliance standards" href="/security" />
+                      <MegaMenuItem icon={Bell} title="AI Investigation" description="Automated root cause analysis and diagnostics" href="/solutions/reliability-engineers" />
+                      <MegaMenuItem icon={Leaf} title="Work Order Automation" description="AI-generated work orders with parts and cost" href="/solutions/field-operations" />
+                      <MegaMenuItem icon={Shield} title="Emissions & Compliance" description="EPA Subpart W and regulatory reporting" href="/solutions/compliance-officers" />
                     </div>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
@@ -185,7 +184,7 @@ export default function Navbar() {
                     <div className="p-2 w-[240px]">
                       <MegaMenuItem icon={GitBranch} title="Changelog" description="Product updates and releases" href="/changelog" />
                       <MegaMenuItem icon={Lock} title="Security" description="How we protect your data" href="/security" />
-                      <MegaMenuItem icon={BookOpen} title="Documentation" description="Contact us for access" href="/contact" />
+                      <MegaMenuItem icon={BookOpen} title="Documentation" description="Available after sign-up" href="/signup" />
                     </div>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
@@ -198,7 +197,7 @@ export default function Navbar() {
                   <NavigationMenuContent>
                     <div className="p-2 w-[220px]">
                       <MegaMenuItem icon={Building2} title="About" description="Our mission and team" href="/about" />
-                      <MegaMenuItem icon={Mail} title="Contact" description="Get in touch" href="/contact" />
+                      <MegaMenuItem icon={Mail} title="Support" description="support@altaviz.com" href="mailto:support@altaviz.com" />
                     </div>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
@@ -221,10 +220,10 @@ export default function Navbar() {
               Get Started
             </Link>
             <Link
-              href="/contact"
+              href="/signup"
               className="text-sm font-semibold text-white bg-[#1C1917] hover:bg-[#2D2D2D] transition-colors px-5 py-2.5 rounded-full"
             >
-              Contact Sales
+              Start Free
             </Link>
           </div>
 
@@ -245,11 +244,11 @@ export default function Navbar() {
         <div className="lg:hidden bg-white/95 backdrop-blur-xl border-t border-[#E7E0D5] max-h-[80vh] overflow-y-auto">
           <div className="px-4 py-4 space-y-1">
             <MobileNavGroup label="Solutions">
-              <MobileNavLink href="/solutions/transmission-pipelines" label="Transmission Pipelines" onClick={closeMobile} />
-              <MobileNavLink href="/solutions/gathering-systems" label="Gathering Systems" onClick={closeMobile} />
+              <MobileNavLink href="/solutions/transmission-pipelines" label="Gas Compression Fleets" onClick={closeMobile} />
+              <MobileNavLink href="/solutions/gathering-systems" label="Station Operations" onClick={closeMobile} />
               <MobileNavLink href="/solutions/reliability-engineers" label="Reliability Engineers" onClick={closeMobile} />
-              <MobileNavLink href="/solutions/compliance-officers" label="Compliance Officers" onClick={closeMobile} />
-              <MobileNavLink href="/solutions/field-operations" label="Field Operations" onClick={closeMobile} />
+              <MobileNavLink href="/solutions/compliance-officers" label="Compliance & Reporting" onClick={closeMobile} />
+              <MobileNavLink href="/solutions/field-operations" label="Field Technicians" onClick={closeMobile} />
             </MobileNavGroup>
 
             <MobileNavLink href="/pricing" label="Pricing" onClick={closeMobile} />
@@ -257,12 +256,12 @@ export default function Navbar() {
             <MobileNavGroup label="Resources">
               <MobileNavLink href="/changelog" label="Changelog" onClick={closeMobile} />
               <MobileNavLink href="/security" label="Security" onClick={closeMobile} />
-              <MobileNavLink href="/contact" label="Documentation" onClick={closeMobile} />
+              <MobileNavLink href="/signup" label="Documentation" onClick={closeMobile} />
             </MobileNavGroup>
 
             <MobileNavGroup label="Company">
               <MobileNavLink href="/about" label="About" onClick={closeMobile} />
-              <MobileNavLink href="/contact" label="Contact" onClick={closeMobile} />
+              <MobileNavLink href="mailto:support@altaviz.com" label="Support" onClick={closeMobile} />
             </MobileNavGroup>
 
             <div className="pt-3 border-t border-[#E7E0D5] space-y-2">
@@ -281,11 +280,11 @@ export default function Navbar() {
                 Get Started
               </Link>
               <Link
-                href="/contact"
+                href="/signup"
                 onClick={closeMobile}
                 className="block text-sm font-semibold text-center text-white bg-[#1C1917] hover:bg-[#2D2D2D] transition-colors px-5 py-2.5 rounded-full"
               >
-                Contact Sales
+                Start Free
               </Link>
             </div>
           </div>

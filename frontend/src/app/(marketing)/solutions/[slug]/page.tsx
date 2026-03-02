@@ -56,16 +56,16 @@ interface SolutionData {
 
 const SOLUTIONS: Record<string, SolutionData> = {
   'transmission-pipelines': {
-    title: 'Transmission Pipelines',
-    subtitle: 'End-to-end monitoring for long-haul pipeline networks',
+    title: 'Gas Compression Fleets',
+    subtitle: 'End-to-end monitoring for large-scale compressor operations',
     description:
-      'Monitor thousands of miles of transmission pipeline with ML-powered anomaly detection, predictive maintenance, and 49 CFR 192 compliance tracking — all from a single dashboard.',
+      'Monitor thousands of compressors with ML-powered anomaly detection, AI-driven diagnostics, and automated work orders — all from a single dashboard.',
     features: [
       {
         icon: MapPin,
         title: 'Fleet-Wide Visibility',
         description:
-          'Interactive map with real-time health status for every compressor station across your transmission network.',
+          'Interactive map with real-time health status for every compressor across your fleet — 4,700+ units at a glance.',
       },
       {
         icon: Activity,
@@ -75,15 +75,15 @@ const SOLUTIONS: Record<string, SolutionData> = {
       },
       {
         icon: FileCheck,
-        title: '49 CFR 192 Compliance',
+        title: 'AI-Powered Diagnostics',
         description:
-          'Automated compliance tracking and audit-ready reporting aligned with PHMSA pipeline safety regulations.',
+          'AI agents automatically trace root cause, check maintenance history, and generate work orders with parts and cost estimates.',
       },
       {
         icon: Gauge,
-        title: 'Pressure Monitoring',
+        title: 'Pressure & Temperature Monitoring',
         description:
-          'Continuous pressure surveillance with configurable thresholds and automatic alert escalation.',
+          'Continuous sensor surveillance with configurable thresholds and automatic alert escalation.',
       },
     ],
     metrics: [
@@ -93,10 +93,10 @@ const SOLUTIONS: Record<string, SolutionData> = {
     ],
   },
   'gathering-systems': {
-    title: 'Gathering Systems',
-    subtitle: 'Multi-well pad monitoring and corrosion prevention',
+    title: 'Station Operations',
+    subtitle: 'Multi-station monitoring and optimization',
     description:
-      'Purpose-built for gathering system operators managing complex networks of wells, separators, and compressors across distributed field operations.',
+      'Purpose-built for operators managing compressor stations across distributed basins. Real-time health monitoring for every unit at every station.',
     features: [
       {
         icon: Radio,
@@ -112,20 +112,20 @@ const SOLUTIONS: Record<string, SolutionData> = {
       },
       {
         icon: AlertTriangle,
-        title: 'Corrosion Detection',
+        title: 'Failure Pattern Detection',
         description:
-          'Early identification of corrosion patterns through multi-sensor trend analysis and ML inference.',
+          'Early identification of bearing wear, valve failures, and fouling through multi-sensor trend analysis.',
       },
       {
         icon: BarChart3,
-        title: 'Production Analytics',
+        title: 'Station Analytics',
         description:
-          'Hourly aggregation across 1hr, 4hr, and 24hr windows for comprehensive production visibility.',
+          'Hourly aggregation across 1hr, 4hr, and 24hr windows for comprehensive station visibility.',
       },
     ],
     metrics: [
       { label: 'Data Reduction', value: '83%' },
-      { label: 'Sensors Monitored', value: '10K+' },
+      { label: 'Compressors Monitored', value: '4,700+' },
       { label: 'Processing Time', value: '21s' },
     ],
   },
@@ -167,10 +167,10 @@ const SOLUTIONS: Record<string, SolutionData> = {
     ],
   },
   'compliance-officers': {
-    title: 'Compliance Officers',
+    title: 'Compliance & Reporting',
     subtitle: 'Automated regulatory reporting and audit trails',
     description:
-      'Meet EPA Subpart W, PHMSA, and industry compliance requirements with automated emissions estimation, immutable audit logs, and one-click reporting.',
+      'Meet EPA Subpart W and industry compliance requirements with automated emissions estimation, immutable audit logs, and one-click reporting.',
     features: [
       {
         icon: Leaf,
@@ -204,10 +204,10 @@ const SOLUTIONS: Record<string, SolutionData> = {
     ],
   },
   'field-operations': {
-    title: 'Field Operations',
-    subtitle: 'Real-time alerts and dashboards for teams in the field',
+    title: 'Field Technicians',
+    subtitle: 'AI-generated work orders and mobile dashboards for crews in the field',
     description:
-      'Empower field crews with mobile-ready dashboards, prioritized alert queues, and automated workflow escalation so your team can focus on what matters.',
+      'Empower field crews with AI-generated work orders, mobile-ready dashboards, and prioritized alert queues so technicians know exactly what to fix and why.',
     features: [
       {
         icon: Smartphone,
@@ -229,9 +229,9 @@ const SOLUTIONS: Record<string, SolutionData> = {
       },
       {
         icon: Wrench,
-        title: 'Work Order Integration',
+        title: 'AI Work Orders',
         description:
-          'Alerts link directly to maintenance context with sensor history, ML predictions, and recommended actions.',
+          'AI agents generate work orders with parts list, cost estimate, and priority — technicians approve and act.',
       },
     ],
     metrics: [
@@ -308,7 +308,7 @@ export default function SolutionPage({
               size="lg"
               className="h-12 px-8 text-base font-medium rounded-full border-[#E7E0D5] text-[#78716C] hover:text-[#1C1917] hover:border-[#C4A77D] hover:bg-[#C4A77D]/5 bg-transparent"
             >
-              <Link href="/contact">Schedule a Demo</Link>
+              <Link href="/pricing">See Pricing</Link>
             </Button>
           </motion.div>
         </motion.div>
@@ -422,7 +422,7 @@ export default function SolutionPage({
                 size="lg"
                 className="h-12 px-8 text-base font-medium rounded-full border-white/20 text-white/80 hover:text-white hover:border-white/40 bg-transparent"
               >
-                <Link href="/contact">Contact Sales</Link>
+                <Link href="/pricing">See Pricing</Link>
               </Button>
             </div>
           </motion.div>

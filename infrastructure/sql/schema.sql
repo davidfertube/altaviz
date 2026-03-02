@@ -2,14 +2,23 @@
 -- ALTAVIZ UNIFIED SCHEMA (PostgreSQL 14+)
 -- ===============================================
 -- Multi-tenant pipeline integrity monitoring system
--- Includes: 11 tables, 3 views, triggers, seed data
+-- Includes: 20 tables, 5 views, triggers, seed data
 -- Run once on a fresh PostgreSQL database (e.g. Supabase)
 
 -- Drop existing objects for clean install
+DROP VIEW IF EXISTS v_agent_activity CASCADE;
+DROP VIEW IF EXISTS v_open_work_orders CASCADE;
 DROP VIEW IF EXISTS v_fleet_health_summary CASCADE;
 DROP VIEW IF EXISTS v_active_alerts CASCADE;
 DROP VIEW IF EXISTS v_latest_readings CASCADE;
 
+DROP TABLE IF EXISTS fleet_snapshots CASCADE;
+DROP TABLE IF EXISTS agent_sessions CASCADE;
+DROP TABLE IF EXISTS optimization_recommendations CASCADE;
+DROP TABLE IF EXISTS work_order_transitions CASCADE;
+DROP TABLE IF EXISTS work_orders CASCADE;
+DROP TABLE IF EXISTS investigation_reports CASCADE;
+DROP TABLE IF EXISTS knowledge_base CASCADE;
 DROP TABLE IF EXISTS emissions_estimates CASCADE;
 DROP TABLE IF EXISTS ml_predictions CASCADE;
 DROP TABLE IF EXISTS data_quality_metrics CASCADE;
@@ -17,10 +26,15 @@ DROP TABLE IF EXISTS alert_history CASCADE;
 DROP TABLE IF EXISTS maintenance_events CASCADE;
 DROP TABLE IF EXISTS sensor_readings_agg CASCADE;
 DROP TABLE IF EXISTS billing_events CASCADE;
+DROP TABLE IF EXISTS pipeline_runs CASCADE;
+DROP TABLE IF EXISTS audit_logs CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS compressor_metadata CASCADE;
 DROP TABLE IF EXISTS station_locations CASCADE;
 DROP TABLE IF EXISTS organizations CASCADE;
+
+-- Enable pgvector for RAG embedding storage
+CREATE EXTENSION IF NOT EXISTS vector;
 
 -- ===============================================
 -- TENANT TABLE
@@ -443,3 +457,369 @@ CREATE TABLE IF NOT EXISTS pipeline_runs (
 
 CREATE INDEX IF NOT EXISTS idx_pipeline_runs_org ON pipeline_runs(organization_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_pipeline_runs_status ON pipeline_runs(status, created_at DESC);
+
+-- ============================================================================
+-- AGENTIC SYSTEM TABLES
+-- ============================================================================
+
+-- ============================================================================
+-- WORK ORDERS (Use Case 1: Work Order Orchestration Agent)
+-- ============================================================================
+
+CREATE TABLE work_orders (
+    id              SERIAL PRIMARY KEY,
+    work_order_id   VARCHAR(20) UNIQUE NOT NULL,
+    compressor_id   VARCHAR(50) NOT NULL,
+    organization_id UUID NOT NULL REFERENCES organizations(id),
+
+    -- Source tracking (what triggered this work order)
+    source_type     VARCHAR(30) NOT NULL CHECK (source_type IN (
+        'alert_triggered', 'investigation', 'optimization', 'manual', 'scheduled'
+    )),
+    source_id       VARCHAR(100),
+
+    -- Work order details
+    title           VARCHAR(300) NOT NULL,
+    description     TEXT,
+    priority        VARCHAR(20) NOT NULL CHECK (priority IN (
+        'emergency', 'urgent', 'high', 'medium', 'low'
+    )),
+    category        VARCHAR(50) CHECK (category IN (
+        'mechanical_repair', 'inspection', 'preventive', 'calibration',
+        'emissions_compliance', 'optimization', 'emergency_shutdown'
+    )),
+
+    -- State machine
+    status          VARCHAR(20) NOT NULL DEFAULT 'draft' CHECK (status IN (
+        'draft', 'pending_approval', 'approved', 'assigned', 'in_progress',
+        'completed', 'verified', 'cancelled', 'rejected'
+    )),
+
+    -- Assignment
+    assigned_to     VARCHAR(200),
+    approved_by     UUID REFERENCES users(id),
+    approved_at     TIMESTAMP,
+
+    -- Scheduling
+    estimated_hours DECIMAL(6,2),
+    estimated_cost  DECIMAL(12,2),
+    scheduled_date  DATE,
+    due_date        DATE,
+
+    -- Completion
+    actual_hours    DECIMAL(6,2),
+    actual_cost     DECIMAL(12,2),
+    completed_at    TIMESTAMP,
+    completion_notes TEXT,
+    parts_replaced  JSONB,
+
+    -- AI metadata
+    ai_confidence   DECIMAL(5,4),
+    ai_reasoning    TEXT,
+
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_wo_compressor FOREIGN KEY (compressor_id)
+        REFERENCES compressor_metadata(compressor_id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_wo_org_status ON work_orders(organization_id, status);
+CREATE INDEX idx_wo_compressor ON work_orders(compressor_id, created_at DESC);
+CREATE INDEX idx_wo_priority ON work_orders(priority, status) WHERE status NOT IN ('completed', 'cancelled', 'rejected', 'verified');
+CREATE INDEX idx_wo_scheduled ON work_orders(scheduled_date) WHERE status IN ('approved', 'assigned');
+
+CREATE TRIGGER update_work_orders_updated_at
+    BEFORE UPDATE ON work_orders
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- WORK ORDER TRANSITIONS (audit trail for state machine)
+-- ============================================================================
+
+CREATE TABLE work_order_transitions (
+    id              SERIAL PRIMARY KEY,
+    work_order_id   VARCHAR(20) NOT NULL REFERENCES work_orders(work_order_id),
+    from_status     VARCHAR(20),
+    to_status       VARCHAR(20) NOT NULL,
+    transitioned_by UUID REFERENCES users(id),
+    agent_name      VARCHAR(50),
+    reason          TEXT,
+    metadata        JSONB,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_wot_wo ON work_order_transitions(work_order_id, created_at DESC);
+
+-- ============================================================================
+-- INVESTIGATION REPORTS (Use Case 2: Root Cause Investigation Agent)
+-- ============================================================================
+
+CREATE TABLE investigation_reports (
+    id              SERIAL PRIMARY KEY,
+    investigation_id VARCHAR(30) UNIQUE NOT NULL,
+    compressor_id   VARCHAR(50) NOT NULL,
+    organization_id UUID NOT NULL REFERENCES organizations(id),
+
+    -- Trigger
+    trigger_type    VARCHAR(30) NOT NULL CHECK (trigger_type IN (
+        'alert', 'anomaly', 'work_order', 'optimization', 'manual'
+    )),
+    trigger_id      VARCHAR(100),
+
+    -- Analysis results
+    root_cause      TEXT NOT NULL,
+    confidence      DECIMAL(5,4) NOT NULL,
+    failure_mode    VARCHAR(50),
+    severity        VARCHAR(20) NOT NULL CHECK (severity IN (
+        'healthy', 'early_warning', 'warning', 'critical', 'emergency'
+    )),
+
+    -- Structured evidence
+    evidence_chain  JSONB NOT NULL,
+    contributing_factors JSONB,
+    similar_incidents JSONB,
+
+    -- Recommendations
+    recommended_actions JSONB NOT NULL,
+    estimated_rul_hours DECIMAL(10,2),
+    estimated_repair_cost DECIMAL(12,2),
+
+    -- RAG sources
+    knowledge_sources JSONB,
+
+    -- Learning / feedback
+    technician_feedback TEXT,
+    feedback_rating INT CHECK (feedback_rating BETWEEN 1 AND 5),
+    was_correct     BOOLEAN,
+
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_inv_compressor FOREIGN KEY (compressor_id)
+        REFERENCES compressor_metadata(compressor_id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_inv_org ON investigation_reports(organization_id, created_at DESC);
+CREATE INDEX idx_inv_compressor ON investigation_reports(compressor_id, created_at DESC);
+CREATE INDEX idx_inv_failure_mode ON investigation_reports(failure_mode);
+
+CREATE TRIGGER update_investigation_reports_updated_at
+    BEFORE UPDATE ON investigation_reports
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- KNOWLEDGE BASE (Use Case 2: RAG source documents with pgvector)
+-- ============================================================================
+
+CREATE TABLE knowledge_base (
+    id              SERIAL PRIMARY KEY,
+    doc_id          VARCHAR(50) UNIQUE NOT NULL,
+    organization_id UUID NOT NULL REFERENCES organizations(id),
+
+    doc_type        VARCHAR(30) NOT NULL CHECK (doc_type IN (
+        'maintenance_manual', 'service_bulletin', 'incident_report',
+        'best_practice', 'oem_spec', 'regulatory', 'learned_lesson'
+    )),
+    title           VARCHAR(500) NOT NULL,
+    content         TEXT NOT NULL,
+
+    -- Metadata for filtering
+    compressor_models JSONB,
+    failure_modes   JSONB,
+    components      JSONB,
+
+    -- pgvector embedding (1536-dim for text-embedding-3-small)
+    embedding       vector(1536),
+
+    source_url      TEXT,
+    version         VARCHAR(20),
+
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_kb_org ON knowledge_base(organization_id);
+CREATE INDEX idx_kb_type ON knowledge_base(doc_type);
+CREATE INDEX idx_kb_embedding ON knowledge_base USING hnsw (embedding vector_cosine_ops);
+
+CREATE TRIGGER update_knowledge_base_updated_at
+    BEFORE UPDATE ON knowledge_base
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- OPTIMIZATION RECOMMENDATIONS (Use Case 3: Fleet Optimization Copilot)
+-- ============================================================================
+
+CREATE TABLE optimization_recommendations (
+    id              SERIAL PRIMARY KEY,
+    recommendation_id VARCHAR(30) UNIQUE NOT NULL,
+    organization_id UUID NOT NULL REFERENCES organizations(id),
+
+    rec_type        VARCHAR(30) NOT NULL CHECK (rec_type IN (
+        'load_balance', 'deferred_maintenance', 'emissions_reduction',
+        'efficiency_improvement', 'preventive_schedule', 'fleet_reconfig'
+    )),
+
+    -- Scope
+    scope           VARCHAR(20) NOT NULL CHECK (scope IN (
+        'compressor', 'station', 'basin', 'fleet'
+    )),
+    target_ids      JSONB NOT NULL,
+
+    -- Recommendation
+    title           VARCHAR(300) NOT NULL,
+    description     TEXT NOT NULL,
+    priority        VARCHAR(20) NOT NULL CHECK (priority IN (
+        'critical', 'high', 'medium', 'low', 'informational'
+    )),
+
+    -- Impact estimates
+    estimated_savings_usd  DECIMAL(12,2),
+    estimated_emissions_reduction_tonnes DECIMAL(10,4),
+    estimated_uptime_improvement_pct DECIMAL(5,2),
+
+    -- What-if scenario results
+    scenario_data   JSONB,
+
+    -- Status
+    status          VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN (
+        'pending', 'accepted', 'implemented', 'dismissed', 'expired'
+    )),
+    accepted_by     UUID REFERENCES users(id),
+
+    -- Link to work order if acted upon
+    work_order_id   VARCHAR(20) REFERENCES work_orders(work_order_id),
+
+    ai_confidence   DECIMAL(5,4),
+
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at      TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_opt_org_status ON optimization_recommendations(organization_id, status);
+CREATE INDEX idx_opt_type ON optimization_recommendations(rec_type);
+
+CREATE TRIGGER update_optimization_recommendations_updated_at
+    BEFORE UPDATE ON optimization_recommendations
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- AGENT SESSIONS (shared: conversation memory & context for all 3 agents)
+-- ============================================================================
+
+CREATE TABLE agent_sessions (
+    id              SERIAL PRIMARY KEY,
+    session_id      UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id),
+    user_id         UUID REFERENCES users(id),
+
+    agent_type      VARCHAR(30) NOT NULL CHECK (agent_type IN (
+        'work_order', 'investigation', 'optimization', 'diagnostics'
+    )),
+
+    -- Context
+    compressor_id   VARCHAR(50),
+    trigger_type    VARCHAR(30),
+    trigger_id      VARCHAR(100),
+
+    -- Conversation
+    messages        JSONB NOT NULL DEFAULT '[]',
+    context         JSONB,
+
+    -- Result
+    result_type     VARCHAR(30),
+    result_id       VARCHAR(100),
+
+    status          VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN (
+        'active', 'waiting_approval', 'completed', 'failed', 'expired'
+    )),
+
+    -- Metrics
+    total_tokens    INT DEFAULT 0,
+    total_tool_calls INT DEFAULT 0,
+    duration_seconds DECIMAL(10,2),
+
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at    TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_as_org ON agent_sessions(organization_id, created_at DESC);
+CREATE INDEX idx_as_agent ON agent_sessions(agent_type, status);
+CREATE INDEX idx_as_user ON agent_sessions(user_id, created_at DESC);
+
+CREATE TRIGGER update_agent_sessions_updated_at
+    BEFORE UPDATE ON agent_sessions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- FLEET SNAPSHOTS (Use Case 3: periodic fleet health captures)
+-- ============================================================================
+
+CREATE TABLE fleet_snapshots (
+    id              SERIAL PRIMARY KEY,
+    snapshot_id     VARCHAR(30) UNIQUE NOT NULL,
+    organization_id UUID NOT NULL REFERENCES organizations(id),
+
+    snapshot_type   VARCHAR(20) NOT NULL CHECK (snapshot_type IN (
+        'hourly', 'daily', 'weekly'
+    )),
+
+    -- Fleet-level metrics
+    total_compressors INT,
+    healthy_count    INT,
+    warning_count    INT,
+    critical_count   INT,
+    offline_count    INT,
+
+    -- Aggregate health scores
+    fleet_health_score DECIMAL(5,2),
+    avg_rul_hours    DECIMAL(10,2),
+    total_emissions_tonnes DECIMAL(10,4),
+    fleet_efficiency_pct DECIMAL(5,2),
+
+    -- Per-basin breakdown
+    basin_metrics    JSONB,
+
+    -- Top risks
+    top_risks        JSONB,
+
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_fs_org ON fleet_snapshots(organization_id, created_at DESC);
+CREATE INDEX idx_fs_type ON fleet_snapshots(snapshot_type);
+
+-- ============================================================================
+-- AGENTIC SYSTEM VIEWS
+-- ============================================================================
+
+CREATE VIEW v_open_work_orders AS
+SELECT wo.*, cm.model, cm.station_id, sl.station_name
+FROM work_orders wo
+JOIN compressor_metadata cm ON wo.compressor_id = cm.compressor_id
+JOIN station_locations sl ON cm.station_id = sl.station_id
+WHERE wo.status NOT IN ('completed', 'verified', 'cancelled', 'rejected')
+ORDER BY
+    CASE wo.priority
+        WHEN 'emergency' THEN 1
+        WHEN 'urgent' THEN 2
+        WHEN 'high' THEN 3
+        WHEN 'medium' THEN 4
+        WHEN 'low' THEN 5
+    END,
+    wo.created_at;
+
+CREATE VIEW v_agent_activity AS
+SELECT
+    s.agent_type,
+    s.status,
+    COUNT(*) as session_count,
+    AVG(s.total_tokens) as avg_tokens,
+    AVG(s.duration_seconds) as avg_duration_s,
+    s.organization_id
+FROM agent_sessions s
+WHERE s.created_at >= NOW() - INTERVAL '7 days'
+GROUP BY s.agent_type, s.status, s.organization_id;

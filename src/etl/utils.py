@@ -66,7 +66,7 @@ def setup_logging(log_level=None):
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-    logger = logging.getLogger('CompressorHealthETL')
+    logger = logging.getLogger(__name__)
     return logger
 
 
@@ -149,7 +149,7 @@ def load_config(config_filename: str) -> Dict[str, Any]:
     # Check if file exists
     if not config_path.exists():
         raise FileNotFoundError(
-            f"Configuration file not found: {config_path}\\n"
+            f"Configuration file not found: {config_path}\n"
             f"Expected location: config/{config_filename}"
         )
 
@@ -213,7 +213,6 @@ def create_spark_session(app_name=None) -> SparkSession:
     # getOrCreate() returns existing session if one exists, otherwise creates new
     spark = SparkSession.builder \
         .config(conf=conf) \
-        .enableHiveSupport() \
         .getOrCreate()
 
     # Set log level to WARN to reduce console noise
@@ -377,7 +376,7 @@ if __name__ == "__main__":
     logger.info("Logger initialized successfully")
 
     # Test configuration loading
-    print("\\nLoading configurations...")
+    print("\nLoading configurations...")
     db_config = load_config('database.yaml')
     etl_config = load_config('etl_config.yaml')
     thresholds = load_config('thresholds.yaml')
@@ -387,7 +386,7 @@ if __name__ == "__main__":
     logger.info(f"Vibration threshold: {thresholds['sensor_thresholds']['vibration_mms']['warning_threshold']}")
 
     # Test Spark session
-    print("\\nCreating Spark session...")
+    print("\nCreating Spark session...")
     with Timer("Spark session creation", logger):
         spark = create_spark_session()
 
@@ -395,12 +394,12 @@ if __name__ == "__main__":
     logger.info(f"Spark master: {spark.sparkContext.master}")
 
     # Test database URL
-    print("\\nDatabase connection...")
+    print("\nDatabase connection...")
     db_url = get_database_url()
     logger.info(f"Database URL: {db_url.replace(db_config['database']['password'], '****')}")
 
     # Test data paths
-    print("\\nData layer paths...")
+    print("\nData layer paths...")
     for layer in ['raw', 'bronze', 'silver', 'gold']:
         path = get_data_path(layer)
         logger.info(f"{layer.capitalize():8s} layer: {path}")
@@ -409,6 +408,6 @@ if __name__ == "__main__":
     spark.stop()
     logger.info("Spark session stopped")
 
-    print("\\n" + "=" * 80)
+    print("\n" + "=" * 80)
     print("All utility functions tested successfully!")
     print("=" * 80)

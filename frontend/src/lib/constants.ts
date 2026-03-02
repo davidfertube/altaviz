@@ -64,21 +64,6 @@ export const SENSOR_THRESHOLDS = {
   },
 } as const;
 
-export const DERIVED_THRESHOLDS = {
-  pressure_differential: {
-    normal_range: [800, 1150] as [number, number],
-    warning: 1250,
-    unit: 'PSI',
-    label: 'Pressure Differential',
-  },
-  temp_rate_of_change: {
-    warning: 20.0,
-    critical: 40.0,
-    unit: '\u00B0F/hr',
-    label: 'Temp Rate of Change',
-  },
-} as const;
-
 export const WINDOW_OPTIONS = [
   { value: '1hr' as const, label: '1 Hour' },
   { value: '4hr' as const, label: '4 Hours' },
@@ -96,5 +81,8 @@ export const NAV_ITEMS = [
   { href: '/dashboard', label: 'Fleet Overview', icon: 'grid' },
   { href: '/dashboard/monitoring', label: 'Monitoring', icon: 'activity' },
   { href: '/dashboard/alerts', label: 'Alerts', icon: 'bell' },
+  { href: '/dashboard/investigations', label: 'Investigations', icon: 'search' },
+  { href: '/dashboard/work-orders', label: 'Work Orders', icon: 'wrench' },
+  { href: '/dashboard/optimization', label: 'Optimization', icon: 'trending-up' },
   { href: '/dashboard/data-quality', label: 'Data Quality', icon: 'check-circle' },
 ] as const;

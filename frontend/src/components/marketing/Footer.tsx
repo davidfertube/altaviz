@@ -8,26 +8,26 @@ const FOOTER_LINKS = {
   Platform: [
     { label: 'Fleet Monitoring', href: '/signup' },
     { label: 'Anomaly Detection', href: '/signup' },
-    { label: 'Temperature Prediction', href: '/signup' },
-    { label: 'RUL Estimation', href: '/signup' },
+    { label: 'AI Agents', href: '/signup' },
+    { label: 'Work Orders', href: '/signup' },
     { label: 'Emissions Tracking', href: '/signup' },
-    { label: 'Alert Management', href: '/signup' },
+    { label: 'Predictive Maintenance', href: '/signup' },
   ],
   Solutions: [
-    { label: 'Transmission Pipelines', href: '/solutions/transmission-pipelines' },
-    { label: 'Gathering Systems', href: '/solutions/gathering-systems' },
+    { label: 'Gas Compression Fleets', href: '/solutions/transmission-pipelines' },
+    { label: 'Station Operations', href: '/solutions/gathering-systems' },
     { label: 'Reliability Engineers', href: '/solutions/reliability-engineers' },
-    { label: 'Compliance Officers', href: '/solutions/compliance-officers' },
-    { label: 'Field Operations', href: '/solutions/field-operations' },
+    { label: 'Compliance & Reporting', href: '/solutions/compliance-officers' },
+    { label: 'Field Technicians', href: '/solutions/field-operations' },
   ],
   Resources: [
     { label: 'Changelog', href: '/changelog' },
-    { label: 'Documentation', href: '/contact' },
-    { label: 'API Reference', href: '/contact' },
+    { label: 'Documentation', href: '/signup' },
+    { label: 'API Reference', href: '/signup' },
   ],
   Company: [
     { label: 'About', href: '/about' },
-    { label: 'Contact', href: '/contact' },
+    { label: 'Support', href: 'mailto:support@altaviz.com' },
     { label: 'Security', href: '/security' },
     { label: 'Pricing', href: '/pricing' },
   ],
@@ -62,15 +62,15 @@ export default function Footer() {
               <span className="text-sm font-semibold text-[#1C1917]">Altaviz</span>
             </Link>
             <p className="text-xs text-[#78716C] leading-relaxed mb-6 max-w-[200px]">
-              48-hour advance warning for pipeline operators.
+              48-hour advance warning for compressor fleet operators.
             </p>
 
             {/* CTA */}
             <Link
-              href="/contact"
+              href="/signup"
               className="inline-flex text-xs font-medium px-4 py-2 rounded-lg bg-[#1C1917] text-white hover:bg-[#2D2D2D] transition-colors"
             >
-              Contact Sales
+              Start Free
             </Link>
           </div>
 
@@ -114,9 +114,9 @@ export default function Footer() {
           <div className="flex items-center gap-4">
             <span>Houston, TX</span>
             <span className="text-[#E7E0D5]">|</span>
-            <Link href="/contact" className="hover:text-[#1C1917] transition-colors">
+            <a href="mailto:support@altaviz.com" className="hover:text-[#1C1917] transition-colors">
               Support
-            </Link>
+            </a>
           </div>
         </div>
       </div>

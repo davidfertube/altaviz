@@ -20,11 +20,10 @@ References:
 """
 
 import logging
-import numpy as np
-from typing import Dict, List, Optional
+from typing import Dict, List
 from datetime import datetime
 
-logger = logging.getLogger('CompressorHealthETL')
+logger = logging.getLogger(__name__)
 
 # EPA emission factors
 # AP-42 Section 3.2: Natural gas reciprocating engines

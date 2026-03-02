@@ -45,46 +45,45 @@ function AnimatedCounter({ value, suffix, prefix }: { value: number; suffix: str
 }
 
 /* ------------------------------------------------------------------ */
-/*  Card 1: Pipeline Coverage — horizontal bar segments                */
+/*  Card 1: Fleet Coverage — horizontal bar segments                   */
 /* ------------------------------------------------------------------ */
-function PipelineCoverageMockup() {
-  const pipelines = [
-    { id: 'PL-001', miles: 340, health: 'healthy' as const },
-    { id: 'PL-002', miles: 280, health: 'healthy' as const },
-    { id: 'PL-003', miles: 410, health: 'healthy' as const },
-    { id: 'PL-004', miles: 195, health: 'warning' as const },
-    { id: 'PL-005', miles: 320, health: 'healthy' as const },
-    { id: 'PL-006', miles: 260, health: 'healthy' as const },
-    { id: 'PL-007', miles: 155, health: 'critical' as const },
-    { id: 'PL-008', miles: 440, health: 'healthy' as const },
+function FleetCoverageMockup() {
+  const compressors = [
+    { id: 'COMP-001', health: 98, status: 'healthy' as const },
+    { id: 'COMP-002', health: 95, status: 'healthy' as const },
+    { id: 'COMP-003', health: 91, status: 'healthy' as const },
+    { id: 'COMP-004', health: 88, status: 'healthy' as const },
+    { id: 'COMP-005', health: 42, status: 'critical' as const },
+    { id: 'COMP-006', health: 97, status: 'healthy' as const },
+    { id: 'COMP-007', health: 73, status: 'warning' as const },
+    { id: 'COMP-008', health: 96, status: 'healthy' as const },
   ];
   const colors = { healthy: '#10B981', warning: '#F59E0B', critical: '#EF4444' };
-  const maxMiles = 440;
 
   return (
     <div className="space-y-1.5 mt-4">
-      {pipelines.map((pl, i) => (
-        <div key={pl.id} className="flex items-center gap-2">
-          <span className="text-[7px] text-white/25 group-hover:text-white/40 transition-colors font-mono w-8 shrink-0">{pl.id}</span>
+      {compressors.map((comp, i) => (
+        <div key={comp.id} className="flex items-center gap-2">
+          <span className="text-[7px] text-white/25 group-hover:text-white/40 transition-colors font-mono w-12 shrink-0">{comp.id}</span>
           <div className="flex-1 h-2.5 group-hover:h-3 transition-all rounded-full bg-white/[0.04] overflow-hidden">
             <motion.div
               className="h-full rounded-full transition-shadow group-hover:shadow-[0_0_8px_var(--bar-color)]"
-              style={{ backgroundColor: colors[pl.health], opacity: 0.8, '--bar-color': colors[pl.health] } as React.CSSProperties}
+              style={{ backgroundColor: colors[comp.status], opacity: 0.8, '--bar-color': colors[comp.status] } as React.CSSProperties}
               initial={{ width: 0 }}
-              whileInView={{ width: `${(pl.miles / maxMiles) * 100}%` }}
+              whileInView={{ width: `${comp.health}%` }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.3 + i * 0.08, ease: 'easeOut' }}
             />
           </div>
           <motion.span
             className="text-[7px] font-mono w-7 text-right shrink-0 group-hover:opacity-100 transition-opacity"
-            style={{ color: colors[pl.health] }}
+            style={{ color: colors[comp.status] }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 0.7 }}
             viewport={{ once: true }}
             transition={{ delay: 0.6 + i * 0.08 }}
           >
-            {pl.miles}
+            {comp.health}%
           </motion.span>
         </div>
       ))}
@@ -303,7 +302,7 @@ function ShutdownReductionMockup() {
 /*  Stats data                                                         */
 /* ------------------------------------------------------------------ */
 const STATS = [
-  { value: 2400, suffix: '+', prefix: '', label: 'Miles Under Watch', Viz: PipelineCoverageMockup },
+  { value: 4700, suffix: '+', prefix: '', label: 'Compressors Monitored', Viz: FleetCoverageMockup },
   { value: 48, suffix: 'hr', prefix: '', label: 'Hours of Advance Warning', Viz: EarlyWarningMockup },
   { value: 99.7, suffix: '%', prefix: '', label: 'Platform Uptime', Viz: UptimeGridMockup },
   { value: 40, suffix: '%', prefix: '', label: 'Fewer Emergency Shutdowns', Viz: ShutdownReductionMockup },
@@ -326,7 +325,7 @@ export default function Stats() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
-            Proven results across live pipelines
+            Proven results across live fleets
           </h2>
           <p className="text-lg text-[#78716C] max-w-xl mx-auto">
             Real numbers from real deployments — not lab results.

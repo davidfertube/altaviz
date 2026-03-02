@@ -1,5 +1,4 @@
-"""Data simulator package for generating synthetic compressor sensor data"""
+"""Data simulator package for generating synthetic compressor sensor data.
 
-from .compressor_simulator import CompressorSimulator
-
-__all__ = ['CompressorSimulator']
+Fleet simulator: python -m src.data_simulator.fleet_simulator
+"""

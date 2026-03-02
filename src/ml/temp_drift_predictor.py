@@ -11,10 +11,10 @@ catching gradual cooling system degradation 12-24 hours before threshold breach.
 
 import logging
 import numpy as np
-from typing import Dict, List, Optional
+from typing import Dict, List
 from datetime import datetime
 
-logger = logging.getLogger('CompressorHealthETL')
+logger = logging.getLogger(__name__)
 
 # Thresholds from config/thresholds.yaml
 TEMP_WARNING = 240.0   # F
@@ -120,7 +120,6 @@ def predict_temp_drift(
     result['confidence'] = round(max(0.0, float(r_squared)), 4)
 
     current_temp = float(y[-1])
-    current_time = float(x[-1])
 
     # Only predict future thresholds if temperature is rising
     if slope > MIN_DRIFT_RATE:

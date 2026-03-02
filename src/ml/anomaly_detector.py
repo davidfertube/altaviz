@@ -17,7 +17,7 @@ import numpy as np
 from typing import Dict, List, Optional
 from datetime import datetime
 
-logger = logging.getLogger('CompressorHealthETL')
+logger = logging.getLogger(__name__)
 
 # Feature columns used by the model
 FEATURE_COLUMNS = [

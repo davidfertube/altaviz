@@ -21,10 +21,6 @@ jest.mock('../../src/lib/crypto', () => ({
   safeCompare: jest.fn().mockImplementation((a: string, b: string) => a === b),
 }));
 
-jest.mock('../../src/lib/telemetry', () => ({
-  trackEvent: jest.fn(),
-}));
-
 import { getAppSession } from '../../src/lib/session';
 import { safeCompare } from '../../src/lib/crypto';
 import { runAllWorkflows } from '../../src/lib/workflows';

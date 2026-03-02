@@ -7,6 +7,7 @@ import {
   BrainCircuit,
   LayoutDashboard,
   Cable,
+  Bot,
 } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
@@ -43,12 +44,22 @@ const TAG_COLORS: Record<string, string> = {
   Demo: 'bg-orange-50 text-orange-700 border-orange-200',
   Pipeline: 'bg-cyan-50 text-cyan-700 border-cyan-200',
   Integration: 'bg-teal-50 text-teal-700 border-teal-200',
+  'AI Agents': 'bg-rose-50 text-rose-700 border-rose-200',
+  Automation: 'bg-indigo-50 text-indigo-700 border-indigo-200',
 };
 
 /* ------------------------------------------------------------------ */
 /*  Changelog entries                                                  */
 /* ------------------------------------------------------------------ */
 const ENTRIES = [
+  {
+    date: 'February 2026',
+    icon: Bot,
+    title: 'AI Agent System — Autonomous Maintenance',
+    description:
+      'Shipped a 3-agent closed-loop maintenance system: Investigation Agent traces root cause from sensor anomalies, Work Order Agent generates prioritized repairs with parts and cost estimates, and Optimization Agent runs autonomous fleet scans. 9-state work order machine, RAG knowledge base with 500+ failure patterns, human-in-the-loop approval gates, and $10K cost caps. 64 unit tests, 6 new dashboard pages.',
+    tags: ['AI Agents', 'Automation', 'ML'],
+  },
   {
     date: 'February 2026',
     icon: FileCheck,
@@ -129,7 +140,7 @@ export default function ChangelogPage() {
               variants={fadeUp}
             >
               Product updates, new features, and improvements to the platform.
-              We ship regularly to keep your pipeline integrity program ahead of
+              We ship regularly to keep your fleet ahead of
               the curve.
             </motion.p>
           </motion.div>

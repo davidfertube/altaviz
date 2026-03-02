@@ -43,7 +43,7 @@ const VALUES = [
     icon: ShieldCheck,
     title: 'Safety Is Not Negotiable',
     description:
-      'Every feature we build starts with the same question: does this make pipeline operations safer? Public safety and environmental protection drive every decision we make.',
+      'Every feature we build starts with the same question: does this make fleet operations safer? Public safety and environmental protection drive every decision we make.',
   },
   {
     icon: BarChart3,
@@ -55,7 +55,7 @@ const VALUES = [
     icon: HardHat,
     title: 'Built in the Field',
     description:
-      'Our team has spent years in control rooms and field offices. Altaviz is built by people who understand the reality of running pipeline infrastructure day-to-day.',
+      'Our team has spent years in control rooms and field offices. Altaviz is built by people who understand the reality of running compressor fleets day-to-day.',
   },
   {
     icon: FileCheck,
@@ -67,8 +67,8 @@ const VALUES = [
 
 const STATS = [
   {
-    value: '2,400+',
-    label: 'Miles Monitored',
+    value: '4,700+',
+    label: 'Compressors Monitored',
     icon: Activity,
   },
   {
@@ -119,8 +119,8 @@ export default function AboutPage() {
               className="text-4xl sm:text-5xl lg:text-6xl font-bold text-[#1C1917] leading-[1.08] tracking-tight mb-6"
               variants={fadeUp}
             >
-              Built by pipeline people.{' '}
-              <span className="text-[#C4A77D]">For pipeline people.</span>
+              Built by compression people.{' '}
+              <span className="text-[#C4A77D]">For compression people.</span>
             </motion.h1>
             <motion.p
               className="text-lg sm:text-xl text-[#78716C] max-w-2xl mx-auto leading-relaxed"
@@ -128,8 +128,8 @@ export default function AboutPage() {
             >
               We&#39;ve spent years in control rooms, field offices, and compressor stations.
               Altaviz was built because we saw firsthand how much time and money is lost
-              when operators fly blind between inspections. Predictive intelligence should
-              be accessible to every operator — not just the supermajors.
+              when operators don&#39;t know which compressor fails next. Predictive intelligence
+              and AI-powered maintenance should be accessible to every fleet operator — not just the supermajors.
             </motion.p>
           </motion.div>
         </div>
@@ -162,29 +162,27 @@ export default function AboutPage() {
                 The Problem
               </p>
               <h2 className="text-3xl sm:text-4xl font-bold text-white mb-6">
-                Pipeline failures happen{' '}
-                <span className="text-[#C4A77D]">between inspections</span>
+                Compressor failures happen{' '}
+                <span className="text-[#C4A77D]">without warning</span>
               </h2>
               <div className="space-y-4 text-white/60 text-base leading-relaxed">
                 <p>
-                  The United States has over 2.6 million miles of pipeline
-                  infrastructure, much of it installed decades ago. PHMSA data
-                  shows the average significant incident costs{' '}
-                  <span className="text-white font-semibold font-mono">$2.1M</span>{' '}
-                  in property damage alone, before factoring in environmental
-                  remediation and regulatory penalties.
+                  The US midstream sector operates 800,000+ compressors, many running
+                  around the clock in remote basins. The average unplanned shutdown costs{' '}
+                  <span className="text-white font-semibold font-mono">$150K+</span>{' '}
+                  in lost production alone — before factoring in emergency dispatch,
+                  parts, and regulatory penalties.
                 </p>
                 <p>
-                  Most operators still rely on periodic In-Line Inspection (ILI)
-                  runs and manual spreadsheets to track integrity. Inspections
-                  happen on 5-7 year cycles. Between inspections, degradation
-                  goes undetected. Current tools are on-premise, expensive, and
-                  completely disconnected from real-time SCADA telemetry.
+                  Most operators still rely on threshold alarms and manual spreadsheets.
+                  You find out about a bearing failure AFTER the compressor shuts down.
+                  Current tools are on-premise, expensive, and completely disconnected
+                  from real-time SCADA telemetry.
                 </p>
                 <p>
-                  When a pressure excursion or vibration anomaly appears at 2 AM,
-                  operators get a threshold alarm after the problem is already
-                  underway. By then, the options are limited: emergency shutdown,
+                  When a vibration spike or temperature drift appears at 2 AM,
+                  your crew gets an alarm after the problem is already underway.
+                  By then, the options are limited: emergency shutdown,
                   costly repairs, or worse.
                 </p>
               </div>
@@ -209,21 +207,21 @@ export default function AboutPage() {
                   Altaviz connects directly to your existing SCADA systems and
                   historians. Our data pipeline ingests real-time sensor data
                   through a multi-layer validation architecture, feeding
-                  ML models that learn the healthy baseline of every pipeline
-                  segment in your network.
+                  ML models that learn the healthy baseline of every compressor
+                  in your fleet.
                 </p>
                 <p>
                   Isolation Forest anomaly detection flags degradation patterns
                   24-48 hours before traditional threshold alerts fire.
-                  Temperature drift prediction, remaining useful life estimation,
-                  and EPA Subpart W emissions calculations run automatically on
-                  every data window.
+                  When something is found, AI agents automatically trace root cause,
+                  check maintenance history, and generate a work order — complete
+                  with parts list, priority, and cost estimate.
                 </p>
                 <p>
-                  Compliance reporting for 49 CFR 192/195 and the PHMSA Mega Rule
-                  is automated, not bolted on. MAOP reconfirmation tracking,
-                  HCA/MCA assessment scheduling, and exportable audit logs are
-                  built into the platform from day one.
+                  EPA Subpart W emissions calculations, automated compliance
+                  reporting, and immutable audit logs are built into the
+                  platform from day one. Your crew approves work orders.
+                  Everything else is automatic.
                 </p>
               </div>
             </motion.div>
@@ -303,7 +301,7 @@ export default function AboutPage() {
               By the Numbers
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917]">
-              Proven results across live pipelines
+              Proven results across live fleets
             </h2>
           </motion.div>
 
@@ -356,7 +354,7 @@ export default function AboutPage() {
               </p>
               <p className="text-sm text-[#78716C]">
                 Based in the energy capital of the world. Close to the operators,
-                pipelines, and regulatory bodies that shape our industry.
+                compressor fleets, and regulatory bodies that shape our industry.
               </p>
             </div>
           </motion.div>
@@ -396,17 +394,17 @@ export default function AboutPage() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                href="/contact"
+                href="/signup"
                 className="inline-flex items-center gap-2 text-base font-semibold text-[#1C1917] bg-white hover:bg-white/90 transition-colors px-8 py-3.5 rounded-full"
               >
-                See It With Your Data
+                Create Free Account
                 <ArrowRight className="size-4" />
               </Link>
               <Link
-                href="/contact"
+                href="/pricing"
                 className="inline-flex items-center gap-2 text-base font-medium text-white/80 hover:text-white border border-white/20 hover:border-white/40 transition-all px-8 py-3.5 rounded-full"
               >
-                Talk to an Engineer
+                See Pricing
               </Link>
             </div>
           </motion.div>

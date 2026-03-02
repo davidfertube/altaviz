@@ -1,16 +1,17 @@
 """
 Compressor Health ETL Pipeline
 
-This package contains the PySpark-based ETL pipeline for processing
-compressor sensor data through Bronze → Silver → Gold layers.
+Production pipeline: Bronze → Silver → Gold medallion architecture.
 
 Modules:
     schemas: Explicit PySpark schemas for data loading
     utils: Configuration loading and Spark session management
-    data_quality: Data validation and quality checks
-    transformations: Feature engineering and aggregations
-    database_writer: PostgreSQL data persistence
-    pyspark_pipeline: Main ETL orchestrator
+    pipeline: Production orchestrator (OneLake, Fabric)
+    onelake: OneLake read/write client
+    bronze.ingest: Bronze layer ingestion
+    silver.cleanse: Silver layer cleaning
+    silver.quality: Data quality framework
+    gold.aggregate: Gold layer aggregations and alerts
 """
 
 __version__ = "1.0.0"

@@ -4,7 +4,7 @@ For interview demo - production would use trained LSTM/timeseries model.
 """
 import os
 import yaml
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Load thresholds from config/thresholds.yaml
 _config_path = os.path.join(os.path.dirname(__file__), '..', '..', 'config', 'thresholds.yaml')

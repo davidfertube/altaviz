@@ -1,16 +1,17 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { AlertTriangle, BrainCircuit, ClipboardCheck, CheckCircle } from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
 /*  Fleet Overview mockup                                              */
 /* ------------------------------------------------------------------ */
 function FleetOverviewMockup() {
-  const pipelines = [
-    { id: 'PL-001', health: 98, status: 'healthy' as const },
-    { id: 'PL-002', health: 42, status: 'critical' as const },
-    { id: 'PL-003', health: 95, status: 'healthy' as const },
-    { id: 'PL-004', health: 73, status: 'warning' as const },
+  const compressors = [
+    { id: 'COMP-001', health: 98, status: 'healthy' as const },
+    { id: 'COMP-002', health: 42, status: 'critical' as const },
+    { id: 'COMP-003', health: 95, status: 'healthy' as const },
+    { id: 'COMP-004', health: 73, status: 'warning' as const },
   ];
   const colors = {
     healthy: '#10B981',
@@ -35,7 +36,7 @@ function FleetOverviewMockup() {
       {/* KPI row */}
       <div className="grid grid-cols-3 gap-2 mb-4">
         {[
-          { label: 'Online', value: '18/20', color: 'text-emerald-400' },
+          { label: 'Online', value: '4,612/4,700', color: 'text-emerald-400' },
           { label: 'Avg Health', value: '94%', color: 'text-[#C4A77D]' },
           { label: 'Active Alerts', value: '7', color: 'text-rose-400' },
         ].map((kpi) => (
@@ -68,11 +69,11 @@ function FleetOverviewMockup() {
         ))}
       </div>
 
-      {/* Pipeline cards */}
+      {/* Compressor cards */}
       <div className="grid grid-cols-4 gap-1.5">
-        {pipelines.map((pl, i) => (
+        {compressors.map((comp, i) => (
           <motion.div
-            key={pl.id}
+            key={comp.id}
             className="rounded-md bg-white/[0.02] border border-white/[0.04] p-2 text-center"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -81,10 +82,10 @@ function FleetOverviewMockup() {
           >
             <div
               className="w-2 h-2 rounded-full mx-auto mb-1"
-              style={{ backgroundColor: colors[pl.status], boxShadow: `0 0 6px ${colors[pl.status]}40` }}
+              style={{ backgroundColor: colors[comp.status], boxShadow: `0 0 6px ${colors[comp.status]}40` }}
             />
-            <p className="text-[7px] text-white/30 font-mono">{pl.id}</p>
-            <p className="text-[9px] font-mono font-bold" style={{ color: colors[pl.status] }}>{pl.health}%</p>
+            <p className="text-[7px] text-white/30 font-mono">{comp.id}</p>
+            <p className="text-[9px] font-mono font-bold" style={{ color: colors[comp.status] }}>{comp.health}%</p>
           </motion.div>
         ))}
       </div>
@@ -107,7 +108,7 @@ function AnomalyDetectionMockup() {
       {/* Vibration chart */}
       <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] p-3 mb-3">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[8px] text-white/25 uppercase tracking-wide">PL-002 Vibration (mm/s)</span>
+          <span className="text-[8px] text-white/25 uppercase tracking-wide">COMP-2847 Vibration (mm/s)</span>
           <span className="text-[7px] text-rose-400/70 font-mono">7.8 mm/s &uarr;</span>
         </div>
         <svg viewBox="0 0 300 70" className="w-full h-16">
@@ -197,79 +198,64 @@ function AnomalyDetectionMockup() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Compliance Dashboard mockup                                        */
+/*  AI Agent Pipeline mockup (replaces EPA Compliance)                 */
 /* ------------------------------------------------------------------ */
-function ComplianceMockup() {
+function AIAgentMockup() {
+  const steps = [
+    { label: 'Anomaly Detected', detail: 'COMP-2847 · Vibration drift +12%', color: '#EF4444', Icon: AlertTriangle },
+    { label: 'Root Cause Found', detail: 'Bearing wear — 87% confidence', color: '#8B5CF6', Icon: BrainCircuit },
+    { label: 'Work Order Created', detail: 'WO-4821 · Priority: High · Est. $2,400', color: '#C4A77D', Icon: ClipboardCheck },
+    { label: 'Technician Assigned', detail: 'Field crew notified · ETA 4hr', color: '#10B981', Icon: CheckCircle },
+  ];
+
   return (
     <div className="rounded-2xl bg-[#0C1018] p-5 border border-white/[0.06]">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider">EPA Compliance</span>
-        <span className="text-[8px] text-emerald-400 font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">COMPLIANT</span>
+        <span className="text-[10px] text-white/40 font-mono uppercase tracking-wider">AI Agent Pipeline</span>
+        <motion.span
+          className="text-[8px] text-purple-400 font-mono px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20"
+          animate={{ opacity: [1, 0.5, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          ACTIVE
+        </motion.span>
       </div>
 
-      {/* Metrics row */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        {[
-          { label: 'Fleet CO2e/hr', value: '0.48t', color: 'text-[#C4A77D]' },
-          { label: 'Annual Projected', value: '4,204t', color: 'text-emerald-400' },
-        ].map((m) => (
-          <motion.div
-            key={m.label}
-            className="rounded-lg bg-white/[0.03] border border-white/[0.05] p-2.5"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-          >
-            <p className="text-[7px] text-white/25 uppercase tracking-wide mb-0.5">{m.label}</p>
-            <p className={`text-base font-bold font-mono ${m.color}`}>{m.value}</p>
-          </motion.div>
-        ))}
-      </div>
+      {/* Steps */}
+      <div className="relative">
+        {/* Connecting line */}
+        <div className="absolute left-[19px] top-5 bottom-5 w-px bg-gradient-to-b from-rose-500/30 via-purple-500/20 to-emerald-500/30" />
 
-      {/* Threshold gauge */}
-      <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] p-3 mb-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[8px] text-white/25 uppercase tracking-wide">EPA 25,000t Threshold</span>
-          <span className="text-[8px] text-emerald-400/70 font-mono">16.8%</span>
-        </div>
-        <div className="w-full h-2 rounded-full bg-white/[0.04]">
-          <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400"
-            initial={{ width: 0 }}
-            whileInView={{ width: '16.8%' }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.2, delay: 0.5, ease: 'easeOut' }}
-          />
-        </div>
-        <div className="flex justify-between mt-1">
-          <span className="text-[6px] text-white/15 font-mono">0t</span>
-          <span className="text-[6px] text-white/15 font-mono">25,000t</span>
-        </div>
-      </div>
+        <div className="space-y-2.5">
+          {steps.map((step, i) => (
+            <motion.div
+              key={step.label}
+              className="relative flex items-center gap-3 rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2.5"
+              initial={{ opacity: 0, x: -12 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 + i * 0.4, duration: 0.4 }}
+            >
+              {/* Step icon */}
+              <div
+                className="relative z-10 w-[38px] h-[38px] rounded-lg flex items-center justify-center shrink-0"
+                style={{ backgroundColor: `${step.color}15`, border: `1px solid ${step.color}30` }}
+              >
+                <step.Icon className="size-4" style={{ color: step.color }} />
+              </div>
 
-      {/* Per-pipeline emissions */}
-      <div className="space-y-1">
-        {[
-          { id: 'PL-001', ch4: '0.042', co2e: '1.05', rate: '0.12' },
-          { id: 'PL-002', ch4: '0.089', co2e: '2.23', rate: '0.31' },
-          { id: 'PL-003', ch4: '0.031', co2e: '0.78', rate: '0.09' },
-        ].map((pl, i) => (
-          <motion.div
-            key={pl.id}
-            className="grid grid-cols-4 gap-2 rounded-md bg-white/[0.02] border border-white/[0.04] px-2.5 py-1.5"
-            initial={{ opacity: 0, y: 4 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.8 + i * 0.1 }}
-          >
-            <span className="text-[8px] text-white/40 font-mono">{pl.id}</span>
-            <span className="text-[8px] text-white/30 font-mono">{pl.ch4}t CH4</span>
-            <span className="text-[8px] text-white/30 font-mono">{pl.co2e}t CO2e</span>
-            <span className="text-[8px] text-emerald-400/60 font-mono text-right">{pl.rate} scfh</span>
-          </motion.div>
-        ))}
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-semibold text-white/60">{step.label}</p>
+                <p className="text-[8px] text-white/25 font-mono truncate">{step.detail}</p>
+              </div>
+
+              {/* Step number */}
+              <span className="text-[7px] font-mono text-white/10 shrink-0">{String(i + 1).padStart(2, '0')}</span>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -280,19 +266,19 @@ function ComplianceMockup() {
 /* ------------------------------------------------------------------ */
 const SHOWCASES = [
   {
-    title: 'See Every Pipeline. Instantly.',
-    description: 'Live health scores for every pipeline segment — color-coded by status. Drill down to any compressor, any sensor, in one click.',
+    title: 'See every compressor. In real time.',
+    description: 'Health scores, vibration trends, and thermal maps across your entire fleet — updated every 5 minutes. Drill down to any compressor, any sensor, in one click.',
     Mockup: FleetOverviewMockup,
   },
   {
-    title: 'Catch Problems 48 Hours Early',
-    description: 'Our models learn what "normal" looks like for each pipeline segment, then alert you when something starts to drift — days before a threshold alarm fires.',
+    title: 'Catch failures 48 hours early',
+    description: 'ML models learn each compressor\u2019s normal behavior. When vibration, temperature, or pressure starts to drift — you know first.',
     Mockup: AnomalyDetectionMockup,
   },
   {
-    title: 'Compliance Reports in One Click',
-    description: 'EPA Subpart W emissions calculated automatically from live sensor data. PHMSA-ready audit reports generated on demand — no spreadsheets, no manual data entry.',
-    Mockup: ComplianceMockup,
+    title: 'AI investigates. You approve.',
+    description: 'When Altaviz detects a problem, AI agents trace root cause, check maintenance history, and generate a work order — complete with parts list and cost estimate.',
+    Mockup: AIAgentMockup,
   },
 ];
 
@@ -313,10 +299,10 @@ export default function Features() {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-[#1C1917] mb-4">
-            One platform. Complete pipeline visibility.
+            One platform. Complete fleet visibility.
           </h2>
           <p className="text-lg text-[#78716C] max-w-2xl mx-auto">
-            From the sensor on the compressor to the report on the regulator&#39;s desk.
+            From the sensor on the compressor to the work order in the field.
           </p>
         </motion.div>
 
