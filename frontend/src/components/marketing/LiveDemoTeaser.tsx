@@ -109,7 +109,7 @@ export default function LiveDemoTeaser() {
         >
           <div className="rounded-2xl bg-[#0C1018] p-8 sm:p-12 border border-white/[0.06]">
             {/* Big health dial — centered */}
-            <div className="flex justify-center mb-8">
+            <div className="flex flex-col items-center mb-8">
               <button
                 onClick={triggerDemo}
                 className={`relative w-48 h-48 sm:w-56 sm:h-56 ${!triggered ? 'cursor-pointer group' : 'cursor-default'}`}
@@ -138,17 +138,18 @@ export default function LiveDemoTeaser() {
                   </motion.span>
                   <span className="text-[10px] text-white/30 font-mono mt-1">COMP-002</span>
                 </div>
-                {/* Click hint */}
-                {!triggered && (
-                  <motion.div
-                    className="absolute -bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[#F5C518]/20 border border-[#F5C518]/30"
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <span className="text-[11px] text-[#F5C518] font-semibold whitespace-nowrap">Click to break</span>
-                  </motion.div>
-                )}
               </button>
+              {/* Click hint — separate from dial to avoid overlap */}
+              {!triggered && (
+                <motion.div
+                  className="mt-6 px-5 py-2 rounded-full bg-[#F5C518]/20 border border-[#F5C518]/30 cursor-pointer"
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  onClick={triggerDemo}
+                >
+                  <span className="text-xs text-[#F5C518] font-semibold whitespace-nowrap">Click to break</span>
+                </motion.div>
+              )}
             </div>
 
             {/* Response cards — stacked below */}
