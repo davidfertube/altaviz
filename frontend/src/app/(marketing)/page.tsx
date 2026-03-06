@@ -6,9 +6,7 @@ import AgentFlowDemo from '@/components/marketing/AgentFlowDemo';
 import LiveDemoTeaser from '@/components/marketing/LiveDemoTeaser';
 import SecurityCompliance from '@/components/marketing/SecurityCompliance';
 import Integrations from '@/components/marketing/Integrations';
-import PricingTable from '@/components/marketing/PricingTable';
-import FAQ from '@/components/marketing/FAQ';
-import CtaBanner from '@/components/marketing/CtaBanner';
+import LeadCaptureSection from '@/components/marketing/LeadCaptureSection';
 
 export default function LandingPage() {
   return (
@@ -21,9 +19,7 @@ export default function LandingPage() {
       <LiveDemoTeaser />
       <SecurityCompliance />
       <Integrations />
-      <PricingTable />
-      <FAQ />
-      <CtaBanner />
+      <LeadCaptureSection />
     </>
   );
 }

@@ -1,5 +1,4 @@
 import Navbar from '@/components/marketing/Navbar';
-import Footer from '@/components/marketing/Footer';
 
 export default function MarketingLayout({
   children,
@@ -12,7 +11,6 @@ export default function MarketingLayout({
       <main className="flex-1 w-full">
         {children}
       </main>
-      <Footer />
     </div>
   );
 }

@@ -400,12 +400,6 @@ export default function AboutPage() {
                 Try Demo
                 <ArrowRight className="size-4" />
               </Link>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-2 text-base font-medium text-white/80 hover:text-white border border-white/20 hover:border-white/40 transition-all px-8 py-3.5 rounded-full"
-              >
-                See Pricing
-              </Link>
             </div>
           </motion.div>
         </div>

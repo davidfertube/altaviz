@@ -42,7 +42,7 @@ export default function LeadCaptureForm({ open, onClose, onSuccess }: LeadCaptur
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl">Get Started with Altaviz</DialogTitle>
+          <DialogTitle className="text-xl">Try Altaviz</DialogTitle>
           <DialogDescription>
             Tell us about yourself and we&apos;ll set up your demo environment.
           </DialogDescription>

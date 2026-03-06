@@ -298,17 +298,9 @@ export default function SolutionPage({
               className="h-16 w-full sm:w-auto px-28 text-lg font-semibold rounded-full bg-[#0A0A0A] text-white shadow-lg shadow-[#0A0A0A]/15 hover:shadow-xl hover:bg-[#1A1A1A] transition-all border-0"
             >
               <Link href="/dashboard">
-                Get Started
+                Try Demo
                 <ArrowRight className="size-5 ml-1" />
               </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="h-16 px-16 text-lg font-medium rounded-full border-[#E5E5E5] text-[#6B7280] hover:text-[#0A0A0A] hover:border-[#F5C518] hover:bg-[#F5C518]/5 bg-transparent"
-            >
-              <Link href="/pricing">See Pricing</Link>
             </Button>
           </motion.div>
         </motion.div>
@@ -400,7 +392,7 @@ export default function SolutionPage({
             variants={itemVariants}
           >
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-              Ready to Get Started?
+              Ready to Try It?
             </h2>
             <p className="text-base text-white/60 mb-8 max-w-md mx-auto">
               See how Altaviz transforms {solution.title.toLowerCase()} with ML-powered monitoring and predictive maintenance.
@@ -412,17 +404,9 @@ export default function SolutionPage({
                 className="h-16 px-28 text-lg font-semibold rounded-full bg-white text-[#0A0A0A] hover:bg-white/90 transition-all border-0"
               >
                 <Link href="/dashboard">
-                  Get Started
+                  Try Demo
                   <ArrowRight className="size-5 ml-1" />
                 </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-16 px-16 text-lg font-medium rounded-full border-white/20 text-white/80 hover:text-white hover:border-white/40 bg-transparent"
-              >
-                <Link href="/pricing">See Pricing</Link>
               </Button>
             </div>
           </motion.div>
