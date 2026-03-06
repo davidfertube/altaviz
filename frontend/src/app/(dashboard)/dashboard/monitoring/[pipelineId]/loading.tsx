@@ -1,6 +1,6 @@
 import { MetricCardSkeleton, ChartSkeleton } from '@/components/ui/Skeleton';
 
-export default function CompressorLoading() {
+export default function PipelineLoading() {
   return (
     <div className="min-h-screen">
       <div className="h-16 border-b border-border bg-surface" />

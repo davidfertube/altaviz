@@ -1,22 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAlerts, getActiveAlerts } from '@/lib/queries';
-import { getAppSession } from '@/lib/session';
-import { validateInt, validateEnum } from '@/lib/validation';
-import { handleApiError } from '@/lib/errors';
+import { isDemoMode } from '@/lib/demo-mode';
+import { getDemoAlerts, getDemoActiveAlerts } from '@/lib/demo-data';
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = request.nextUrl;
+    const status = searchParams.get('status') || undefined;
+    const severity = searchParams.get('severity') || undefined;
+    const compressor = searchParams.get('compressor') || undefined;
+    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const offset = parseInt(searchParams.get('offset') || '0', 10);
+
+    if (isDemoMode()) {
+      if (status === 'active' && !severity && !compressor && offset === 0) {
+        return NextResponse.json(getDemoActiveAlerts());
+      }
+      return NextResponse.json(getDemoAlerts({ status, severity, compressor, limit, offset }));
+    }
+
+    const { getAlerts, getActiveAlerts } = await import('@/lib/queries');
+    const { getAppSession } = await import('@/lib/session');
     const session = await getAppSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    const { searchParams } = request.nextUrl;
-    const status = validateEnum(searchParams.get('status'), ['active', 'resolved'], undefined as unknown as string) || undefined;
-    const severity = validateEnum(searchParams.get('severity'), ['warning', 'critical'], undefined as unknown as string) || undefined;
-    const compressor = searchParams.get('compressor') || undefined;
-    const limit = validateInt(searchParams.get('limit'), { min: 1, max: 200, fallback: 50 });
-    const offset = validateInt(searchParams.get('offset'), { min: 0, max: 100000, fallback: 0 });
 
     if (status === 'active' && !severity && !compressor && offset === 0) {
       const data = await getActiveAlerts(session.organizationId);
@@ -33,6 +40,7 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json(data);
   } catch (error) {
+    const { handleApiError } = await import('@/lib/errors');
     return handleApiError(error, 'Failed to fetch alerts');
   }
 }

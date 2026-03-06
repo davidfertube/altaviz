@@ -56,7 +56,7 @@ export default function CtaBanner() {
             }}
           >
             <Link
-              href="/signup"
+              href="/dashboard"
               className="inline-flex items-center gap-2 text-lg font-semibold text-[#0A0A0A] bg-white hover:bg-white/90 transition-colors px-28 py-5 rounded-full shadow-lg"
             >
               Get Started

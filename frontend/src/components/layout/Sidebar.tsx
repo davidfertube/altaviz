@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, Activity, Bell, CheckCircle, Menu, X, Settings, Search, Wrench, TrendingUp } from 'lucide-react';
+import { LayoutGrid, Activity, Bell, Menu, X, Upload } from 'lucide-react';
 import { NAV_ITEMS } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -16,10 +16,7 @@ const ICONS: Record<string, React.ReactNode> = {
   grid: <LayoutGrid className="size-5" />,
   activity: <Activity className="size-5" />,
   bell: <Bell className="size-5" />,
-  search: <Search className="size-5" />,
-  wrench: <Wrench className="size-5" />,
-  'trending-up': <TrendingUp className="size-5" />,
-  'check-circle': <CheckCircle className="size-5" />,
+  upload: <Upload className="size-5" />,
 };
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
@@ -67,24 +64,10 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
       <Separator />
 
-      {/* Settings */}
-      <div className="px-3 py-2">
-        <Link
-          href="/dashboard/settings"
-          onClick={onNavigate}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-        >
-          <Settings className="size-5" />
-          Settings
-        </Link>
-      </div>
-
-      <Separator />
-
       {/* Footer */}
       <div className="px-4 py-4 flex items-center justify-between">
         <div>
-          <p className="text-xs text-muted-foreground">Predictive Maintenance</p>
+          <p className="text-xs text-muted-foreground">Pipeline Monitoring</p>
         </div>
         <PlanBadge />
       </div>

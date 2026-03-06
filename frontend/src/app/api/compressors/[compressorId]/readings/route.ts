@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCompressorReadings } from '@/lib/queries';
-import { getAppSession } from '@/lib/session';
-import { canAccessWindowType } from '@/lib/plans';
-import { validateInt, validateEnum } from '@/lib/validation';
-import { handleApiError } from '@/lib/errors';
+import { isDemoMode } from '@/lib/demo-mode';
+import { getDemoPipelineReadings } from '@/lib/demo-data';
 import type { WindowType } from '@/lib/types';
 
 export async function GET(
@@ -11,17 +8,24 @@ export async function GET(
   { params }: { params: Promise<{ compressorId: string }> }
 ) {
   try {
+    const { compressorId } = await params;
+    const { searchParams } = request.nextUrl;
+    const windowParam = searchParams.get('window') || '1hr';
+    const window = (['1hr', '4hr', '24hr'].includes(windowParam) ? windowParam : '1hr') as WindowType;
+    const hours = Math.min(Math.max(parseInt(searchParams.get('hours') || '24', 10) || 24, 1), 168);
+
+    if (isDemoMode()) {
+      return NextResponse.json(getDemoPipelineReadings(compressorId, window, hours));
+    }
+
+    const { getCompressorReadings } = await import('@/lib/queries');
+    const { getAppSession } = await import('@/lib/session');
+    const { canAccessWindowType } = await import('@/lib/plans');
     const session = await getAppSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { compressorId } = await params;
-    const { searchParams } = request.nextUrl;
-    const window = validateEnum<WindowType>(searchParams.get('window'), ['1hr', '4hr', '24hr'], '1hr');
-    const hours = validateInt(searchParams.get('hours'), { min: 1, max: 168, fallback: 24 });
-
-    // Feature gate: check if plan allows this window type
     if (!canAccessWindowType(session.subscriptionTier, window)) {
       return NextResponse.json(
         { error: 'Upgrade required', message: `The ${window} window requires a Pro or Enterprise plan` },
@@ -32,6 +36,7 @@ export async function GET(
     const data = await getCompressorReadings(compressorId, window, hours, session.organizationId);
     return NextResponse.json(data);
   } catch (error) {
+    const { handleApiError } = await import('@/lib/errors');
     return handleApiError(error, 'Failed to fetch readings');
   }
 }

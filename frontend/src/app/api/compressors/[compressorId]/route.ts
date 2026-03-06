@@ -1,21 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCompressor, getLatestPrediction } from '@/lib/queries';
-import { query } from '@/lib/db';
-import { getAppSession } from '@/lib/session';
-import type { LatestReading } from '@/lib/types';
+import { isDemoMode } from '@/lib/demo-mode';
+import { getDemoPipelineDetail } from '@/lib/demo-data';
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ compressorId: string }> }
 ) {
   try {
+    const { compressorId } = await params;
+
+    if (isDemoMode()) {
+      const detail = getDemoPipelineDetail(compressorId);
+      if (!detail) return NextResponse.json({ error: 'Pipeline not found' }, { status: 404 });
+      return NextResponse.json(detail);
+    }
+
+    const { getCompressor, getLatestPrediction } = await import('@/lib/queries');
+    const { query } = await import('@/lib/db');
+    const { getAppSession } = await import('@/lib/session');
     const session = await getAppSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { compressorId } = await params;
-    if (!/^(COMP|PL)-\d{3}$/.test(compressorId)) {
+    if (!/^(COMP|PL|PIPE)-\d{3}$/.test(compressorId)) {
       return NextResponse.json({ error: 'Invalid pipeline ID format' }, { status: 400 });
     }
     const [metadata] = await getCompressor(compressorId, session.organizationId);
@@ -24,7 +32,7 @@ export async function GET(
     }
 
     const [readingsResult, predictions] = await Promise.all([
-      query<LatestReading>(
+      query(
         'SELECT * FROM v_latest_readings WHERE compressor_id = $1 AND organization_id = $2',
         [compressorId, session.organizationId]
       ),

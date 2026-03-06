@@ -297,7 +297,7 @@ export default function SolutionPage({
               size="lg"
               className="h-16 w-full sm:w-auto px-28 text-lg font-semibold rounded-full bg-[#0A0A0A] text-white shadow-lg shadow-[#0A0A0A]/15 hover:shadow-xl hover:bg-[#1A1A1A] transition-all border-0"
             >
-              <Link href="/signup">
+              <Link href="/dashboard">
                 Get Started
                 <ArrowRight className="size-5 ml-1" />
               </Link>
@@ -411,7 +411,7 @@ export default function SolutionPage({
                 size="lg"
                 className="h-16 px-28 text-lg font-semibold rounded-full bg-white text-[#0A0A0A] hover:bg-white/90 transition-all border-0"
               >
-                <Link href="/signup">
+                <Link href="/dashboard">
                   Get Started
                   <ArrowRight className="size-5 ml-1" />
                 </Link>

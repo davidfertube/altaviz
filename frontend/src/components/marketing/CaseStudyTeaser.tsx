@@ -38,7 +38,7 @@ export default function CaseStudyTeaser() {
             </p>
 
             <Link
-              href="/signup"
+              href="/dashboard"
               className="inline-flex items-center gap-2 text-sm font-medium text-[#F5C518] hover:text-[#FFD84D] transition-colors"
             >
               Start monitoring your fleet

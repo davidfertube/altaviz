@@ -87,8 +87,8 @@ function CostSavingsBadge({ prediction }: { prediction: MlPrediction }) {
   );
 }
 
-export default function CompressorDetailPage() {
-  const { compressorId } = useParams<{ compressorId: string }>();
+export default function PipelineDetailPage() {
+  const { pipelineId: compressorId } = useParams<{ pipelineId: string }>();
   const [windowType, setWindowType] = useState<WindowType>('1hr');
   const [timeRange, setTimeRange] = useState<TimeRange>('24h');
 

@@ -6,9 +6,9 @@ import { Shield, FileCheck, Leaf, Settings, Activity, Lock } from 'lucide-react'
 
 const FOOTER_LINKS = {
   Product: [
-    { label: 'Fleet Monitoring', href: '/signup' },
-    { label: 'AI Agents', href: '/signup' },
-    { label: 'Predictive Maintenance', href: '/signup' },
+    { label: 'Fleet Monitoring', href: '/dashboard' },
+    { label: 'AI Agents', href: '/dashboard' },
+    { label: 'Predictive Maintenance', href: '/dashboard' },
   ],
   Company: [
     { label: 'About', href: '/about' },
@@ -52,10 +52,10 @@ export default function Footer() {
 
             {/* CTA */}
             <Link
-              href="/signup"
+              href="/dashboard"
               className="inline-flex text-sm font-medium px-10 py-3 rounded-full bg-[#F5C518] text-[#0A0A0A] hover:bg-[#FFD84D] transition-colors"
             >
-              Get Started
+              Try Demo
             </Link>
           </div>
 

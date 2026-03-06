@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { resolveAlert } from '@/lib/queries';
-import { getAppSession, meetsRoleLevel } from '@/lib/session';
-import { logAuditEvent } from '@/lib/audit';
+import { isDemoMode } from '@/lib/demo-mode';
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ alertId: string }> }
 ) {
   try {
+    if (isDemoMode()) {
+      return NextResponse.json({ success: true });
+    }
+
+    const { resolveAlert } = await import('@/lib/queries');
+    const { getAppSession, meetsRoleLevel } = await import('@/lib/session');
+    const { logAuditEvent } = await import('@/lib/audit');
     const session = await getAppSession();
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

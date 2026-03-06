@@ -370,7 +370,7 @@ export default function PricingTable() {
               </ul>
 
               <Link
-                href={plan.name === 'Enterprise' ? 'mailto:sales@altaviz.com' : '/signup'}
+                href={plan.name === 'Enterprise' ? 'mailto:sales@altaviz.com' : '/dashboard'}
                 className={cn(
                   'block text-center text-base font-semibold py-4 rounded-full transition-all',
                   plan.highlighted

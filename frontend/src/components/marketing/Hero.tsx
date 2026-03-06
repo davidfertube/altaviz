@@ -407,7 +407,7 @@ export default function Hero() {
                 size="lg"
                 className="h-16 w-full sm:w-auto px-28 text-lg font-semibold rounded-full bg-[#F5C518] text-[#0A0A0A] shadow-lg shadow-[#F5C518]/25 hover:shadow-xl hover:bg-[#FFD84D] transition-all border-0"
               >
-                <Link href="/signup">
+                <Link href="/dashboard">
                   Get Started
                   <ArrowRight className="size-5 ml-2" />
                 </Link>

@@ -394,10 +394,10 @@ export default function AboutPage() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                href="/signup"
+                href="/dashboard"
                 className="inline-flex items-center gap-2 text-base font-semibold text-[#0A0A0A] bg-white hover:bg-white/90 transition-colors px-8 py-3.5 rounded-full"
               >
-                Create Free Account
+                Try Demo
                 <ArrowRight className="size-4" />
               </Link>
               <Link

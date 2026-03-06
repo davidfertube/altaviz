@@ -92,7 +92,7 @@ export default function FleetOverviewPage() {
               <MetricCard
                 label="Stations Active"
                 value={new Set(fleet?.map(c => c.station_id)).size}
-                subtitle="4 Texas locations"
+                subtitle="Across all regions"
               />
             </>
           )}
