@@ -32,14 +32,6 @@ export default function Navbar() {
             </div>
             <span className="text-xl font-bold text-[#0A0A0A] tracking-tight">Altaviz</span>
           </Link>
-
-          {/* CTA */}
-          <Link
-            href="/dashboard"
-            className="text-sm font-semibold text-[#0A0A0A] bg-[#F5C518] hover:bg-[#FFD84D] transition-colors px-14 py-3 rounded-full"
-          >
-            Try Demo
-          </Link>
         </div>
       </div>
     </nav>

@@ -430,7 +430,7 @@ export default function Hero() {
               <Button
                 asChild
                 size="lg"
-                className="h-16 w-full sm:w-auto px-36 text-lg font-semibold rounded-full bg-[#F5C518] text-[#0A0A0A] shadow-lg shadow-[#F5C518]/25 hover:shadow-xl hover:bg-[#FFD84D] transition-all border-0"
+                className="h-16 w-full sm:w-auto sm:min-w-[420px] px-20 text-lg font-semibold rounded-full bg-[#F5C518] text-[#0A0A0A] shadow-lg shadow-[#F5C518]/25 hover:shadow-xl hover:bg-[#FFD84D] transition-all border-0"
               >
                 <Link href="/dashboard">
                   Try Demo
