@@ -91,7 +91,6 @@ export default function LiveDemoTeaser() {
           viewport={{ once: true, margin: '-100px' }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-[11px] font-semibold text-[#F5C518] uppercase tracking-[0.15em] mb-3">Try It Yourself</p>
           <h2 className="text-3xl sm:text-4xl font-bold text-[#0A0A0A] mb-4">
             From anomaly to work order in seconds
           </h2>

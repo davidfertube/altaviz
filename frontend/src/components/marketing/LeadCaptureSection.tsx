@@ -6,7 +6,7 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function LeadCaptureSection() {
-  const [form, setForm] = useState({ name: '', email: '', company: '' });
+  const [form, setForm] = useState({ name: '', email: '', phone: '', company: '' });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -87,6 +87,20 @@ export default function LeadCaptureSection() {
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   className="w-full rounded-lg border border-[#E5E5E5] bg-[#FAFAFA] px-4 py-3 text-sm text-[#0A0A0A] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F5C518]/50 focus:border-[#F5C518]"
                   placeholder="jane@company.com"
+                />
+              </div>
+              <div>
+                <label htmlFor="lead-phone" className="block text-sm font-medium text-[#0A0A0A] mb-1.5">
+                  Phone Number
+                </label>
+                <input
+                  id="lead-phone"
+                  type="tel"
+                  required
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  className="w-full rounded-lg border border-[#E5E5E5] bg-[#FAFAFA] px-4 py-3 text-sm text-[#0A0A0A] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F5C518]/50 focus:border-[#F5C518]"
+                  placeholder="+1 (555) 123-4567"
                 />
               </div>
               <div>

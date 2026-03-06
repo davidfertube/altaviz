@@ -4,24 +4,15 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import AltavizLogo from '@/components/brand/AltavizLogo';
-import { Menu, X } from 'lucide-react';
-
-const NAV_LINKS = [
-  { href: '/#features', label: 'Product' },
-  { href: '/about', label: 'About' },
-];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  const closeMobile = () => setMobileOpen(false);
 
   return (
     <nav
@@ -42,68 +33,15 @@ export default function Navbar() {
             <span className="text-xl font-bold text-[#0A0A0A] tracking-tight">Altaviz</span>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-[#6B7280] hover:text-[#0A0A0A] hover:bg-[#F5F5F5] transition-colors px-4 py-2 rounded-md"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
           {/* CTA */}
-          <div className="hidden lg:flex items-center shrink-0">
-            <Link
-              href="/dashboard"
-              className="text-sm font-semibold text-[#0A0A0A] bg-[#F5C518] hover:bg-[#FFD84D] transition-colors px-14 py-3 rounded-full"
-            >
-              Try Demo
-            </Link>
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="lg:hidden text-[#6B7280] hover:text-[#0A0A0A] p-2"
-            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-            aria-expanded={mobileOpen}
+          <Link
+            href="/dashboard"
+            className="text-sm font-semibold text-[#0A0A0A] bg-[#F5C518] hover:bg-[#FFD84D] transition-colors px-14 py-3 rounded-full"
           >
-            {mobileOpen ? <X className="size-6" /> : <Menu className="size-6" />}
-          </button>
+            Try Demo
+          </Link>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {mobileOpen && (
-        <div className="lg:hidden bg-white/95 backdrop-blur-xl border-t border-[#E5E5E5] max-h-[80vh] overflow-y-auto">
-          <div className="px-4 py-4 space-y-1">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={closeMobile}
-                className="block text-sm font-medium text-[#6B7280] hover:text-[#0A0A0A] py-2.5 px-3 rounded-lg hover:bg-[#F0F0F0] transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-
-            <div className="pt-3 border-t border-[#E5E5E5]">
-              <Link
-                href="/dashboard"
-                onClick={closeMobile}
-                className="block w-full text-sm font-semibold text-center text-[#0A0A0A] bg-[#F5C518] hover:bg-[#FFD84D] transition-colors px-14 py-3 rounded-full"
-              >
-                Try Demo
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </nav>
   );
 }

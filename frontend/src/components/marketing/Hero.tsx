@@ -8,8 +8,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Gauge,
-  FileCheck,
-  Leaf,
   BrainCircuit,
   ClipboardCheck,
 } from 'lucide-react';
@@ -55,7 +53,7 @@ function AnimatedCounter({
 }
 
 /* ------------------------------------------------------------------ */
-/*  ROI metrics                                                        */
+/*  ROI metrics with colors                                            */
 /* ------------------------------------------------------------------ */
 const ROI_METRICS = [
   {
@@ -63,12 +61,20 @@ const ROI_METRICS = [
     suffix: '%',
     label: 'Failures Caught Early',
     icon: ShieldCheck,
+    color: '#10B981',
+    bg: 'from-emerald-500/10 to-emerald-500/5',
+    border: 'border-emerald-500/20',
+    glow: 'shadow-emerald-500/10',
   },
   {
     target: 48,
     suffix: 'hr',
     label: 'Warning Before Failure',
     icon: Clock,
+    color: '#3B82F6',
+    bg: 'from-blue-500/10 to-blue-500/5',
+    border: 'border-blue-500/20',
+    glow: 'shadow-blue-500/10',
   },
   {
     target: 2.1,
@@ -77,6 +83,10 @@ const ROI_METRICS = [
     label: 'Avg Shutdown Cost',
     icon: AlertTriangle,
     decimals: 1,
+    color: '#F59E0B',
+    bg: 'from-amber-500/10 to-amber-500/5',
+    border: 'border-amber-500/20',
+    glow: 'shadow-amber-500/10',
   },
   {
     target: 4.7,
@@ -84,6 +94,10 @@ const ROI_METRICS = [
     label: 'Assets Monitored',
     icon: Gauge,
     decimals: 1,
+    color: '#8B5CF6',
+    bg: 'from-purple-500/10 to-purple-500/5',
+    border: 'border-purple-500/20',
+    glow: 'shadow-purple-500/10',
   },
 ];
 
@@ -184,7 +198,6 @@ function DataFlowMockup() {
                 </defs>
                 <line x1="0" y1="16" x2="400" y2="16" stroke="rgba(239,68,68,0.15)" strokeWidth="0.5" strokeDasharray="3 3" />
                 <text x="398" y="14" textAnchor="end" className="text-[5px] fill-rose-400/30 font-mono">WARN</text>
-                {/* Fill area — fades in while line draws */}
                 <motion.path
                   d="M0,42 L40,40 L80,38 L120,39 L160,35 L200,32 L240,28 L280,25 L320,20 L360,16 L400,13 L400,60 L0,60 Z"
                   fill="url(#heroFill)"
@@ -192,7 +205,6 @@ function DataFlowMockup() {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 1.2 }}
                 />
-                {/* Animated line that draws itself */}
                 <motion.path
                   d="M0,42 L40,40 L80,38 L120,39 L160,35 L200,32 L240,28 L280,25 L320,20 L360,16 L400,13"
                   fill="none"
@@ -203,7 +215,6 @@ function DataFlowMockup() {
                   animate={{ pathLength: 1 }}
                   transition={{ duration: 1.8, delay: 0.6, ease: 'easeOut' }}
                 />
-                {/* Warning markers — appear when line crosses threshold */}
                 <motion.circle
                   cx="360" cy="16" r="3" fill="none" stroke="#EF4444" strokeWidth="0.8"
                   initial={{ opacity: 0 }}
@@ -354,6 +365,20 @@ const itemVariants = {
   },
 };
 
+const cardVariants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      delay: 0.4 + i * 0.12,
+      ease: [0.25, 0.46, 0.45, 0.94] as const,
+    },
+  }),
+};
+
 /* ================================================================== */
 /*  Hero Section                                                      */
 /* ================================================================== */
@@ -397,15 +422,15 @@ export default function Hero() {
               AI agents that catch pipeline failures 48 hours early.
             </motion.p>
 
-            {/* CTAs */}
+            {/* CTA */}
             <motion.div
-              className="flex flex-col sm:flex-row items-start gap-3 mb-8"
+              className="flex flex-col sm:flex-row items-start gap-3 mb-10"
               variants={itemVariants}
             >
               <Button
                 asChild
                 size="lg"
-                className="h-16 w-full sm:w-auto px-28 text-lg font-semibold rounded-full bg-[#F5C518] text-[#0A0A0A] shadow-lg shadow-[#F5C518]/25 hover:shadow-xl hover:bg-[#FFD84D] transition-all border-0"
+                className="h-16 w-full sm:w-auto px-36 text-lg font-semibold rounded-full bg-[#F5C518] text-[#0A0A0A] shadow-lg shadow-[#F5C518]/25 hover:shadow-xl hover:bg-[#FFD84D] transition-all border-0"
               >
                 <Link href="/dashboard">
                   Try Demo
@@ -414,38 +439,45 @@ export default function Hero() {
               </Button>
             </motion.div>
 
-            {/* Trust badges */}
-            <motion.div className="flex flex-wrap items-center gap-4 mb-10" variants={itemVariants}>
-              {[
-                { icon: ShieldCheck, label: 'SOC 2 Type II' },
-                { icon: FileCheck, label: 'PHMSA Aligned' },
-                { icon: Leaf, label: 'EPA Subpart W' },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-1.5 text-[11px] text-[#9CA3AF]">
-                  <Icon className="size-3.5 text-[#F5C518]/60" />
-                  <span>{label}</span>
-                </div>
-              ))}
-            </motion.div>
-
-            {/* ROI metrics */}
-            <motion.div
-              className="grid grid-cols-2 sm:grid-cols-4 gap-3"
-              variants={itemVariants}
-            >
-              {ROI_METRICS.map(({ target, suffix, prefix, label, icon: Icon, ...rest }, idx) => (
-                <div
+            {/* ROI metrics — animated colorful cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {ROI_METRICS.map(({ target, suffix, prefix, label, icon: Icon, color, bg, border, glow, ...rest }, idx) => (
+                <motion.div
                   key={label}
-                  className="relative flex flex-col items-center text-center rounded-xl border border-[#E5E5E5]/80 bg-white/60 backdrop-blur-sm px-4 py-4 shadow-sm"
+                  custom={idx}
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  whileHover={{ y: -4, scale: 1.03 }}
+                  className={`relative flex flex-col items-center text-center rounded-xl border ${border} bg-gradient-to-b ${bg} backdrop-blur-sm px-4 py-5 shadow-md ${glow} hover:shadow-lg transition-shadow cursor-default overflow-hidden`}
                 >
-                  <Icon className="size-4 text-[#F5C518] mb-2" />
+                  {/* Accent glow */}
+                  <div
+                    className="absolute -top-4 -right-4 w-16 h-16 rounded-full blur-2xl opacity-30"
+                    style={{ backgroundColor: color }}
+                  />
+                  <motion.div
+                    initial={{ scale: 0, rotate: -30 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.6 + idx * 0.15, type: 'spring', stiffness: 200, damping: 12 }}
+                  >
+                    <Icon className="size-5 mb-2" style={{ color }} />
+                  </motion.div>
                   <span className="text-2xl font-bold font-mono text-[#0A0A0A] leading-none">
                     <AnimatedCounter target={target} suffix={suffix} prefix={prefix} duration={2 + idx * 0.3} decimals={'decimals' in rest ? (rest as { decimals: number }).decimals : 0} />
                   </span>
-                  <p className="text-[11px] text-[#9CA3AF] mt-1">{label}</p>
-                </div>
+                  <p className="text-[11px] text-[#6B7280] mt-1.5 font-medium">{label}</p>
+                  {/* Animated bottom bar */}
+                  <motion.div
+                    className="absolute bottom-0 left-0 h-[3px] rounded-full"
+                    style={{ backgroundColor: color }}
+                    initial={{ width: 0 }}
+                    animate={{ width: '100%' }}
+                    transition={{ delay: 1 + idx * 0.2, duration: 0.8, ease: 'easeOut' }}
+                  />
+                </motion.div>
               ))}
-            </motion.div>
+            </div>
           </motion.div>
 
           {/* Right: Animated Data Flow Mockup */}
