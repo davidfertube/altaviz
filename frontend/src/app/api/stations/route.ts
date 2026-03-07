@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { isDemoMode } from '@/lib/demo-mode';
 import { getDemoStations } from '@/lib/demo-data';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    if (isDemoMode()) {
+    if (isDemoMode(request)) {
       return NextResponse.json(getDemoStations());
     }
     const { getStations } = await import('@/lib/queries');

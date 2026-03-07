@@ -13,7 +13,8 @@ import { MetricCardSkeleton } from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import Link from 'next/link';
 import { COLORS } from '@/lib/constants';
-import { X } from 'lucide-react';
+import { X, PlayCircle } from 'lucide-react';
+import { useSWRConfig } from 'swr';
 
 function FleetHealthSparkline({ fleet }: { fleet: { compressor_id: string; health_status: string }[] }) {
   // Build a mini sparkline: bar per compressor colored by status
@@ -46,8 +47,17 @@ function FleetHealthSparkline({ fleet }: { fleet: { compressor_id: string; healt
 
 export default function FleetOverviewPage() {
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
-  const { data: fleet, isLoading: fleetLoading } = useFleetHealth();
-  const { data: alerts, isLoading: alertsLoading } = useActiveAlerts();
+  const { data: fleet, isLoading: fleetLoading, mutate: mutateFleet } = useFleetHealth();
+  const { data: alerts, isLoading: alertsLoading, mutate: mutateAlerts } = useActiveAlerts();
+  const { mutate } = useSWRConfig();
+
+  function enableDemoData() {
+    localStorage.setItem('altaviz_demo_mode', '1');
+    // Revalidate all SWR caches so data re-fetches with the demo header
+    mutateFleet();
+    mutateAlerts();
+    mutate(() => true, undefined, { revalidate: true });
+  }
 
   const totalCompressors = fleet?.length ?? 0;
   const healthyCount = fleet?.filter(c => c.health_status === 'healthy').length ?? 0;
@@ -145,7 +155,19 @@ export default function FleetOverviewPage() {
             </div>
           </div>
         ) : !fleetLoading ? (
-          <EmptyState />
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <EmptyState
+              title="No pipeline data yet"
+              message="Load demo data to explore the full dashboard with 10 pipelines, alerts, and ML predictions."
+            />
+            <Button
+              onClick={enableDemoData}
+              className="mt-4 bg-[#F5C518] text-[#0A0A0A] hover:bg-[#FFD84D] font-semibold px-6 py-2.5"
+            >
+              <PlayCircle className="size-4 mr-2" />
+              Load Demo Data
+            </Button>
+          </div>
         ) : null}
 
         {/* Recent Activity */}

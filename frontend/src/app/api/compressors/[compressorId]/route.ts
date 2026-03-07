@@ -3,13 +3,13 @@ import { isDemoMode } from '@/lib/demo-mode';
 import { getDemoPipelineDetail } from '@/lib/demo-data';
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ compressorId: string }> }
 ) {
   try {
     const { compressorId } = await params;
 
-    if (isDemoMode()) {
+    if (isDemoMode(request)) {
       const detail = getDemoPipelineDetail(compressorId);
       if (!detail) return NextResponse.json({ error: 'Pipeline not found' }, { status: 404 });
       return NextResponse.json(detail);

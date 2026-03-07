@@ -8,7 +8,11 @@ export class ApiError extends Error {
 }
 
 export async function fetcher<T = unknown>(url: string): Promise<T> {
-  const res = await fetch(url);
+  const headers: Record<string, string> = {};
+  if (typeof window !== 'undefined' && localStorage.getItem('altaviz_demo_mode')) {
+    headers['x-demo-mode'] = 'true';
+  }
+  const res = await fetch(url, { headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }));
     throw new ApiError(body.error || res.statusText, res.status);

@@ -14,7 +14,7 @@ export async function GET(
     const window = (['1hr', '4hr', '24hr'].includes(windowParam) ? windowParam : '1hr') as WindowType;
     const hours = Math.min(Math.max(parseInt(searchParams.get('hours') || '24', 10) || 24, 1), 168);
 
-    if (isDemoMode()) {
+    if (isDemoMode(request)) {
       return NextResponse.json(getDemoPipelineReadings(compressorId, window, hours));
     }
 

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50', 10);
     const offset = parseInt(searchParams.get('offset') || '0', 10);
 
-    if (isDemoMode()) {
+    if (isDemoMode(request)) {
       if (status === 'active' && !severity && !compressor && offset === 0) {
         return NextResponse.json(getDemoActiveAlerts());
       }

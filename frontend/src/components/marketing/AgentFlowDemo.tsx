@@ -20,7 +20,9 @@ import {
   MessageSquare,
   User,
   Bot,
+  ArrowRight,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useAutoTabs } from '@/hooks/useAutoTabs';
 import { useTypewriter } from '@/hooks/useTypewriter';
 import { EASE_STANDARD, springPop } from './motion-constants';
@@ -845,6 +847,23 @@ export default function AgentFlowDemo() {
             </motion.div>
           </AnimatePresence>
         </div>
+
+        {/* CTA */}
+        <motion.div
+          className="text-center mt-10"
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-3 text-base font-medium text-[#0A0A0A] border-2 border-[#F5C518] bg-[#F5C518] hover:bg-[#FFD84D] hover:border-[#FFD84D] transition-all px-7 py-3.5 rounded-lg"
+          >
+            See It In Action
+            <ArrowRight className="size-4" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

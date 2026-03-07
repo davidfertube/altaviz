@@ -4,7 +4,7 @@ import { getDemoPipelineMaintenance } from '@/lib/demo-data';
 
 export async function GET(request: NextRequest) {
   try {
-    if (isDemoMode()) {
+    if (isDemoMode(request)) {
       const compressor = request.nextUrl.searchParams.get('compressor') || undefined;
       return NextResponse.json(getDemoPipelineMaintenance(compressor));
     }

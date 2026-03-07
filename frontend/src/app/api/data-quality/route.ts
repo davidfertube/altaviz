@@ -4,7 +4,7 @@ import { getDemoDataQuality } from '@/lib/demo-data';
 
 export async function GET(request: NextRequest) {
   try {
-    if (isDemoMode()) {
+    if (isDemoMode(request)) {
       return NextResponse.json(getDemoDataQuality());
     }
 

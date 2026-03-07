@@ -6,7 +6,7 @@ export async function PATCH(
   { params }: { params: Promise<{ alertId: string }> }
 ) {
   try {
-    if (isDemoMode()) {
+    if (isDemoMode(request)) {
       return NextResponse.json({ success: true });
     }
 
