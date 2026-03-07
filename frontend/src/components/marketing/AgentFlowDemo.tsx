@@ -639,7 +639,7 @@ function OptimizationTab() {
     <div ref={ref} className="space-y-4 min-h-[320px]">
       {/* Fleet scan grid */}
       <div className="relative rounded-xl bg-white/[0.02] border border-white/[0.04] p-4">
-        <p className="text-[8px] text-white/25 uppercase tracking-wide mb-3">Fleet Scan — 4,700 pipeline assets</p>
+        <p className="text-[8px] text-white/25 uppercase tracking-wide mb-3">Fleet Scan — 4,700 compressors</p>
         <div className="relative grid grid-cols-10 gap-1.5">
           {Array.from({ length: 20 }).map((_, i) => {
             const isFlagged = flagged.includes(i);

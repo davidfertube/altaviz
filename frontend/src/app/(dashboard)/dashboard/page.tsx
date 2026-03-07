@@ -82,7 +82,7 @@ export default function FleetOverviewPage() {
           ) : (
             <>
               <MetricCard
-                label="Pipelines Online"
+                label="Compressors Online"
                 value={totalCompressors}
                 subtitle={`${healthyCount} healthy`}
                 status="healthy"
@@ -139,7 +139,7 @@ export default function FleetOverviewPage() {
                     className="h-6 px-2 text-xs text-muted-foreground"
                     onClick={() => setSelectedStationId(null)}
                   >
-                    Show all pipelines
+                    Show all compressors
                     <X className="size-3 ml-1" />
                   </Button>
                 </div>
@@ -157,8 +157,8 @@ export default function FleetOverviewPage() {
         ) : !fleetLoading ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <EmptyState
-              title="No pipeline data yet"
-              message="Load demo data to explore the full dashboard with 10 pipelines, alerts, and ML predictions."
+              title="No compressor data yet"
+              message="Load demo data to explore the full dashboard with 10 compressors, alerts, and ML predictions."
             />
             <Button
               onClick={enableDemoData}

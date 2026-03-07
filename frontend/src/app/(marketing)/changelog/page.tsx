@@ -73,7 +73,7 @@ const ENTRIES = [
     icon: Leaf,
     title: 'EPA Subpart W Emissions Automation',
     description:
-      'Automated methane emissions calculations using EPA emission factors per pipeline segment. Real-time CH4/CO2e tracking with exportable reports for Subpart W annual submissions. Integrated into the ML pipeline for continuous monitoring.',
+      'Automated methane emissions calculations using EPA emission factors per compressor. Real-time CH4/CO2e tracking with exportable reports for Subpart W annual submissions. Integrated into the ML pipeline for continuous monitoring.',
     tags: ['Emissions', 'EPA'],
   },
   {

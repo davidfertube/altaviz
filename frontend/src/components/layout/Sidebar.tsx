@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutGrid, Activity, Bell, Menu, X, Upload } from 'lucide-react';
+import { LayoutGrid, Activity, Bell, Menu, X, Upload, Search, ClipboardCheck, TrendingUp } from 'lucide-react';
 import { NAV_ITEMS } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -16,6 +16,9 @@ const ICONS: Record<string, React.ReactNode> = {
   grid: <LayoutGrid className="size-5" />,
   activity: <Activity className="size-5" />,
   bell: <Bell className="size-5" />,
+  search: <Search className="size-5" />,
+  clipboard: <ClipboardCheck className="size-5" />,
+  trending: <TrendingUp className="size-5" />,
   upload: <Upload className="size-5" />,
 };
 
@@ -67,7 +70,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       {/* Footer */}
       <div className="px-4 py-4 flex items-center justify-between">
         <div>
-          <p className="text-xs text-muted-foreground">Pipeline Monitoring</p>
+          <p className="text-xs text-muted-foreground">Fleet Monitoring</p>
         </div>
         <PlanBadge />
       </div>

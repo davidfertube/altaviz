@@ -297,7 +297,7 @@ function DataFlowMockup() {
             {/* Compressor fleet status */}
             <div className="rounded-lg bg-white/[0.02] border border-white/[0.05] p-3">
               <div className="flex items-center justify-between mb-2.5">
-                <p className="text-[9px] text-white/25 tracking-wide uppercase">Pipeline Fleet</p>
+                <p className="text-[9px] text-white/25 tracking-wide uppercase">Compressor Fleet</p>
                 <p className="text-[9px] text-white/20 font-mono">6 active</p>
               </div>
               <div className="grid grid-cols-6 gap-2">
@@ -419,7 +419,7 @@ export default function Hero() {
               className="text-lg text-[#6B7280] max-w-lg mb-8 leading-relaxed"
               variants={itemVariants}
             >
-              AI agents that catch pipeline failures 48 hours early.
+              AI agents that catch compressor failures 48 hours early.
             </motion.p>
 
             {/* CTA */}

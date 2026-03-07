@@ -318,12 +318,12 @@ export default function SecurityPage() {
             <ComplianceBadge
               icon={FileCheck}
               label="49 CFR 192"
-              status="Pipeline safety and integrity management"
+              status="Compressor safety and integrity management"
             />
             <ComplianceBadge
               icon={FileCheck}
               label="49 CFR 195"
-              status="Hazardous liquid pipeline integrity"
+              status="Rotating equipment integrity management"
             />
             <ComplianceBadge
               icon={Leaf}

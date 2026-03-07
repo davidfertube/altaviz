@@ -14,7 +14,7 @@ function SuccessMessage({ message }: { message: string }) {
       <CheckCircle className="size-5 text-emerald-500 shrink-0" />
       <div>
         <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">{message}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">Our team will activate your pipeline within 24 hours.</p>
+        <p className="text-xs text-muted-foreground mt-0.5">Our team will activate your account within 24 hours.</p>
       </div>
     </div>
   );
@@ -33,7 +33,7 @@ function UploadTab() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Upload a CSV or Parquet file with your telemetry data. We&apos;ll auto-detect schema and configure your pipeline.
+        Upload a CSV or Parquet file with your telemetry data. We&apos;ll auto-detect schema and start monitoring your fleet.
       </p>
 
       {success ? (
@@ -75,7 +75,7 @@ function UploadTab() {
       <div className="text-xs text-muted-foreground">
         <p className="font-medium mb-1">Expected columns:</p>
         <code className="text-xs bg-muted px-2 py-1 rounded">
-          timestamp, pipeline_id, vibration_mms, discharge_temp_f, suction_pressure_psi, discharge_pressure_psi
+          timestamp, compressor_id, vibration_mms, discharge_temp_f, suction_pressure_psi, discharge_pressure_psi
         </code>
       </div>
     </div>
@@ -115,7 +115,7 @@ function EventHubsTab() {
               <input
                 type="text"
                 required
-                placeholder="pipeline-telemetry"
+                placeholder="compressor-telemetry"
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#F5C518]"
               />
             </div>
@@ -175,7 +175,7 @@ function ApiTab() {
   -H "Authorization: Bearer ${apiKey}" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "pipeline_id": "PIPE-001",
+    "compressor_id": "COMP-001",
     "timestamp": "2026-03-06T12:00:00Z",
     "vibration_mms": 3.2,
     "discharge_temp_f": 195,

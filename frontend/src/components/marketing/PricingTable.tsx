@@ -15,7 +15,7 @@ const PLANS = [
     period: '30-day trial',
     description: 'Evaluate Altaviz on a small segment of your fleet.',
     features: [
-      'Up to 10 pipeline segments',
+      'Up to 10 compressors',
       '1-hour aggregation window',
       'Threshold-based alerts',
       'Fleet overview dashboard',
@@ -33,7 +33,7 @@ const PLANS = [
     annualPeriod: '/mo billed annually',
     description: 'Full monitoring with ML predictions for growing operations.',
     features: [
-      'Up to 200 pipeline segments',
+      'Up to 200 compressors',
       '1hr, 4hr, 24hr windows',
       'ML failure predictions',
       'AI agents (investigation + work orders)',
@@ -53,7 +53,7 @@ const PLANS = [
     period: 'annual contract',
     description: 'Unlimited scale with SSO, SLA, and dedicated support — starting at $50K/year.',
     features: [
-      'Unlimited pipeline segments',
+      'Unlimited compressors',
       'All aggregation windows',
       'Everything in Operations',
       'Autonomous fleet scans + optimization copilot',
@@ -73,7 +73,7 @@ const COMPARISON = [
     category: 'Fleet Monitoring',
     accent: '#F5C518',
     features: [
-      { name: 'Pipeline segments monitored', pilot: '10', operations: '200', enterprise: 'Unlimited' },
+      { name: 'Compressors monitored', pilot: '10', operations: '200', enterprise: 'Unlimited' },
       { name: 'Aggregation windows', pilot: '1hr', operations: '1hr, 4hr, 24hr', enterprise: 'All + custom' },
       { name: 'Real-time fleet dashboard', pilot: true, operations: true, enterprise: true },
       { name: 'Individual asset drill-down', pilot: true, operations: true, enterprise: true },

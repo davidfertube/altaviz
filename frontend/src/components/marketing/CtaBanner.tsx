@@ -36,7 +36,7 @@ export default function CtaBanner() {
             }}
           >
             Your next shutdown{' '}
-            <span className="text-[#F5C518]">doesn&#39;t have to cost you $500K.</span>
+            <span className="text-[#F5C518]">doesn&#39;t have to cost you $150K.</span>
           </motion.h2>
           <motion.p
             className="text-lg text-white/50 max-w-2xl mx-auto mb-10"
@@ -45,7 +45,7 @@ export default function CtaBanner() {
               visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const } },
             }}
           >
-            Start monitoring your pipeline assets in minutes. Free pilot includes 10 segments with full anomaly detection and AI-powered diagnostics.
+            Start monitoring your compressor fleet in minutes. Free pilot includes 10 compressors with full anomaly detection and AI-powered diagnostics.
           </motion.p>
 
           <motion.div

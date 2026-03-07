@@ -11,7 +11,7 @@ export async function GET(
 
     if (isDemoMode(request)) {
       const detail = getDemoPipelineDetail(compressorId);
-      if (!detail) return NextResponse.json({ error: 'Pipeline not found' }, { status: 404 });
+      if (!detail) return NextResponse.json({ error: 'Compressor not found' }, { status: 404 });
       return NextResponse.json(detail);
     }
 
@@ -24,11 +24,11 @@ export async function GET(
     }
 
     if (!/^(COMP|PL|PIPE)-\d{3}$/.test(compressorId)) {
-      return NextResponse.json({ error: 'Invalid pipeline ID format' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid compressor ID format' }, { status: 400 });
     }
     const [metadata] = await getCompressor(compressorId, session.organizationId);
     if (!metadata) {
-      return NextResponse.json({ error: 'Pipeline not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Compressor not found' }, { status: 404 });
     }
 
     const [readingsResult, predictions] = await Promise.all([
@@ -46,6 +46,6 @@ export async function GET(
     });
   } catch (error) {
     const { handleApiError } = await import('@/lib/errors');
-    return handleApiError(error, 'Failed to fetch pipeline');
+    return handleApiError(error, 'Failed to fetch compressor');
   }
 }

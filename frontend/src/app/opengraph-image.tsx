@@ -109,7 +109,7 @@ export default async function Image() {
             maxWidth: '700px',
           }}
         >
-          Autonomous monitoring agents for oil and gas pipeline fleets
+          Autonomous monitoring agents for natural gas compressor fleets
         </span>
 
         {/* Bottom metrics bar */}

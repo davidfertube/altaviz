@@ -302,7 +302,7 @@ function ShutdownReductionMockup() {
 /*  Stats data                                                         */
 /* ------------------------------------------------------------------ */
 const STATS = [
-  { value: 4700, suffix: '+', prefix: '', label: 'Pipeline Assets Monitored', Viz: FleetCoverageMockup },
+  { value: 4700, suffix: '+', prefix: '', label: 'Compressors Monitored', Viz: FleetCoverageMockup },
   { value: 48, suffix: 'hr', prefix: '', label: 'Hours of Advance Warning', Viz: EarlyWarningMockup },
   { value: 99.7, suffix: '%', prefix: '', label: 'Platform Uptime', Viz: UptimeGridMockup },
   { value: 40, suffix: '%', prefix: '', label: 'Fewer Emergency Shutdowns', Viz: ShutdownReductionMockup },
@@ -328,7 +328,7 @@ export default function Stats() {
             Proven results across live fleets
           </h2>
           <p className="text-lg text-[#6B7280] max-w-xl mx-auto">
-            With $8.98B in pipeline damage since 2010, predictive maintenance isn&#39;t optional — it&#39;s survival.
+            With $2.1M per unplanned shutdown, predictive maintenance isn&#39;t optional — it&#39;s survival.
           </p>
         </motion.div>
 

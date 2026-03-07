@@ -17,27 +17,27 @@ const FAQS: FAQEntry[] = [
   {
     question: 'How does Altaviz connect to our existing SCADA system?',
     category: 'Technical',
-    answer: 'Altaviz supports standard protocols including OPC-UA, Modbus, and direct historian connections (OSIsoft PI, Honeywell Experion, Emerson DeltaV). We also accept CSV/Parquet uploads, ILI inspection data, and REST API ingestion. Most integrations complete within one week with no disruption to existing operations.',
+    answer: 'Altaviz supports standard protocols including OPC-UA, Modbus, and direct historian connections (OSIsoft PI, Honeywell Experion, Emerson DeltaV). We also accept CSV/Parquet uploads, CMMS exports, and REST API ingestion. Most integrations complete within one week with no disruption to existing operations.',
   },
   {
     question: 'What ML models power the anomaly detection?',
     category: 'Technical',
-    answer: 'We use Isolation Forest models (scikit-learn) trained on healthy baseline data per pipeline segment. Additional models include linear regression for temperature drift prediction, heuristic algorithms for remaining useful life estimation, and EPA Subpart W factor-based emissions calculations. Models retrain quarterly on your fleet data.',
+    answer: 'We use Isolation Forest models (scikit-learn) trained on healthy baseline data per compressor. Additional models include linear regression for temperature drift prediction, heuristic algorithms for remaining useful life estimation, and EPA Subpart W factor-based emissions calculations. Models retrain quarterly on your fleet data.',
   },
   {
-    question: 'What pipeline types does Altaviz support?',
+    question: 'What compressor types does Altaviz support?',
     category: 'Technical',
-    answer: 'Altaviz supports gas transmission pipelines (49 CFR 192), hazardous liquid pipelines (49 CFR 195), gathering systems, and distribution networks. The platform monitors pressure, temperature, flow, vibration, and corrosion indicators across all pipeline classes and materials.',
+    answer: 'Altaviz supports reciprocating and rotary screw compressors across all major manufacturers (Ariel, Caterpillar, Waukesha, Ajax). The platform monitors vibration, discharge temperature, suction and discharge pressure, gas flow, and horsepower across all compressor classes, models, and horsepower ratings.',
   },
   {
-    question: 'How does Altaviz support PHMSA Mega Rule compliance?',
+    question: 'How does Altaviz support EPA emissions compliance?',
     category: 'Compliance',
-    answer: 'Altaviz helps operators meet expanded integrity management requirements including MAOP reconfirmation tracking, assessment scheduling for pipelines in High Consequence Areas (HCAs) and Moderate Consequence Areas (MCAs), and automated record-keeping for the life of the pipeline. The platform generates PHMSA-ready reports for annual submissions.',
+    answer: 'Altaviz calculates methane (CH\u2084) and CO\u2082-equivalent emissions using EPA Subpart W emission factors applied to real-time sensor data. The platform tracks emissions per station and per compressor, generates OOOOb-ready reports, and maintains immutable audit logs for regulatory submissions.',
   },
   {
     question: 'What compliance standards does Altaviz support?',
     category: 'Compliance',
-    answer: 'Altaviz provides automated monitoring and reporting aligned with 49 CFR 192 (gas transmission integrity management), 49 CFR 195 (hazardous liquid pipeline integrity), ASME B31.8S (risk management for gas pipelines), EPA Subpart W (methane emissions), and ISO 10816 (vibration severity). Compliance reports are exportable for regulatory submissions and annual PHMSA filings.',
+    answer: 'Altaviz provides automated monitoring and reporting aligned with EPA Subpart W (methane emissions reporting), EPA OOOOb (fugitive emissions monitoring), ISO 10816 (vibration severity for rotating machinery), and API 618 (reciprocating compressor design). Compliance reports are exportable for regulatory submissions.',
   },
   {
     question: 'How is our data isolated from other customers?',
@@ -45,9 +45,9 @@ const FAQS: FAQEntry[] = [
     answer: 'Every database query is scoped to your organization via a mandatory organization_id parameter. Multi-tenant data isolation is enforced at the database level with NOT NULL constraints and row-level filtering. Your data is never accessible to other customers, and all access is audit-logged.',
   },
   {
-    question: 'Can Altaviz ingest ILI inspection data?',
+    question: 'Can Altaviz ingest historical maintenance records?',
     category: 'Technical',
-    answer: 'Yes. Altaviz accepts In-Line Inspection data alongside real-time SCADA telemetry, providing continuous monitoring between scheduled inspection runs. ILI data integrates into the anomaly detection pipeline, enriching ML models with historical inspection context for more accurate corrosion growth and remaining life predictions.',
+    answer: 'Yes. Altaviz accepts historical maintenance logs, CMMS exports, and field inspection reports alongside real-time SCADA telemetry. Historical data enriches ML models with maintenance context for more accurate anomaly detection and remaining useful life predictions.',
   },
   {
     question: 'Can we deploy Altaviz on-premises?',
@@ -57,12 +57,12 @@ const FAQS: FAQEntry[] = [
   {
     question: 'What does the onboarding process look like?',
     category: 'Pricing',
-    answer: 'Typical onboarding follows three phases: Assessment (2 weeks) — we map your SCADA architecture, pipeline segments, and define alerting rules; Integration (2-4 weeks) — connect data sources and configure ML baselines per pipeline segment; Production (ongoing) — continuous monitoring with quarterly model retraining and a dedicated technical account manager.',
+    answer: 'Typical onboarding follows three phases: Assessment (2 weeks) — we map your SCADA architecture, compressor fleet, and define alerting rules; Integration (2-4 weeks) — connect data sources and configure ML baselines per compressor; Production (ongoing) — continuous monitoring with quarterly model retraining and a dedicated technical account manager.',
   },
   {
     question: 'How is pricing calculated for Enterprise?',
     category: 'Pricing',
-    answer: 'Enterprise pricing is based on the number of monitored pipeline segments, data ingestion volume, and required support level. We offer annual contracts with custom SLAs. Start a free pilot to evaluate the platform, then work with our team to scope an enterprise deployment based on your fleet size and requirements.',
+    answer: 'Enterprise pricing is based on the number of monitored compressors, data ingestion volume, and required support level. We offer annual contracts with custom SLAs. Start a free pilot to evaluate the platform, then work with our team to scope an enterprise deployment based on your fleet size and requirements.',
   },
 ];
 

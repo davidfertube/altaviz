@@ -14,7 +14,7 @@ const BADGES = [
   {
     icon: FileCheck,
     title: '49 CFR 192 / PHMSA',
-    description: 'Pipeline safety and integrity management compliance',
+    description: 'Compressor safety and integrity management compliance',
     accent: '#F59E0B',
     iconBg: '#F59E0B15',
   },

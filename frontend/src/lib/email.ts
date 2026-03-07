@@ -97,7 +97,7 @@ export async function sendWelcomeEmail(params: {
 }): Promise<EmailResult> {
   return sendEmail({
     to: params.to,
-    subject: 'Welcome to Altaviz — Let\'s get your pipeline monitored',
+    subject: 'Welcome to Altaviz — Let\'s get your fleet monitored',
     html: welcomeEmailTemplate({
       userName: params.userName,
       organizationName: params.organizationName,

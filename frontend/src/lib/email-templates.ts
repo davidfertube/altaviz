@@ -51,7 +51,7 @@ function emailLayout(content: string): string {
                     <span style="font-size: 22px; font-weight: 700; color: ${BRAND.surface}; letter-spacing: -0.5px;">Alta</span><span style="font-size: 22px; font-weight: 700; color: ${BRAND.gold}; letter-spacing: -0.5px;">viz</span>
                   </td>
                   <td align="right" style="font-size: 12px; color: ${BRAND.goldLight}; text-transform: uppercase; letter-spacing: 1px;">
-                    Pipeline Integrity
+                    Fleet Integrity
                   </td>
                 </tr>
               </table>
@@ -69,7 +69,7 @@ function emailLayout(content: string): string {
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="font-size: 12px; color: ${BRAND.textMuted}; line-height: 1.6;">
-                    Altaviz &mdash; Predictive maintenance for natural gas pipeline infrastructure.<br />
+                    Altaviz &mdash; Predictive maintenance for natural gas compressor fleets.<br />
                     This is an automated message. Please do not reply directly to this email.
                   </td>
                 </tr>
@@ -125,7 +125,7 @@ export function welcomeEmailTemplate(params: {
   const content = `
 <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 700; color: ${BRAND.text};">Welcome to Altaviz</h1>
 <p style="margin: 0 0 24px 0; font-size: 15px; color: ${BRAND.textMuted}; line-height: 1.6;">
-  Hi ${escapeHtml(userName)}, your organization <strong style="color: ${BRAND.text};">${escapeHtml(organizationName)}</strong> is ready. Here&rsquo;s how to get started with predictive pipeline monitoring.
+  Hi ${escapeHtml(userName)}, your organization <strong style="color: ${BRAND.text};">${escapeHtml(organizationName)}</strong> is ready. Here&rsquo;s how to get started with predictive compressor fleet monitoring.
 </p>
 
 <!-- Steps -->
@@ -153,7 +153,7 @@ export function welcomeEmailTemplate(params: {
           <td style="padding: 8px 0;">
             <strong style="font-size: 14px; color: ${BRAND.text};">Connect your SCADA system</strong>
             <p style="margin: 4px 0 0 0; font-size: 13px; color: ${BRAND.textMuted}; line-height: 1.5;">
-              Integrate sensor data from your pipeline infrastructure. Altaviz supports standard SCADA protocols and CSV/Parquet ingestion.
+              Integrate sensor data from your compressor fleet. Altaviz supports standard SCADA protocols and CSV/Parquet ingestion.
             </p>
           </td>
         </tr>
@@ -222,7 +222,7 @@ export function criticalAlertEmailTemplate(params: {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px; border: 1px solid ${BRAND.border}; border-radius: 8px;">
   <tr>
     <td style="padding: 14px 16px; border-bottom: 1px solid ${BRAND.border};">
-      <span style="font-size: 12px; color: ${BRAND.textMuted}; text-transform: uppercase; letter-spacing: 0.5px;">Pipeline Segment</span><br />
+      <span style="font-size: 12px; color: ${BRAND.textMuted}; text-transform: uppercase; letter-spacing: 0.5px;">Compressor</span><br />
       <strong style="font-size: 15px; color: ${BRAND.text};">${escapeHtml(segment)}</strong>
     </td>
   </tr>
@@ -251,7 +251,7 @@ export function criticalAlertEmailTemplate(params: {
 ${button('View Alert Details', alertUrl)}
 
 <p style="margin: 0; font-size: 13px; color: ${BRAND.textMuted}; line-height: 1.6;">
-  You are receiving this notification because you are subscribed to ${severity} alerts for this pipeline segment. Manage notification preferences in your dashboard settings.
+  You are receiving this notification because you are subscribed to ${severity} alerts for this compressor. Manage notification preferences in your dashboard settings.
 </p>`;
 
   return emailLayout(content);
@@ -272,7 +272,7 @@ export function teamInviteEmailTemplate(params: {
   const roleDescriptions: Record<string, string> = {
     owner: 'Full access including billing and organization settings',
     admin: 'Manage team members, alerts, and system configuration',
-    operator: 'Monitor pipeline status, acknowledge and resolve alerts',
+    operator: 'Monitor compressor fleet status, acknowledge and resolve alerts',
     viewer: 'View dashboards and reports in read-only mode',
   };
 
@@ -283,7 +283,7 @@ export function teamInviteEmailTemplate(params: {
 <p style="margin: 0 0 24px 0; font-size: 15px; color: ${BRAND.textMuted}; line-height: 1.6;">
   <strong style="color: ${BRAND.text};">${escapeHtml(inviterName)}</strong> has invited you to join
   <strong style="color: ${BRAND.text};">${escapeHtml(organizationName)}</strong> on Altaviz &mdash;
-  a predictive maintenance platform for natural gas pipeline infrastructure.
+  a predictive maintenance platform for natural gas compressor fleets.
 </p>
 
 <!-- Role details -->

@@ -11,7 +11,7 @@ export default function MonitoringPage() {
 
   return (
     <div className="min-h-screen">
-      <Header title="Monitoring" subtitle="All pipelines at a glance" />
+      <Header title="Monitoring" subtitle="All compressors at a glance" />
 
       <div className="p-4 sm:p-6">
         {isLoading ? (

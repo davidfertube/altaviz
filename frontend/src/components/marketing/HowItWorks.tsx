@@ -429,7 +429,7 @@ const STEPS = [
     number: '02',
     title: 'Detect',
     icon: BrainCircuit,
-    description: 'ML models learn the healthy baseline of each pipeline asset. When sensor patterns start to deviate, you get an alert — 24 to 48 hours before a traditional threshold alarm.',
+    description: 'ML models learn the healthy baseline of each compressor. When sensor patterns start to deviate, you get an alert — 24 to 48 hours before a traditional threshold alarm.',
     detail: 'Models retrain quarterly on your data. Tuned for zero false positives — so your crew trusts every alert.',
     Mockup: DetectMockup,
   },

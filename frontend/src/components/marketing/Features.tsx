@@ -459,7 +459,7 @@ const FEATURE_TABS = [
   {
     label: 'Fleet Overview',
     icon: Gauge,
-    title: 'See every pipeline asset. In real time.',
+    title: 'See every compressor. In real time.',
     description: 'Health scores, vibration trends, and thermal maps across your entire fleet — updated every 5 minutes. Drill down to any asset, any sensor, in one click.',
     Mockup: FleetOverviewMockup,
   },
@@ -516,7 +516,7 @@ export default function Features() {
             One platform. Complete fleet visibility.
           </h2>
           <p className="text-lg text-[#6B7280] max-w-2xl mx-auto">
-            From the sensor on the pipeline to the work order in the field.
+            From the sensor on the compressor to the work order in the field.
           </p>
         </motion.div>
 
