@@ -427,16 +427,13 @@ export default function Hero() {
               className="flex flex-col sm:flex-row items-start gap-3 mb-10"
               variants={itemVariants}
             >
-              <Button
-                asChild
-                size="lg"
-                className="h-16 w-full sm:w-[calc(50%+0.375rem)] justify-start pl-10 pr-20 text-lg font-semibold rounded-full bg-[#F5C518] text-[#0A0A0A] shadow-lg shadow-[#F5C518]/25 hover:shadow-xl hover:bg-[#FFD84D] transition-all border-0"
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-3 text-lg font-medium text-[#0A0A0A] border-2 border-[#F5C518] bg-[#F5C518] hover:bg-[#FFD84D] hover:border-[#FFD84D] transition-all px-8 py-4 rounded-lg"
               >
-                <Link href="/dashboard">
-                  Try Demo
-                  <ArrowRight className="size-5 ml-2" />
-                </Link>
-              </Button>
+                Try the Demo
+                <ArrowRight className="size-5" />
+              </Link>
             </motion.div>
 
             {/* ROI metrics — animated colorful cards */}
