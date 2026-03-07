@@ -412,7 +412,7 @@ export default function Hero() {
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#0A0A0A] leading-[1.05] tracking-tight mb-5"
               variants={itemVariants}
             >
-              Predict Failures Early.
+              Predict Failures Early
             </motion.h1>
 
             <motion.p
