@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
-import { AlertTriangle, BrainCircuit, ClipboardCheck, CheckCircle, Activity, Gauge, Bot, Thermometer, Leaf } from 'lucide-react';
+import { AlertTriangle, BrainCircuit, ClipboardCheck, CheckCircle, Activity, Gauge, Bot, Thermometer, Leaf, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { EASE_STANDARD } from './motion-constants';
 
 /* ------------------------------------------------------------------ */
@@ -567,9 +568,16 @@ export default function Features() {
               <h3 className="text-2xl sm:text-3xl font-bold text-[#0A0A0A] mb-3">
                 {title}
               </h3>
-              <p className="text-base text-[#6B7280] leading-relaxed max-w-md">
+              <p className="text-base text-[#6B7280] leading-relaxed max-w-md mb-6">
                 {description}
               </p>
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-3 text-base font-medium text-[#0A0A0A] border-2 border-[#F5C518] bg-[#F5C518] hover:bg-[#FFD84D] hover:border-[#FFD84D] transition-all px-7 py-3.5 rounded-lg"
+              >
+                Try the Demo
+                <ArrowRight className="size-4" />
+              </Link>
             </div>
           </motion.div>
         </AnimatePresence>
