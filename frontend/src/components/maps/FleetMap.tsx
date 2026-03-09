@@ -232,9 +232,9 @@ export default function FleetMap({
         zoom={6}
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={false}
+        attributionControl={false}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
 
