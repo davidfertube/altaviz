@@ -81,6 +81,7 @@ export const NAV_ITEMS = [
   { href: '/dashboard', label: 'Overview', icon: 'grid' },
   { href: '/dashboard/monitoring', label: 'Monitoring', icon: 'activity' },
   { href: '/dashboard/alerts', label: 'Alerts', icon: 'bell' },
+  { href: '/dashboard/action-center', label: 'Action Center', icon: 'target' },
   { href: '/dashboard/investigations', label: 'Investigations', icon: 'search' },
   { href: '/dashboard/work-orders', label: 'Work Orders', icon: 'clipboard' },
   { href: '/dashboard/optimization', label: 'Optimization', icon: 'trending' },

@@ -1,10 +1,14 @@
 'use client';
 
+import Link from 'next/link';
+import { Target } from 'lucide-react';
 import type { ActiveAlert, AlertHistory } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/indicators/StatusBadge';
 import { formatTimestamp, formatNumber } from '@/lib/utils';
+
+const ACTION_PLAN_COMPRESSORS = new Set(['PIPE-002', 'PIPE-003', 'PIPE-006']);
 
 type AlertRow = ActiveAlert | (AlertHistory & { model?: string; station_name?: string });
 
@@ -73,6 +77,18 @@ export default function AlertTable({ alerts, compact = false, onAcknowledge, onR
             {(onAcknowledge || onResolve) && (
               <TableCell>
                 <div className="flex gap-1.5">
+                  {ACTION_PLAN_COMPRESSORS.has(alert.compressor_id) && (
+                    <Link href={`/dashboard/action-center/${alert.compressor_id}`}>
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        className="text-primary hover:text-primary hover:bg-primary/10"
+                      >
+                        <Target className="size-3 mr-1" />
+                        Action Plan
+                      </Button>
+                    </Link>
+                  )}
                   {onAcknowledge && !alert.acknowledged && (
                     <Button
                       variant="ghost"

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { Target } from 'lucide-react';
 import {
   usePipelineDetail,
   usePipelineReadings,
@@ -9,6 +11,8 @@ import {
   usePipelineMaintenance,
 } from '@/hooks/usePipelineReadings';
 import Header from '@/components/layout/Header';
+
+const ACTION_PLAN_COMPRESSORS = new Set(['PIPE-002', 'PIPE-003', 'PIPE-006']);
 import GaugeChart from '@/components/charts/GaugeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import AlertTable from '@/components/tables/AlertTable';
@@ -124,6 +128,24 @@ export default function PipelineDetailPage() {
               <span className="text-sm text-muted-foreground hidden md:inline">Last: <span className="text-foreground font-mono">{formatTimestamp(latest.agg_timestamp)}</span></span>
             )}
           </div>
+        )}
+
+        {/* Action Required Banner */}
+        {(healthStatus === 'critical' || healthStatus === 'warning') && ACTION_PLAN_COMPRESSORS.has(compressorId) && (
+          <Link href={`/dashboard/action-center/${compressorId}`}>
+            <Card className={`p-4 border-l-4 cursor-pointer transition-colors hover:shadow-md ${healthStatus === 'critical' ? 'border-l-red-500 bg-red-50/50 dark:bg-red-950/20' : 'border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20'}`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Target className={`size-5 ${healthStatus === 'critical' ? 'text-red-500' : 'text-amber-500'}`} />
+                  <div>
+                    <p className="text-sm font-semibold">Action Required</p>
+                    <p className="text-xs text-muted-foreground">AI-generated action plan available for this compressor</p>
+                  </div>
+                </div>
+                <span className="text-sm font-medium text-primary">View Action Plan →</span>
+              </div>
+            </Card>
+          </Link>
         )}
 
         {/* ML Prediction + Cost Savings Row */}

@@ -11,6 +11,7 @@ import type {
   StationLocation,
   WindowType,
 } from './types';
+import type { ActionPlan } from './action-plan-types';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -294,4 +295,166 @@ export function getDemoStations(): (StationLocation & { compressor_count: number
     ...s,
     compressor_count: PIPELINES.filter((p) => p.station_id === s.station_id).length,
   }));
+}
+
+// ---------------------------------------------------------------------------
+// Action Plans (Field Operator Action Center)
+// ---------------------------------------------------------------------------
+
+const ACTION_PLANS: ActionPlan[] = [
+  {
+    compressorId: 'PIPE-002',
+    model: 'Ariel JGK/4',
+    stationName: 'Permian Basin Alpha',
+    stationId: 'STN-001',
+    status: 'critical',
+    headline: 'Bearing Failure Detected — Immediate Action Required',
+    diagnosis:
+      'Main shaft bearing on PIPE-002 is showing exponential vibration increase (7.4 mm/s, threshold 6.0). Discharge temperature elevated to 248°F indicates friction-related heating. ML anomaly model confidence 0.91. At current degradation rate, bearing seizure expected within 48-72 hours without intervention.',
+    confidence: 0.91,
+    estimatedHours: 12,
+    estimatedCost: 14500,
+    createdAt: hoursAgo(0.5),
+    safetyWarnings: [
+      { level: 'danger', message: 'Do NOT approach while unit is running at elevated vibration levels. Risk of catastrophic bearing failure and ejected debris.' },
+      { level: 'danger', message: 'Hot surface warning — discharge temperature at 248°F. Wear heat-resistant gloves.' },
+      { level: 'caution', message: 'Wear hearing protection — vibration levels exceed 7 mm/s, noise above 95 dB likely.' },
+      { level: 'info', message: 'LOTO (Lock Out / Tag Out) required before any physical inspection.' },
+    ],
+    actionSteps: [
+      { id: 'step-1', order: 1, instruction: 'Acknowledge this alert in the system', detail: 'Confirms you are the responding operator. Timestamps your response for audit trail.', priority: 'immediate', requiresShutdown: false },
+      { id: 'step-2', order: 2, instruction: 'Notify maintenance supervisor immediately', detail: 'Call shift lead or use Teams to report bearing failure on PIPE-002 at Permian Basin Alpha. Estimated repair cost exceeds $10K — requires supervisor approval.', priority: 'immediate', requiresShutdown: false },
+      { id: 'step-3', order: 3, instruction: 'Prepare for controlled shutdown within 2 hours', detail: 'Coordinate with operations to reroute gas flow. Notify downstream stations of reduced capacity.', priority: 'immediate', requiresShutdown: true },
+      { id: 'step-4', order: 4, instruction: 'Isolate unit from gas flow', detail: 'Close suction and discharge valves. Bleed pressure to 0 PSI. Verify with pressure gauge before approaching.', priority: 'immediate', requiresShutdown: true },
+      { id: 'step-5', order: 5, instruction: 'Perform bearing inspection per SOP-BRG-001', detail: 'Remove access panel, inspect main shaft bearings for scoring, discoloration, or metal debris. Photograph findings.', priority: 'immediate', requiresShutdown: true },
+      { id: 'step-6', order: 6, instruction: 'Replace main shaft bearings if scoring detected', detail: 'Use bearing puller set. Install new P/N AJ-BRG-JGK4-MS bearings. Torque to spec (185 ft-lb). Pack with Shell Alvania EP-2 grease.', priority: 'immediate', requiresShutdown: true },
+      { id: 'step-7', order: 7, instruction: 'Verify alignment and run test at 50% load', detail: 'Check shaft alignment with dial indicator (tolerance ±0.002"). Start unit at 50% load for 30 min, monitor vibration. Target < 3.5 mm/s.', priority: 'immediate', requiresShutdown: false },
+    ],
+    partsAndTools: [
+      { name: 'Main shaft bearing set', partNumber: 'AJ-BRG-JGK4-MS', quantity: 2, type: 'part', estimatedCost: 4200 },
+      { name: 'Bearing seal kit', partNumber: 'AJ-SEAL-JGK4', quantity: 1, type: 'part', estimatedCost: 680 },
+      { name: 'Shell Alvania EP-2 grease (5 gal)', partNumber: null, quantity: 1, type: 'part', estimatedCost: 120 },
+      { name: 'Bearing puller set', partNumber: null, quantity: 1, type: 'tool', estimatedCost: null },
+      { name: 'Torque wrench (100-250 ft-lb)', partNumber: null, quantity: 1, type: 'tool', estimatedCost: null },
+      { name: 'Dial indicator with magnetic base', partNumber: null, quantity: 1, type: 'tool', estimatedCost: null },
+      { name: 'Vibration analyzer', partNumber: null, quantity: 1, type: 'tool', estimatedCost: null },
+    ],
+    routing: {
+      primary: 'create_work_order',
+      label: 'Create Emergency Work Order',
+      description: 'This issue requires a formal work order. Estimated cost ($14,500) exceeds $10K threshold — supervisor approval will be required before work begins.',
+    },
+    similarFixes: [
+      { compressorId: 'COMP-1847', model: 'Ariel JGK/4', date: '2025-11-14', issue: 'Main bearing vibration spike to 7.8 mm/s', resolution: 'Bearing replacement + shaft realignment. Root cause: lubrication system partial blockage.', outcome: 'successful' },
+      { compressorId: 'COMP-3201', model: 'Ariel JGK/4', date: '2025-08-22', issue: 'Bearing temperature rise with vibration at 6.9 mm/s', resolution: 'Bearing replacement. Also found coupling misalignment during inspection.', outcome: 'successful' },
+      { compressorId: 'COMP-0592', model: 'Ariel JGK/4', date: '2025-06-03', issue: 'Vibration at 7.1 mm/s, initial diagnosis: bearing wear', resolution: 'Bearing replaced but vibration returned within 2 weeks. Actual root cause was crankshaft wear.', outcome: 'partial' },
+    ],
+    teamsNotification: {
+      title: 'Critical Alert: PIPE-002 Bearing Failure',
+      severity: 'critical',
+      compressorId: 'PIPE-002',
+      stationName: 'Permian Basin Alpha',
+      message: 'Vibration at 7.4 mm/s (threshold: 6.0). Discharge temp 248°F. ML confidence 91%. Estimated 48-72 hrs to bearing seizure. Immediate inspection required.',
+      sentAt: hoursAgo(0.5),
+      acknowledged: false,
+    },
+  },
+  {
+    compressorId: 'PIPE-003',
+    model: 'Caterpillar G3516',
+    stationName: 'Permian Basin Alpha',
+    stationId: 'STN-001',
+    status: 'warning',
+    headline: 'Cooling System Degradation — Schedule Maintenance',
+    diagnosis:
+      'PIPE-003 discharge temperature trending upward over the past 72 hours (now 232°F, warning threshold 240°F). Pattern consistent with cooling system degradation — likely fouled heat exchanger or reduced coolant flow. ML temperature drift model projects warning threshold breach in 5-7 days at current rate.',
+    confidence: 0.78,
+    estimatedHours: 4,
+    estimatedCost: 2800,
+    createdAt: hoursAgo(3),
+    safetyWarnings: [
+      { level: 'caution', message: 'Monitor temperature remotely before approaching. If discharge temp exceeds 240°F, do not perform hands-on inspection.' },
+      { level: 'info', message: 'Unit is safe for routine visual inspection at current temperature levels.' },
+    ],
+    actionSteps: [
+      { id: 'step-1', order: 1, instruction: 'Log current readings in shift report', detail: 'Record discharge temp (232°F), vibration (5.8 mm/s), and pressure (1180 PSI). Note upward temperature trend.', priority: 'immediate', requiresShutdown: false },
+      { id: 'step-2', order: 2, instruction: 'Inspect cooling fan operation', detail: 'Visual check that cooling fan is running at correct RPM. Listen for unusual bearing noise. Check belt tension.', priority: 'next_shift', requiresShutdown: false },
+      { id: 'step-3', order: 3, instruction: 'Check coolant levels and condition', detail: 'Inspect coolant reservoir level. Check for discoloration or contamination. Top off if below minimum mark.', priority: 'next_shift', requiresShutdown: false },
+      { id: 'step-4', order: 4, instruction: 'Clean heat exchanger fins', detail: 'Use compressed air to blow out debris from heat exchanger fins. Check for bent or damaged fins that restrict airflow.', priority: 'next_shift', requiresShutdown: true },
+      { id: 'step-5', order: 5, instruction: 'Schedule full cooling system service', detail: 'If temperature continues trending up after cleaning, escalate for full coolant flush and heat exchanger inspection during next maintenance window.', priority: 'next_maintenance_window', requiresShutdown: true },
+    ],
+    partsAndTools: [
+      { name: 'Coolant (CAT ELC, 5 gal)', partNumber: 'CAT-ELC-5GAL', quantity: 1, type: 'part', estimatedCost: 85 },
+      { name: 'Air filter element', partNumber: 'CAT-AF-G3516', quantity: 1, type: 'part', estimatedCost: 120 },
+      { name: 'Fan belt', partNumber: 'CAT-BELT-G3516-FAN', quantity: 1, type: 'part', estimatedCost: 45 },
+      { name: 'Compressed air (portable)', partNumber: null, quantity: 1, type: 'tool', estimatedCost: null },
+      { name: 'IR temperature gun', partNumber: null, quantity: 1, type: 'tool', estimatedCost: null },
+    ],
+    routing: {
+      primary: 'escalate_supervisor',
+      label: 'Escalate to Maintenance Supervisor',
+      description: 'Temperature trend requires supervisor awareness for scheduling. Not yet urgent — target next-shift maintenance window.',
+    },
+    similarFixes: [
+      { compressorId: 'COMP-2104', model: 'Caterpillar G3516', date: '2025-12-08', issue: 'Gradual temp rise to 238°F over 5 days', resolution: 'Heat exchanger fin cleaning + coolant flush. Root cause: cotton-wood seed debris blocking airflow.', outcome: 'successful' },
+      { compressorId: 'COMP-0873', model: 'Caterpillar G3516', date: '2025-09-15', issue: 'Discharge temp reached 241°F', resolution: 'Replaced coolant pump impeller. Pump was cavitating due to worn seal.', outcome: 'successful' },
+    ],
+    teamsNotification: {
+      title: 'Warning: PIPE-003 Temperature Trending Up',
+      severity: 'warning',
+      compressorId: 'PIPE-003',
+      stationName: 'Permian Basin Alpha',
+      message: 'Discharge temp at 232°F, trending upward over 72 hours. Warning threshold (240°F) projected in 5-7 days. Cooling system inspection recommended.',
+      sentAt: hoursAgo(3),
+      acknowledged: true,
+    },
+  },
+  {
+    compressorId: 'PIPE-006',
+    model: 'Ariel JGK/4',
+    stationName: 'Eagle Ford Station Beta',
+    stationId: 'STN-002',
+    status: 'monitoring',
+    headline: 'Minor Vibration Increase — Continue Monitoring',
+    diagnosis:
+      'PIPE-006 vibration has increased from baseline 3.2 mm/s to 5.2 mm/s over the past 2 weeks. Still within warning range but above normal band (1.5-4.5 mm/s). No correlated temperature or pressure anomalies. ML models show low failure probability (12%). Likely early-stage wear that should be tracked.',
+    confidence: 0.65,
+    estimatedHours: null,
+    estimatedCost: null,
+    createdAt: hoursAgo(8),
+    safetyWarnings: [
+      { level: 'info', message: 'No immediate safety concerns. Standard PPE required for site visit.' },
+    ],
+    actionSteps: [
+      { id: 'step-1', order: 1, instruction: 'Review vibration trend data weekly', detail: 'Check the 7-day trend chart for PIPE-006. Flag if vibration exceeds 6.0 mm/s or shows accelerating increase.', priority: 'monitor', requiresShutdown: false },
+      { id: 'step-2', order: 2, instruction: 'Add to next scheduled inspection', detail: 'Include PIPE-006 bearing inspection in the next planned maintenance round for Eagle Ford Station Beta.', priority: 'next_maintenance_window', requiresShutdown: false },
+      { id: 'step-3', order: 3, instruction: 'Compare with fleet baseline', detail: 'Check if other Ariel JGK/4 units at this station show similar vibration patterns. Could indicate shared environmental factor.', priority: 'monitor', requiresShutdown: false },
+    ],
+    partsAndTools: [],
+    routing: {
+      primary: 'monitor_no_action',
+      label: 'No Immediate Action Required',
+      description: 'Continue standard monitoring. This unit will be automatically flagged if conditions worsen.',
+    },
+    similarFixes: [
+      { compressorId: 'COMP-4412', model: 'Ariel JGK/4', date: '2026-01-20', issue: 'Gradual vibration increase from 3.0 to 5.5 mm/s over 3 weeks', resolution: 'Monitored for 2 additional weeks. Vibration stabilized at 5.3 mm/s. Bearing replaced during scheduled maintenance.', outcome: 'successful' },
+    ],
+    teamsNotification: {
+      title: 'Info: PIPE-006 Vibration Above Normal',
+      severity: 'info',
+      compressorId: 'PIPE-006',
+      stationName: 'Eagle Ford Station Beta',
+      message: 'Vibration at 5.2 mm/s (normal range: 1.5-4.5). Low failure probability (12%). Added to monitoring watchlist.',
+      sentAt: hoursAgo(8),
+      acknowledged: true,
+    },
+  },
+];
+
+export function getDemoActionPlans(): ActionPlan[] {
+  return ACTION_PLANS;
+}
+
+export function getDemoActionPlan(compressorId: string): ActionPlan | null {
+  return ACTION_PLANS.find((p) => p.compressorId === compressorId) ?? null;
 }
