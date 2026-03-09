@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/indicators/StatusBadge';
 import { formatTimestamp, formatNumber } from '@/lib/utils';
 
-const ACTION_PLAN_COMPRESSORS = new Set(['PIPE-002', 'PIPE-003', 'PIPE-006']);
+const ACTION_PLAN_COMPRESSORS = new Set(['COMP-002', 'COMP-003', 'COMP-006']);
 
 type AlertRow = ActiveAlert | (AlertHistory & { model?: string; station_name?: string });
 

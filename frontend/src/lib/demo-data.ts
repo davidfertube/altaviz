@@ -52,16 +52,16 @@ interface PipelineProfile {
 }
 
 const PIPELINES: PipelineProfile[] = [
-  { compressor_id: 'PIPE-001', model: 'Ajax DPC-2802', horsepower: 1380, station_id: 'STN-001', health: 'healthy', vibration: 2.8, temp: 195, pressure: 1050 },
-  { compressor_id: 'PIPE-002', model: 'Ariel JGK/4', horsepower: 1600, station_id: 'STN-001', health: 'critical', vibration: 7.4, temp: 248, pressure: 1320 },
-  { compressor_id: 'PIPE-003', model: 'Caterpillar G3516', horsepower: 1350, station_id: 'STN-001', health: 'warning', vibration: 5.8, temp: 232, pressure: 1180 },
-  { compressor_id: 'PIPE-004', model: 'Waukesha L7044GSI', horsepower: 1480, station_id: 'STN-002', health: 'healthy', vibration: 3.1, temp: 198, pressure: 1020 },
-  { compressor_id: 'PIPE-005', model: 'Ajax DPC-2802', horsepower: 1380, station_id: 'STN-002', health: 'healthy', vibration: 2.5, temp: 192, pressure: 1060 },
-  { compressor_id: 'PIPE-006', model: 'Ariel JGK/4', horsepower: 1600, station_id: 'STN-002', health: 'warning', vibration: 5.2, temp: 228, pressure: 1200 },
-  { compressor_id: 'PIPE-007', model: 'Caterpillar G3608', horsepower: 1500, station_id: 'STN-003', health: 'healthy', vibration: 3.0, temp: 200, pressure: 1080 },
-  { compressor_id: 'PIPE-008', model: 'Waukesha L7044GSI', horsepower: 1480, station_id: 'STN-003', health: 'healthy', vibration: 2.9, temp: 196, pressure: 1040 },
-  { compressor_id: 'PIPE-009', model: 'Ajax DPC-2802', horsepower: 1380, station_id: 'STN-004', health: 'healthy', vibration: 2.6, temp: 194, pressure: 1070 },
-  { compressor_id: 'PIPE-010', model: 'Ariel JGK/4', horsepower: 1600, station_id: 'STN-004', health: 'healthy', vibration: 3.2, temp: 202, pressure: 1090 },
+  { compressor_id: 'COMP-001', model: 'Ajax DPC-2802', horsepower: 1380, station_id: 'STN-001', health: 'healthy', vibration: 2.8, temp: 195, pressure: 1050 },
+  { compressor_id: 'COMP-002', model: 'Ariel JGK/4', horsepower: 1600, station_id: 'STN-001', health: 'critical', vibration: 7.4, temp: 248, pressure: 1320 },
+  { compressor_id: 'COMP-003', model: 'Caterpillar G3516', horsepower: 1350, station_id: 'STN-001', health: 'warning', vibration: 5.8, temp: 232, pressure: 1180 },
+  { compressor_id: 'COMP-004', model: 'Waukesha L7044GSI', horsepower: 1480, station_id: 'STN-002', health: 'healthy', vibration: 3.1, temp: 198, pressure: 1020 },
+  { compressor_id: 'COMP-005', model: 'Ajax DPC-2802', horsepower: 1380, station_id: 'STN-002', health: 'healthy', vibration: 2.5, temp: 192, pressure: 1060 },
+  { compressor_id: 'COMP-006', model: 'Ariel JGK/4', horsepower: 1600, station_id: 'STN-002', health: 'warning', vibration: 5.2, temp: 228, pressure: 1200 },
+  { compressor_id: 'COMP-007', model: 'Caterpillar G3608', horsepower: 1500, station_id: 'STN-003', health: 'healthy', vibration: 3.0, temp: 200, pressure: 1080 },
+  { compressor_id: 'COMP-008', model: 'Waukesha L7044GSI', horsepower: 1480, station_id: 'STN-003', health: 'healthy', vibration: 2.9, temp: 196, pressure: 1040 },
+  { compressor_id: 'COMP-009', model: 'Ajax DPC-2802', horsepower: 1380, station_id: 'STN-004', health: 'healthy', vibration: 2.6, temp: 194, pressure: 1070 },
+  { compressor_id: 'COMP-010', model: 'Ariel JGK/4', horsepower: 1600, station_id: 'STN-004', health: 'healthy', vibration: 3.2, temp: 202, pressure: 1090 },
 ];
 
 function stationFor(stationId: string) {
@@ -97,14 +97,14 @@ export function getDemoFleetHealth(): FleetHealthSummary[] {
 // ---------------------------------------------------------------------------
 
 const DEMO_ALERTS: AlertHistory[] = [
-  { id: 1, compressor_id: 'PIPE-002', alert_timestamp: hoursAgo(0.5), alert_type: 'threshold_critical', severity: 'critical', sensor_name: 'vibration_mms', sensor_value: 7.4, threshold_value: 8.0, message: 'Vibration approaching critical threshold — bearing wear suspected', acknowledged: false, acknowledged_by: null, acknowledged_at: null, resolved: false, resolved_at: null, created_at: hoursAgo(0.5) },
-  { id: 2, compressor_id: 'PIPE-002', alert_timestamp: hoursAgo(1.2), alert_type: 'threshold_critical', severity: 'critical', sensor_name: 'discharge_temp_f', sensor_value: 248, threshold_value: 240, message: 'Discharge temperature exceeded warning threshold', acknowledged: true, acknowledged_by: 'operator@demo.com', acknowledged_at: hoursAgo(0.8), resolved: false, resolved_at: null, created_at: hoursAgo(1.2) },
-  { id: 3, compressor_id: 'PIPE-002', alert_timestamp: hoursAgo(3), alert_type: 'anomaly', severity: 'critical', sensor_name: 'vibration_mms', sensor_value: 6.9, threshold_value: null, message: 'Anomaly detected: vibration pattern consistent with bearing degradation', acknowledged: true, acknowledged_by: 'operator@demo.com', acknowledged_at: hoursAgo(2.5), resolved: false, resolved_at: null, created_at: hoursAgo(3) },
-  { id: 4, compressor_id: 'PIPE-003', alert_timestamp: hoursAgo(2), alert_type: 'threshold_warning', severity: 'warning', sensor_name: 'vibration_mms', sensor_value: 5.8, threshold_value: 6.0, message: 'Vibration elevated — monitor closely', acknowledged: false, acknowledged_by: null, acknowledged_at: null, resolved: false, resolved_at: null, created_at: hoursAgo(2) },
-  { id: 5, compressor_id: 'PIPE-006', alert_timestamp: hoursAgo(4), alert_type: 'threshold_warning', severity: 'warning', sensor_name: 'discharge_temp_f', sensor_value: 228, threshold_value: 240, message: 'Temperature trending upward — cooling system check recommended', acknowledged: false, acknowledged_by: null, acknowledged_at: null, resolved: false, resolved_at: null, created_at: hoursAgo(4) },
-  { id: 6, compressor_id: 'PIPE-003', alert_timestamp: hoursAgo(6), alert_type: 'prediction', severity: 'warning', sensor_name: null, sensor_value: null, threshold_value: null, message: 'ML model predicts potential issue within 72 hours — RUL dropping', acknowledged: true, acknowledged_by: 'admin@demo.com', acknowledged_at: hoursAgo(5), resolved: false, resolved_at: null, created_at: hoursAgo(6) },
-  { id: 7, compressor_id: 'PIPE-002', alert_timestamp: hoursAgo(12), alert_type: 'threshold_warning', severity: 'warning', sensor_name: 'discharge_pressure_psi', sensor_value: 1320, threshold_value: 1300, message: 'Discharge pressure above normal range', acknowledged: true, acknowledged_by: 'operator@demo.com', acknowledged_at: hoursAgo(11), resolved: false, resolved_at: null, created_at: hoursAgo(12) },
-  { id: 8, compressor_id: 'PIPE-006', alert_timestamp: hoursAgo(18), alert_type: 'threshold_warning', severity: 'warning', sensor_name: 'vibration_mms', sensor_value: 5.2, threshold_value: 6.0, message: 'Vibration slightly elevated', acknowledged: true, acknowledged_by: 'admin@demo.com', acknowledged_at: hoursAgo(16), resolved: true, resolved_at: hoursAgo(8), created_at: hoursAgo(18) },
+  { id: 1, compressor_id: 'COMP-002', alert_timestamp: hoursAgo(0.5), alert_type: 'threshold_critical', severity: 'critical', sensor_name: 'vibration_mms', sensor_value: 7.4, threshold_value: 8.0, message: 'Vibration approaching critical threshold — bearing wear suspected', acknowledged: false, acknowledged_by: null, acknowledged_at: null, resolved: false, resolved_at: null, created_at: hoursAgo(0.5) },
+  { id: 2, compressor_id: 'COMP-002', alert_timestamp: hoursAgo(1.2), alert_type: 'threshold_critical', severity: 'critical', sensor_name: 'discharge_temp_f', sensor_value: 248, threshold_value: 240, message: 'Discharge temperature exceeded warning threshold', acknowledged: true, acknowledged_by: 'operator@demo.com', acknowledged_at: hoursAgo(0.8), resolved: false, resolved_at: null, created_at: hoursAgo(1.2) },
+  { id: 3, compressor_id: 'COMP-002', alert_timestamp: hoursAgo(3), alert_type: 'anomaly', severity: 'critical', sensor_name: 'vibration_mms', sensor_value: 6.9, threshold_value: null, message: 'Anomaly detected: vibration pattern consistent with bearing degradation', acknowledged: true, acknowledged_by: 'operator@demo.com', acknowledged_at: hoursAgo(2.5), resolved: false, resolved_at: null, created_at: hoursAgo(3) },
+  { id: 4, compressor_id: 'COMP-003', alert_timestamp: hoursAgo(2), alert_type: 'threshold_warning', severity: 'warning', sensor_name: 'vibration_mms', sensor_value: 5.8, threshold_value: 6.0, message: 'Vibration elevated — monitor closely', acknowledged: false, acknowledged_by: null, acknowledged_at: null, resolved: false, resolved_at: null, created_at: hoursAgo(2) },
+  { id: 5, compressor_id: 'COMP-006', alert_timestamp: hoursAgo(4), alert_type: 'threshold_warning', severity: 'warning', sensor_name: 'discharge_temp_f', sensor_value: 228, threshold_value: 240, message: 'Temperature trending upward — cooling system check recommended', acknowledged: false, acknowledged_by: null, acknowledged_at: null, resolved: false, resolved_at: null, created_at: hoursAgo(4) },
+  { id: 6, compressor_id: 'COMP-003', alert_timestamp: hoursAgo(6), alert_type: 'prediction', severity: 'warning', sensor_name: null, sensor_value: null, threshold_value: null, message: 'ML model predicts potential issue within 72 hours — RUL dropping', acknowledged: true, acknowledged_by: 'admin@demo.com', acknowledged_at: hoursAgo(5), resolved: false, resolved_at: null, created_at: hoursAgo(6) },
+  { id: 7, compressor_id: 'COMP-002', alert_timestamp: hoursAgo(12), alert_type: 'threshold_warning', severity: 'warning', sensor_name: 'discharge_pressure_psi', sensor_value: 1320, threshold_value: 1300, message: 'Discharge pressure above normal range', acknowledged: true, acknowledged_by: 'operator@demo.com', acknowledged_at: hoursAgo(11), resolved: false, resolved_at: null, created_at: hoursAgo(12) },
+  { id: 8, compressor_id: 'COMP-006', alert_timestamp: hoursAgo(18), alert_type: 'threshold_warning', severity: 'warning', sensor_name: 'vibration_mms', sensor_value: 5.2, threshold_value: 6.0, message: 'Vibration slightly elevated', acknowledged: true, acknowledged_by: 'admin@demo.com', acknowledged_at: hoursAgo(16), resolved: true, resolved_at: hoursAgo(8), created_at: hoursAgo(18) },
 ];
 
 export function getDemoActiveAlerts(): ActiveAlert[] {
@@ -254,12 +254,12 @@ export function getDemoPipelineAlerts(id: string): AlertHistory[] {
 // ---------------------------------------------------------------------------
 
 const DEMO_MAINTENANCE: MaintenanceEvent[] = [
-  { id: 1, compressor_id: 'PIPE-002', event_date: daysAgo(14), event_type: 'inspection', description: 'Routine quarterly inspection — vibration slightly elevated', downtime_hours: 2, severity: 'low', cost_usd: 450, created_at: daysAgo(14) },
-  { id: 2, compressor_id: 'PIPE-002', event_date: daysAgo(90), event_type: 'scheduled', description: 'Bearing lubrication and alignment check', downtime_hours: 4, severity: 'medium', cost_usd: 1200, created_at: daysAgo(90) },
-  { id: 3, compressor_id: 'PIPE-003', event_date: daysAgo(30), event_type: 'inspection', description: 'Monthly vibration analysis', downtime_hours: 1, severity: 'low', cost_usd: 300, created_at: daysAgo(30) },
-  { id: 4, compressor_id: 'PIPE-006', event_date: daysAgo(45), event_type: 'unscheduled', description: 'Cooling fan motor replacement', downtime_hours: 6, severity: 'high', cost_usd: 3800, created_at: daysAgo(45) },
-  { id: 5, compressor_id: 'PIPE-001', event_date: daysAgo(60), event_type: 'scheduled', description: 'Semi-annual valve service', downtime_hours: 8, severity: 'medium', cost_usd: 2100, created_at: daysAgo(60) },
-  { id: 6, compressor_id: 'PIPE-005', event_date: daysAgo(120), event_type: 'scheduled', description: 'Annual overhaul and emissions test', downtime_hours: 24, severity: 'medium', cost_usd: 8500, created_at: daysAgo(120) },
+  { id: 1, compressor_id: 'COMP-002', event_date: daysAgo(14), event_type: 'inspection', description: 'Routine quarterly inspection — vibration slightly elevated', downtime_hours: 2, severity: 'low', cost_usd: 450, created_at: daysAgo(14) },
+  { id: 2, compressor_id: 'COMP-002', event_date: daysAgo(90), event_type: 'scheduled', description: 'Bearing lubrication and alignment check', downtime_hours: 4, severity: 'medium', cost_usd: 1200, created_at: daysAgo(90) },
+  { id: 3, compressor_id: 'COMP-003', event_date: daysAgo(30), event_type: 'inspection', description: 'Monthly vibration analysis', downtime_hours: 1, severity: 'low', cost_usd: 300, created_at: daysAgo(30) },
+  { id: 4, compressor_id: 'COMP-006', event_date: daysAgo(45), event_type: 'unscheduled', description: 'Cooling fan motor replacement', downtime_hours: 6, severity: 'high', cost_usd: 3800, created_at: daysAgo(45) },
+  { id: 5, compressor_id: 'COMP-001', event_date: daysAgo(60), event_type: 'scheduled', description: 'Semi-annual valve service', downtime_hours: 8, severity: 'medium', cost_usd: 2100, created_at: daysAgo(60) },
+  { id: 6, compressor_id: 'COMP-005', event_date: daysAgo(120), event_type: 'scheduled', description: 'Annual overhaul and emissions test', downtime_hours: 24, severity: 'medium', cost_usd: 8500, created_at: daysAgo(120) },
 ];
 
 export function getDemoPipelineMaintenance(compressorId?: string): MaintenanceEvent[] {
@@ -303,14 +303,14 @@ export function getDemoStations(): (StationLocation & { compressor_count: number
 
 const ACTION_PLANS: ActionPlan[] = [
   {
-    compressorId: 'PIPE-002',
+    compressorId: 'COMP-002',
     model: 'Ariel JGK/4',
     stationName: 'Permian Basin Alpha',
     stationId: 'STN-001',
     status: 'critical',
     headline: 'Bearing Failure Detected — Immediate Action Required',
     diagnosis:
-      'Main shaft bearing on PIPE-002 is showing exponential vibration increase (7.4 mm/s, threshold 6.0). Discharge temperature elevated to 248°F indicates friction-related heating. ML anomaly model confidence 0.91. At current degradation rate, bearing seizure expected within 48-72 hours without intervention.',
+      'Main shaft bearing on COMP-002 is showing exponential vibration increase (7.4 mm/s, threshold 6.0). Discharge temperature elevated to 248°F indicates friction-related heating. ML anomaly model confidence 0.91. At current degradation rate, bearing seizure expected within 48-72 hours without intervention.',
     confidence: 0.91,
     estimatedHours: 12,
     estimatedCost: 14500,
@@ -323,7 +323,7 @@ const ACTION_PLANS: ActionPlan[] = [
     ],
     actionSteps: [
       { id: 'step-1', order: 1, instruction: 'Acknowledge this alert in the system', detail: 'Confirms you are the responding operator. Timestamps your response for audit trail.', priority: 'immediate', requiresShutdown: false },
-      { id: 'step-2', order: 2, instruction: 'Notify maintenance supervisor immediately', detail: 'Call shift lead or use Teams to report bearing failure on PIPE-002 at Permian Basin Alpha. Estimated repair cost exceeds $10K — requires supervisor approval.', priority: 'immediate', requiresShutdown: false },
+      { id: 'step-2', order: 2, instruction: 'Notify maintenance supervisor immediately', detail: 'Call shift lead or use Teams to report bearing failure on COMP-002 at Permian Basin Alpha. Estimated repair cost exceeds $10K — requires supervisor approval.', priority: 'immediate', requiresShutdown: false },
       { id: 'step-3', order: 3, instruction: 'Prepare for controlled shutdown within 2 hours', detail: 'Coordinate with operations to reroute gas flow. Notify downstream stations of reduced capacity.', priority: 'immediate', requiresShutdown: true },
       { id: 'step-4', order: 4, instruction: 'Isolate unit from gas flow', detail: 'Close suction and discharge valves. Bleed pressure to 0 PSI. Verify with pressure gauge before approaching.', priority: 'immediate', requiresShutdown: true },
       { id: 'step-5', order: 5, instruction: 'Perform bearing inspection per SOP-BRG-001', detail: 'Remove access panel, inspect main shaft bearings for scoring, discoloration, or metal debris. Photograph findings.', priority: 'immediate', requiresShutdown: true },
@@ -350,9 +350,9 @@ const ACTION_PLANS: ActionPlan[] = [
       { compressorId: 'COMP-0592', model: 'Ariel JGK/4', date: '2025-06-03', issue: 'Vibration at 7.1 mm/s, initial diagnosis: bearing wear', resolution: 'Bearing replaced but vibration returned within 2 weeks. Actual root cause was crankshaft wear.', outcome: 'partial' },
     ],
     teamsNotification: {
-      title: 'Critical Alert: PIPE-002 Bearing Failure',
+      title: 'Critical Alert: COMP-002 Bearing Failure',
       severity: 'critical',
-      compressorId: 'PIPE-002',
+      compressorId: 'COMP-002',
       stationName: 'Permian Basin Alpha',
       message: 'Vibration at 7.4 mm/s (threshold: 6.0). Discharge temp 248°F. ML confidence 91%. Estimated 48-72 hrs to bearing seizure. Immediate inspection required.',
       sentAt: hoursAgo(0.5),
@@ -360,14 +360,14 @@ const ACTION_PLANS: ActionPlan[] = [
     },
   },
   {
-    compressorId: 'PIPE-003',
+    compressorId: 'COMP-003',
     model: 'Caterpillar G3516',
     stationName: 'Permian Basin Alpha',
     stationId: 'STN-001',
     status: 'warning',
     headline: 'Cooling System Degradation — Schedule Maintenance',
     diagnosis:
-      'PIPE-003 discharge temperature trending upward over the past 72 hours (now 232°F, warning threshold 240°F). Pattern consistent with cooling system degradation — likely fouled heat exchanger or reduced coolant flow. ML temperature drift model projects warning threshold breach in 5-7 days at current rate.',
+      'COMP-003 discharge temperature trending upward over the past 72 hours (now 232°F, warning threshold 240°F). Pattern consistent with cooling system degradation — likely fouled heat exchanger or reduced coolant flow. ML temperature drift model projects warning threshold breach in 5-7 days at current rate.',
     confidence: 0.78,
     estimatedHours: 4,
     estimatedCost: 2800,
@@ -400,9 +400,9 @@ const ACTION_PLANS: ActionPlan[] = [
       { compressorId: 'COMP-0873', model: 'Caterpillar G3516', date: '2025-09-15', issue: 'Discharge temp reached 241°F', resolution: 'Replaced coolant pump impeller. Pump was cavitating due to worn seal.', outcome: 'successful' },
     ],
     teamsNotification: {
-      title: 'Warning: PIPE-003 Temperature Trending Up',
+      title: 'Warning: COMP-003 Temperature Trending Up',
       severity: 'warning',
-      compressorId: 'PIPE-003',
+      compressorId: 'COMP-003',
       stationName: 'Permian Basin Alpha',
       message: 'Discharge temp at 232°F, trending upward over 72 hours. Warning threshold (240°F) projected in 5-7 days. Cooling system inspection recommended.',
       sentAt: hoursAgo(3),
@@ -410,14 +410,14 @@ const ACTION_PLANS: ActionPlan[] = [
     },
   },
   {
-    compressorId: 'PIPE-006',
+    compressorId: 'COMP-006',
     model: 'Ariel JGK/4',
     stationName: 'Eagle Ford Station Beta',
     stationId: 'STN-002',
     status: 'monitoring',
     headline: 'Minor Vibration Increase — Continue Monitoring',
     diagnosis:
-      'PIPE-006 vibration has increased from baseline 3.2 mm/s to 5.2 mm/s over the past 2 weeks. Still within warning range but above normal band (1.5-4.5 mm/s). No correlated temperature or pressure anomalies. ML models show low failure probability (12%). Likely early-stage wear that should be tracked.',
+      'COMP-006 vibration has increased from baseline 3.2 mm/s to 5.2 mm/s over the past 2 weeks. Still within warning range but above normal band (1.5-4.5 mm/s). No correlated temperature or pressure anomalies. ML models show low failure probability (12%). Likely early-stage wear that should be tracked.',
     confidence: 0.65,
     estimatedHours: null,
     estimatedCost: null,
@@ -426,8 +426,8 @@ const ACTION_PLANS: ActionPlan[] = [
       { level: 'info', message: 'No immediate safety concerns. Standard PPE required for site visit.' },
     ],
     actionSteps: [
-      { id: 'step-1', order: 1, instruction: 'Review vibration trend data weekly', detail: 'Check the 7-day trend chart for PIPE-006. Flag if vibration exceeds 6.0 mm/s or shows accelerating increase.', priority: 'monitor', requiresShutdown: false },
-      { id: 'step-2', order: 2, instruction: 'Add to next scheduled inspection', detail: 'Include PIPE-006 bearing inspection in the next planned maintenance round for Eagle Ford Station Beta.', priority: 'next_maintenance_window', requiresShutdown: false },
+      { id: 'step-1', order: 1, instruction: 'Review vibration trend data weekly', detail: 'Check the 7-day trend chart for COMP-006. Flag if vibration exceeds 6.0 mm/s or shows accelerating increase.', priority: 'monitor', requiresShutdown: false },
+      { id: 'step-2', order: 2, instruction: 'Add to next scheduled inspection', detail: 'Include COMP-006 bearing inspection in the next planned maintenance round for Eagle Ford Station Beta.', priority: 'next_maintenance_window', requiresShutdown: false },
       { id: 'step-3', order: 3, instruction: 'Compare with fleet baseline', detail: 'Check if other Ariel JGK/4 units at this station show similar vibration patterns. Could indicate shared environmental factor.', priority: 'monitor', requiresShutdown: false },
     ],
     partsAndTools: [],
@@ -440,9 +440,9 @@ const ACTION_PLANS: ActionPlan[] = [
       { compressorId: 'COMP-4412', model: 'Ariel JGK/4', date: '2026-01-20', issue: 'Gradual vibration increase from 3.0 to 5.5 mm/s over 3 weeks', resolution: 'Monitored for 2 additional weeks. Vibration stabilized at 5.3 mm/s. Bearing replaced during scheduled maintenance.', outcome: 'successful' },
     ],
     teamsNotification: {
-      title: 'Info: PIPE-006 Vibration Above Normal',
+      title: 'Info: COMP-006 Vibration Above Normal',
       severity: 'info',
-      compressorId: 'PIPE-006',
+      compressorId: 'COMP-006',
       stationName: 'Eagle Ford Station Beta',
       message: 'Vibration at 5.2 mm/s (normal range: 1.5-4.5). Low failure probability (12%). Added to monitoring watchlist.',
       sentAt: hoursAgo(8),

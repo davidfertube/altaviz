@@ -12,7 +12,7 @@ import {
 } from '@/hooks/usePipelineReadings';
 import Header from '@/components/layout/Header';
 
-const ACTION_PLAN_COMPRESSORS = new Set(['PIPE-002', 'PIPE-003', 'PIPE-006']);
+const ACTION_PLAN_COMPRESSORS = new Set(['COMP-002', 'COMP-003', 'COMP-006']);
 import GaugeChart from '@/components/charts/GaugeChart';
 import TrendChart from '@/components/charts/TrendChart';
 import AlertTable from '@/components/tables/AlertTable';
