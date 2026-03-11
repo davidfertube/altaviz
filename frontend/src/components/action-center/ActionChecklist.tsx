@@ -83,7 +83,7 @@ export default function ActionChecklist({ steps }: { steps: ActionStep[] }) {
                       >
                         {step.instruction}
                       </span>
-                      <Badge variant={pStyle.variant} className="text-[10px] px-1.5 py-0">
+                      <Badge variant={pStyle.variant} className="text-xs sm:text-[10px] px-1.5 py-0">
                         {pStyle.label}
                       </Badge>
                       {step.requiresShutdown && (

@@ -28,12 +28,12 @@ export default function SimilarFixesSection({ fixes }: { fixes: SimilarFix[] }) 
           const OutcomeIcon = outcome.icon;
           return (
             <div key={i} className="border rounded-lg p-3 sm:p-4 space-y-2">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-start sm:items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm flex-wrap">
                   <span className="font-mono font-medium">{fix.compressorId}</span>
-                  <span className="text-muted-foreground">·</span>
+                  <span className="text-muted-foreground hidden sm:inline">·</span>
                   <span className="text-muted-foreground">{fix.model}</span>
-                  <span className="text-muted-foreground">·</span>
+                  <span className="text-muted-foreground hidden sm:inline">·</span>
                   <span className="text-muted-foreground">{fix.date}</span>
                 </div>
                 <Badge variant={outcome.variant} className={outcome.className}>

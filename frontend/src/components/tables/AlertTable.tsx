@@ -81,7 +81,7 @@ export default function AlertTable({ alerts, compact = false, onAcknowledge, onR
                     <Link href={`/dashboard/action-center/${alert.compressor_id}`}>
                       <Button
                         variant="ghost"
-                        size="xs"
+                        size="sm"
                         className="text-primary hover:text-primary hover:bg-primary/10"
                       >
                         <Target className="size-3 mr-1" />
@@ -92,7 +92,7 @@ export default function AlertTable({ alerts, compact = false, onAcknowledge, onR
                   {onAcknowledge && !alert.acknowledged && (
                     <Button
                       variant="ghost"
-                      size="xs"
+                      size="sm"
                       className="text-primary hover:text-primary hover:bg-primary/10"
                       onClick={() => onAcknowledge(alert.id)}
                     >
@@ -102,7 +102,7 @@ export default function AlertTable({ alerts, compact = false, onAcknowledge, onR
                   {onResolve && !alert.resolved && (
                     <Button
                       variant="ghost"
-                      size="xs"
+                      size="sm"
                       className="text-healthy hover:text-healthy hover:bg-healthy/10"
                       onClick={() => onResolve(alert.id)}
                     >

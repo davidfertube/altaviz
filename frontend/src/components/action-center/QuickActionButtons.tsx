@@ -14,7 +14,7 @@ export default function QuickActionButtons({ routing }: { routing: RoutingAction
         <p className="text-sm text-muted-foreground">{routing.description}</p>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Button
             size="lg"
             className="h-14 text-sm font-medium"

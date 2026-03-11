@@ -56,7 +56,7 @@ export default function ActionCenterDetailPage() {
   return (
     <>
       <Header title={`Action Center — ${compressorId}`} subtitle={plan.stationName} />
-      <div className="p-4 sm:p-6 space-y-4 max-w-3xl">
+      <div className="p-4 sm:p-6 space-y-4 max-w-3xl mx-auto">
         {/* Back link */}
         <Link href="/dashboard/action-center" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="size-4" />

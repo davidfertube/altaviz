@@ -27,8 +27,8 @@ function SeverityPieChart({ critical, warning }: { critical: number; warning: nu
   return (
     <Card className="p-4">
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Severity Distribution</p>
-      <div className="flex items-center gap-6">
-        <svg width="100" height="100" viewBox="0 0 100 100" className="shrink-0">
+      <div className="flex items-center gap-4 sm:gap-6">
+        <svg viewBox="0 0 100 100" className="shrink-0 w-16 h-16 sm:w-[100px] sm:h-[100px]">
           <circle cx="50" cy="50" r={radius} fill="none" stroke="currentColor" strokeWidth="12" className="text-muted/20" />
           {/* Warning arc */}
           <circle
@@ -102,7 +102,7 @@ export default function AlertsPage() {
 
       <div className="p-4 sm:p-6 space-y-6">
         {/* Summary + Pie Chart */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {isLoading ? (
             <>
               <MetricCardSkeleton />

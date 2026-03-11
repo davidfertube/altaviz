@@ -24,7 +24,7 @@ function FleetHealthSparkline({ fleet }: { fleet: { compressor_id: string; healt
   return (
     <Card className="p-4">
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Fleet Health by Unit</p>
-      <div className="flex items-end gap-1 h-16">
+      <div className="flex items-end gap-1 h-12 sm:h-16">
         {fleet.map((c) => {
           const h = c.health_status === 'healthy' ? 100 : c.health_status === 'warning' ? 60 : 30;
           return (
@@ -117,7 +117,7 @@ export default function FleetOverviewPage() {
         {fleet && fleet.length > 0 ? (
           <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
             {/* Map */}
-            <div className="xl:col-span-2 h-[300px] sm:h-[420px]">
+            <div className="xl:col-span-2 h-[250px] sm:h-[300px] md:h-[420px]">
               <FleetMap
                 fleet={fleet}
                 selectedStationId={selectedStationId}
@@ -144,7 +144,7 @@ export default function FleetOverviewPage() {
                   </Button>
                 </div>
               )}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {(selectedStationId
                   ? fleet.filter(c => c.station_id === selectedStationId)
                   : fleet

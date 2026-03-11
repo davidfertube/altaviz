@@ -83,7 +83,7 @@ export default function TeamsNotificationCard({ data }: { data: TeamsNotificatio
             </div>
 
             {/* Action buttons (Teams-style) */}
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 type="button"
                 onClick={() => toast.success('Alert acknowledged in Teams')}

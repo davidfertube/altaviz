@@ -21,10 +21,10 @@ const statusColors: Record<HealthStatus, string> = {
 export default function MetricCard({ label, value, unit, trend, status, subtitle }: MetricCardProps) {
   return (
     <Card className="hover:shadow-md transition-shadow py-4 gap-1">
-      <CardContent className="px-5 py-0">
+      <CardContent className="px-4 sm:px-5 py-0">
         <p className="text-sm text-muted-foreground">{label}</p>
         <div className="flex items-baseline gap-2 mt-1">
-          <span className={cn('text-3xl font-bold font-mono tracking-tight', status && statusColors[status])}>
+          <span className={cn('text-2xl sm:text-3xl font-bold font-mono tracking-tight', status && statusColors[status])}>
             {value}
           </span>
           {unit && <span className="text-sm text-muted-foreground">{unit}</span>}

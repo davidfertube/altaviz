@@ -28,7 +28,7 @@ export default function DemoBanner() {
         </Link>{' '}
         to get started.
       </span>
-      <button onClick={dismiss} className="hover:bg-black/10 rounded p-0.5" aria-label="Dismiss">
+      <button onClick={dismiss} className="hover:bg-black/10 rounded p-2 -mr-1" aria-label="Dismiss">
         <X className="size-4" />
       </button>
     </div>

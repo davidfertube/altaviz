@@ -20,7 +20,7 @@ export default function PipelineCard({ data, linkPrefix = '/dashboard/monitoring
             <StatusBadge status={data.health_status} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             <div>
               <p className="text-xs text-muted-foreground">Vibration</p>
               <p className="text-sm font-mono font-medium">
