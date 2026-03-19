@@ -5,6 +5,22 @@ Manages the lifecycle of agent sessions: creation, message appending,
 status updates, and completion tracking. Used by all 3 agents.
 """
 
+# ===========================================================================
+# PATTERN: Session Lifecycle (Create -> Append -> Complete)
+# WHY: Every agent invocation is wrapped in a "session" that tracks:
+#   - WHO triggered it (user_id, organization_id)
+#   - WHAT was done (agent_type, compressor_id, trigger_type)
+#   - HOW it went (duration, tokens, status, result)
+#   - WHAT was said (messages JSONB array — full conversation history)
+# This provides: (1) audit trail for compliance, (2) cost accounting per
+# org/user, (3) debugging data when an agent produces unexpected output,
+# (4) analytics for agent performance optimization.
+# SCALING: At fleet scale with autonomous scans running hourly, sessions
+# accumulate rapidly. Partition the agent_sessions table by created_at
+# month and set a retention policy (e.g., 90 days for messages, forever
+# for metadata).
+# ===========================================================================
+
 import json
 import logging
 import uuid
@@ -25,6 +41,14 @@ def create_session(
     trigger_id: Optional[str] = None,
 ) -> str:
     """Create a new agent session and return the session_id (UUID)."""
+    # ===========================================================================
+    # WHY UUID for session_id:
+    # UUIDs are globally unique across all agents, orgs, and deployments without
+    # requiring coordination (no distributed lock, no sequence table). This is
+    # critical when multiple API replicas create sessions concurrently.
+    # Sequential IDs (like WO-2026-00001) are used for human-facing entities;
+    # UUIDs are used for internal tracking entities.
+    # ===========================================================================
     session_id = str(uuid.uuid4())
 
     execute_db(
@@ -40,6 +64,21 @@ def create_session(
     return session_id
 
 
+# ===========================================================================
+# WHY JSONB for messages:
+# The messages column stores the full conversation history as a JSONB array.
+# Benefits over a normalized messages table:
+#   1. Flexible schema: different agents have different message shapes
+#      (e.g., investigation has evidence_chain, work order has parts_list).
+#      JSONB handles this without schema migrations.
+#   2. Queryable: PostgreSQL JSONB supports operators like @>, ?|, and
+#      jsonb_array_elements() for analytics queries.
+#   3. Atomic append: messages || new_message::jsonb is atomic (no race
+#      conditions from concurrent tool calls).
+# TRADEOFF: JSONB is slower than relational queries for message-level
+#   filtering. If you need "find all sessions where tool X was called",
+#   extract tool_calls into a separate indexed table.
+# ===========================================================================
 def append_message(session_id: str, role: str, content: str,
                    tool_calls: Optional[list] = None) -> None:
     """Append a message to the session's conversation history."""
@@ -51,6 +90,8 @@ def append_message(session_id: str, role: str, content: str,
     if tool_calls:
         message["tool_calls"] = tool_calls
 
+    # Atomic JSONB array append: messages || new_message::jsonb
+    # This is safe for concurrent access (no lost updates).
     execute_db(
         """UPDATE agent_sessions
            SET messages = messages || %s::jsonb,
@@ -72,11 +113,18 @@ def complete_session(
     session_id: str,
     result_type: Optional[str] = None,
     result_id: Optional[str] = None,
-    total_tokens: int = 0,
+    total_tokens: int = 0,  # Currently always 0 — see token counting gap note below
     duration_seconds: float = 0,
     status: str = 'completed',
 ) -> None:
-    """Mark a session as completed with results and metrics."""
+    """Mark a session as completed with results and metrics.
+
+    Token counting gap: total_tokens is currently always 0 because Pydantic AI
+    does not expose token usage from the underlying LLM call. To enable token
+    tracking, integrate Langfuse (already configured in shared/tracing.py) which
+    captures token counts from the LLM response headers. The Langfuse trace_id
+    can be linked to the session_id for cost attribution.
+    """
     execute_db(
         """UPDATE agent_sessions
            SET status = %s,

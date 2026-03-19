@@ -12,6 +12,43 @@ These utilities are used across all ETL modules to maintain consistency.
 Author: David Fernandez
 """
 
+# ===========================================================================
+# PATTERN: Configuration Loading with Environment Variable Substitution
+# WHY: YAML config files define the pipeline's behavior (window sizes,
+#      Spark settings, data paths, thresholds), but secrets (connection
+#      strings, API keys) must NEVER be in config files. The substitute_env_vars
+#      function lets YAML files reference environment variables via
+#      ${VAR_NAME:-default} syntax. This means the same config file works
+#      in all environments: local dev uses defaults, production uses
+#      Azure Key Vault-injected env vars.
+# SCALING: Config is loaded once at pipeline start and cached in memory.
+#          No scaling concerns — config files are tiny (<1KB).
+# ALTERNATIVE: Could use Azure App Configuration or HashiCorp Vault for
+#              centralized config management. Overkill for a single pipeline
+#              but worth considering for multi-service architectures.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Spark Session with Delta Lake Extensions
+# WHY: PySpark needs specific configuration to support Delta Lake (ACID
+#      transactions, MERGE, time travel). The key configs are:
+#      - spark.sql.extensions: Registers Delta Lake SQL extensions
+#      - spark.sql.catalog.spark_catalog: Enables Delta as the default table format
+#      - spark.sql.adaptive.enabled: Adaptive Query Execution (AQE) dynamically
+#        adjusts shuffle partition count, join strategies, and skew handling
+#        at runtime — critical for variable-size data at fleet scale
+#      - spark.sql.shuffle.partitions: Default 200 is often too many for local
+#        dev (causes excessive overhead) and too few for production. AQE
+#        auto-tunes this, but the initial value matters for planning.
+# SCALING: AQE is the single most impactful Spark config for production.
+#          Without it, a join between 1.35M sensor rows and 4,700 metadata
+#          rows would create 200 shuffle partitions (most nearly empty).
+#          With AQE, Spark coalesces these to ~10 partitions automatically.
+# ALTERNATIVE: Could hardcode Spark configs in each script, but centralized
+#              config avoids drift between modules and makes it easy to
+#              tune for different cluster sizes.
+# ===========================================================================
+
 import os
 import yaml
 import logging
@@ -32,6 +69,10 @@ from pyspark.conf import SparkConf
 # ============================================================================
 # LOGGING SETUP
 # ============================================================================
+# Logging feeds into Azure Monitor in production. The structured log
+# format (timestamp + level + message) is parsed by Azure Log Analytics
+# to build pipeline dashboards and alerting rules. In local dev, the
+# same format makes it easy to grep logs for specific stages or errors.
 
 def setup_logging(log_level=None):
     """
@@ -95,6 +136,11 @@ def substitute_env_vars(config: Any) -> Any:
         {'host': 'localhost'}  # Assuming DB_HOST not set
     """
     # Pattern to match ${VAR_NAME:-default}
+    # This regex captures two groups:
+    #   Group 1: Variable name (e.g., DB_HOST)
+    #   Group 2: Default value after :- (e.g., localhost), optional
+    # The :- syntax mirrors bash/shell variable expansion, so ops
+    # engineers familiar with shell scripting will recognize it immediately.
     env_var_pattern = re.compile(r'\$\{([^}:]+)(?::-([^}]+))?\}')
 
     def replace_env_var(match):
@@ -200,17 +246,32 @@ def create_spark_session(app_name=None) -> SparkSession:
     if app_name is None:
         app_name = spark_config['app_name']
 
-    # Build Spark configuration
+    # Build Spark configuration.
+    # The master is set from config: "local[*]" for development (uses
+    # all available CPU cores) or "yarn" / "fabric" for production.
+    # In Fabric, the master is overridden by the notebook environment.
     conf = SparkConf()
     conf.setAppName(app_name)
     conf.setMaster(spark_config['master'])
 
-    # Apply all Spark configurations from config file
+    # Apply all Spark configurations from etl_config.yaml.
+    # Key configs typically include:
+    #   spark.sql.extensions: io.delta.sql.DeltaSparkSessionExtension
+    #   spark.sql.catalog.spark_catalog: org.apache.spark.sql.delta.catalog.DeltaCatalog
+    #   spark.sql.adaptive.enabled: true (AQE for dynamic optimization)
+    #   spark.sql.shuffle.partitions: 200 (auto-tuned by AQE at runtime)
+    #   spark.sql.parquet.compression.codec: snappy (fast decompression)
+    #   spark.serializer: org.apache.spark.serializer.KryoSerializer
+    # These are externalized to YAML so they can be tuned per environment
+    # without code changes (e.g., more shuffle partitions in production).
     for key, value in spark_config['configs'].items():
         conf.set(key, value)
 
-    # Create Spark session
-    # getOrCreate() returns existing session if one exists, otherwise creates new
+    # Create Spark session.
+    # getOrCreate() is idempotent — if a session already exists (e.g.,
+    # in a Fabric notebook), it returns that session instead of creating
+    # a duplicate. This prevents the common error of having two active
+    # SparkContexts, which causes Spark to crash.
     spark = SparkSession.builder \
         .config(conf=conf) \
         .getOrCreate()

@@ -14,6 +14,22 @@ Agents:
     - Fleet Optimization Copilot (Use Case 3): POST /optimization/*
 """
 
+# ===========================================================================
+# PATTERN: Sidecar API (FastAPI)
+# WHY: FastAPI was chosen over Flask/Django for three reasons:
+#   1. Async-first — all agent calls are async (LLM API calls, DB queries),
+#      FastAPI's native async support avoids thread pool overhead
+#   2. Pydantic integration — request/response models share the same Pydantic
+#      types used by agents, eliminating serialization boilerplate
+#   3. Auto-generated OpenAPI docs — every endpoint gets Swagger UI at /docs,
+#      critical for frontend team to self-serve API integration
+# SCALING: This sidecar runs as a separate process from the Next.js frontend,
+#   allowing independent scaling (e.g., 2 API replicas behind a load balancer
+#   while the frontend has its own scaling policy)
+# ALTERNATIVE: Django (too heavy, sync-first), Flask (no native async,
+#   no built-in Pydantic), gRPC (overhead for internal-only API)
+# ===========================================================================
+
 import os
 import re
 import json
@@ -25,19 +41,40 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from .shared.tracing import observe, flush_tracing, shutdown_tracing, is_tracing_enabled
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
+# Regex pattern for compressor ID validation. Format: COMP-NNN or COMP-NNNN.
+# This is a server-side guardrail — prevents typos and injection attempts from
+# reaching the database. The frontend also validates, but never trust the client.
 COMPRESSOR_ID_PATTERN = re.compile(r'^COMP-\d{3,4}$')
 
 
+# ===========================================================================
+# PATTERN: Lifespan Context Manager (ASGI lifecycle)
+# WHY: FastAPI's lifespan replaces the older @app.on_event("startup")/"shutdown"
+#   decorators. It uses a single async context manager so startup and shutdown
+#   logic share the same scope — any resources opened in startup are guaranteed
+#   to be cleaned up in shutdown (e.g., tracing flush).
+# SCALING: At scale, this is where you'd initialize connection pools, warm ML
+#   model caches, or register with a service discovery system.
+# ALTERNATIVE: @app.on_event was deprecated in FastAPI 0.103+ in favor of
+#   lifespan because on_event couldn't share state between startup/shutdown.
+# ===========================================================================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Altaviz Agent API starting...")
     model = os.environ.get('DIAGNOSTICS_MODEL', 'openai:gpt-4o-mini')
     logger.info(f"Using model: {model}")
     logger.info("Agents: diagnostics, investigation, work_order, optimization")
+    if is_tracing_enabled():
+        logger.info("Langfuse tracing: enabled")
     yield
+    # Shutdown: flush any pending traces to Langfuse before the process exits.
+    # Without this, the last few seconds of traces would be lost.
+    shutdown_tracing()
     logger.info("Altaviz Agent API shutting down...")
 
 
@@ -48,6 +85,19 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ===========================================================================
+# CORS Configuration
+# WHY: The Next.js frontend (port 3000/3001) calls this API (port 8001) from
+#   the browser. Without CORS headers, the browser blocks cross-origin requests.
+# ORIGINS:
+#   - localhost:3000 = Next.js dev server (npm run dev)
+#   - localhost:3001 = alternate dev port (when running multiple instances)
+#   - NEXTAUTH_URL = production URL (Vercel deployment)
+# SECURITY: We explicitly list allowed origins instead of using "*" (wildcard)
+#   to prevent arbitrary websites from making authenticated API calls.
+# METHODS: Only POST (create/action), GET (read), PATCH (update) — no DELETE
+#   because work orders are cancelled via state transition, never deleted.
+# ===========================================================================
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -62,6 +112,14 @@ app.add_middleware(
 
 # ============================================================================
 # REQUEST/RESPONSE MODELS
+# ===========================================================================
+# PATTERN: Pydantic Request Models (API Gateway Validation)
+# WHY: Each endpoint has its own request model rather than accepting raw dicts.
+#   This gives us: (1) automatic validation with clear error messages,
+#   (2) OpenAPI schema generation for frontend code-gen, (3) type safety
+#   so the IDE catches mismatches before runtime.
+# ALTERNATIVE: Using raw dict parameters and manual validation — more code,
+#   worse error messages, no auto-docs.
 # ============================================================================
 
 class DiagnoseRequest(BaseModel):
@@ -85,6 +143,14 @@ class WorkOrderCreateRequest(BaseModel):
     context: Optional[str] = None
 
 class WorkOrderTransitionRequest(BaseModel):
+    """Fields for transitioning a work order through the state machine.
+    Most fields are optional because different transitions need different data:
+    - approved: needs approved_by
+    - assigned: needs assigned_to
+    - completed: needs actual_hours, actual_cost, completion_notes, parts_replaced
+    The state machine (work_order_state_machine.py) enforces which fields are
+    actually required for each transition — the API layer just passes them through.
+    """
     to_status: str
     reason: str
     assigned_to: Optional[str] = None
@@ -115,16 +181,43 @@ class ChatRequest(BaseModel):
 # DIAGNOSTICS (existing)
 # ============================================================================
 
+# ===========================================================================
+# PATTERN: Lazy Imports Inside Endpoints
+# WHY: Agent modules (diagnostics_agent, investigation_agent, etc.) are
+#   imported inside each endpoint function, not at the top of the file.
+#   Three reasons:
+#   1. Avoid circular imports — agents import shared modules that may
+#      reference API types
+#   2. Reduce cold start time — only the requested agent's code is loaded,
+#      not all 4 agents on every request
+#   3. Graceful degradation — if one agent has a broken dependency, the
+#      other endpoints still work
+# ALTERNATIVE: Top-level imports are cleaner but create tight coupling
+#   between all agent modules at import time.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Observe Decorator (Langfuse Tracing)
+# WHY: The @observe decorator is placed on the API endpoint, not on the
+#   agent's internal run() function. This captures the full request lifecycle
+#   (validation + agent execution + response serialization) as a single trace
+#   span. The agent's internal tool calls create child spans automatically
+#   via Pydantic AI's built-in Langfuse integration.
+# SCALING: At 4,700 compressors, traces help identify slow endpoints and
+#   diagnose which tool calls dominate latency.
+# ===========================================================================
 @app.post("/diagnose")
+@observe(name="diagnose")
 async def diagnose(request: DiagnoseRequest):
     """Run AI diagnostics for a specific compressor."""
     if not COMPRESSOR_ID_PATTERN.match(request.compressor_id):
         raise HTTPException(status_code=400, detail="Invalid compressor ID format. Expected COMP-XXX")
 
+    # Lazy import: only load diagnostics_agent when this endpoint is called
     from src.agents.diagnostics_agent import diagnose_compressor
     try:
         report = await diagnose_compressor(request.compressor_id)
-        return report.model_dump()
+        return report.model_dump()  # Pydantic model_dump() converts to JSON-safe dict
     except Exception as e:
         logger.error(f"Diagnosis failed for {request.compressor_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Diagnosis failed: {str(e)}")
@@ -135,6 +228,7 @@ async def diagnose(request: DiagnoseRequest):
 # ============================================================================
 
 @app.post("/investigations/start")
+@observe(name="investigation-start")
 async def start_investigation(request: InvestigationRequest):
     """Start a root cause investigation for a compressor."""
     if not COMPRESSOR_ID_PATTERN.match(request.compressor_id):
@@ -221,6 +315,7 @@ async def submit_investigation_feedback(investigation_id: str, request: Investig
 # ============================================================================
 
 @app.post("/work-orders/create")
+@observe(name="work-order-create")
 async def create_work_order(request: WorkOrderCreateRequest):
     """Create a work order using the AI agent."""
     if not COMPRESSOR_ID_PATTERN.match(request.compressor_id):
@@ -297,6 +392,7 @@ async def transition_work_order_endpoint(work_order_id: str, request: WorkOrderT
 # ============================================================================
 
 @app.post("/optimization/scan")
+@observe(name="fleet-scan")
 async def run_fleet_scan(request: FleetScanRequest):
     """Trigger a fleet optimization scan."""
     from src.agents.optimization_agent import run_fleet_scan as scan
@@ -355,6 +451,7 @@ async def list_recommendations(
 
 
 @app.post("/optimization/chat")
+@observe(name="optimization-chat")
 async def optimization_chat(request: ChatRequest):
     """Conversational interface for fleet optimization questions."""
     from src.agents.optimization_agent import chat
@@ -368,6 +465,60 @@ async def optimization_chat(request: ChatRequest):
         return {"response": response}
     except Exception as e:
         logger.error(f"Chat failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# CLOSED-LOOP WORKFLOW (LangGraph)
+# ============================================================================
+
+class ClosedLoopRequest(BaseModel):
+    compressor_id: str
+    trigger: str = "manual"
+    trigger_id: Optional[str] = None
+    organization_id: Optional[str] = None
+
+
+# ===========================================================================
+# PATTERN: Closed-Loop Multi-Agent Orchestration (LangGraph)
+# WHY: This endpoint chains all 4 agents in sequence:
+#   optimization (detect) → investigation (diagnose) → work order (plan) → knowledge (learn)
+#   LangGraph provides durable execution so if the work order step fails,
+#   the investigation results are not lost and can be retried.
+# SCALING: At fleet scale, this runs autonomously for each flagged compressor.
+#   The optimization agent triggers investigations which trigger work orders
+#   in a continuous feedback loop — no human needed for routine issues.
+# ALTERNATIVE: Simple sequential async calls would work but lack retry/resume
+#   capability if one step fails partway through.
+# ===========================================================================
+@app.post("/workflows/closed-loop")
+@observe(name="closed-loop-workflow")
+async def run_closed_loop_workflow(request: ClosedLoopRequest):
+    """Run the full closed-loop workflow: investigate → work order → approval → knowledge.
+
+    Uses LangGraph for durable execution and state management.
+    """
+    if not COMPRESSOR_ID_PATTERN.match(request.compressor_id):
+        raise HTTPException(status_code=400, detail="Invalid compressor ID format")
+
+    try:
+        # Lazy import with graceful fallback — LangGraph is an optional dependency.
+        # If not installed, the endpoint returns 501 (Not Implemented) instead of 500.
+        from src.agents.graph.workflow import run_closed_loop
+        result = await run_closed_loop(
+            compressor_id=request.compressor_id,
+            trigger=request.trigger,
+            organization_id=request.organization_id,
+            trigger_id=request.trigger_id,
+        )
+        return result
+    except ImportError:
+        raise HTTPException(
+            status_code=501,
+            detail="LangGraph not installed. Install with: pip install langgraph",
+        )
+    except Exception as e:
+        logger.error(f"Closed-loop workflow failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -451,4 +602,5 @@ async def health():
         "service": "altaviz-agent-api",
         "version": "2.0.0",
         "agents": ["diagnostics", "investigation", "work_order", "optimization"],
+        "tracing": "langfuse" if is_tracing_enabled() else "disabled",
     }

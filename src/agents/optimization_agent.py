@@ -37,6 +37,32 @@ logger = logging.getLogger(__name__)
 
 _model = os.environ.get('DIAGNOSTICS_MODEL', 'openai:gpt-4o-mini')
 
+# ===========================================================================
+# PATTERN: Fleet-Level Agent (vs. Compressor-Level)
+# WHY: The diagnostics and investigation agents think about ONE compressor
+#   at a time. The optimization agent thinks about the ENTIRE FLEET:
+#   - Which compressors are at risk? (fleet scan)
+#   - Should we rebalance load across a station? (load balancing)
+#   - What happens if we defer maintenance on this unit? (what-if)
+#   - Are we meeting emissions compliance? (fleet emissions)
+#   This fleet-level perspective catches patterns that per-compressor
+#   analysis misses (e.g., "3 compressors at Station X are degrading —
+#   is it a shared environmental factor?").
+# SCALING: At 4,700 compressors, fleet-level thinking is essential.
+#   No human can monitor all units simultaneously.
+# ===========================================================================
+
+# ===========================================================================
+# Priority Hierarchy: Safety > Compliance > Reliability > Efficiency > Cost
+# WHY: This hierarchy is encoded in the system prompt because it represents
+#   an inviolable business rule. The agent must NEVER recommend:
+#   - Saving money by deferring safety-critical maintenance
+#   - Improving efficiency at the cost of EPA compliance
+#   - Optimizing cost by reducing fleet uptime below 95%
+#   The hierarchy reflects real-world priorities in oil & gas operations
+#   where a safety incident costs 100x more than any efficiency gain,
+#   and EPA violations carry fines of $65,000+/day per violation.
+# ===========================================================================
 optimization_agent = Agent(
     _model,
     result_type=FleetScanResult,
@@ -163,6 +189,17 @@ def save_recommendation(
         return json.dumps({"error": str(e)})
 
 
+# ===========================================================================
+# PATTERN: Cross-Agent Trigger (Optimization → Investigation)
+# WHY: When the fleet scan identifies a high-risk compressor (failure_probability
+#   > 20%), the optimization agent can flag it for investigation. This is the
+#   entry point of the closed-loop:
+#   Optimization (detect) → Investigation (diagnose) → Work Order (plan) → Knowledge (learn)
+# DESIGN: This tool does NOT directly call run_investigation() because that
+#   would create a blocking dependency (fleet scan waits for investigation).
+#   Instead, it records a "flag" that the orchestration layer picks up
+#   asynchronously. The 24-hour dedup check prevents redundant investigations.
+# ===========================================================================
 @optimization_agent.tool_plain
 def trigger_investigation(compressor_id: str, reason: str) -> str:
     """Flag a compressor for root cause investigation by the Investigation Agent.
@@ -257,6 +294,20 @@ async def run_fleet_scan(
         raise
 
 
+# ===========================================================================
+# PATTERN: Conversational Chat Interface (Multi-Turn)
+# WHY: Fleet operators need to ask follow-up questions:
+#   "What's the fleet health?" -> "Show me the Permian basin" -> "What if we
+#   defer maintenance on COMP-0042 by 7 days?"
+#   A single-shot API can't handle this. The chat interface:
+#   1. Maintains conversation_history (last 5 messages for context window budget)
+#   2. Creates a fresh Agent instance per chat request (not the structured
+#      FleetScanResult agent -- chat returns free-form text)
+#   3. Registers the same tools so the agent can pull live data mid-conversation
+# DESIGN: A new Agent is created per request rather than reusing the
+#   optimization_agent because chat needs free-form text output (result_type=str
+#   by default) while fleet scans need structured FleetScanResult output.
+# ===========================================================================
 async def chat(
     message: str,
     organization_id: Optional[str] = None,
@@ -273,14 +324,17 @@ async def chat(
         )
         organization_id = str(rows[0]['id']) if rows else None
 
-    # Build conversation context
+    # Build conversation context from history.
+    # Only the last 5 messages are included to stay within the LLM's effective
+    # context window. Including too much history degrades response quality.
     context = f"Organization ID: {organization_id}. "
     if conversation_history:
         context += "Previous conversation:\n"
-        for msg in conversation_history[-5:]:  # last 5 messages for context
+        for msg in conversation_history[-5:]:  # Last 5 messages for context window budget
             context += f"{msg.get('role', 'user')}: {msg.get('content', '')}\n"
 
-    # Use a text-output agent for chat (not structured FleetScanResult)
+    # Create a separate text-output agent for chat (not structured FleetScanResult).
+    # Chat needs free-form text responses, not structured JSON output.
     chat_agent = Agent(
         _model,
         system_prompt=optimization_agent._system_prompts[0] + "\n\n"

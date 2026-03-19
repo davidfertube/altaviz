@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api:*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'File edited — remember to run tests before committing'"
+          }
+        ],
+        "description": "Reminder to test after edits"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Session complete. Run: pytest tests/unit/ -v && cd frontend && npm test'"
+          }
+        ],
+        "description": "End-of-session test reminder"
+      }
+    ]
+  }
+}

@@ -28,6 +28,37 @@ Usage:
 Author: David Fernandez
 """
 
+# ===========================================================================
+# PATTERN: Template Method Pattern (Fixed Pipeline Structure)
+# WHY: The pipeline always executes Bronze -> Silver -> Gold -> ML in this
+#      exact order because each stage depends on the output of the previous
+#      one. Bronze is immutable raw data. Silver cleans it. Gold aggregates
+#      the cleaned data. ML runs predictions on the aggregates. Reordering
+#      would produce incorrect results (e.g., aggregating uncleaned data).
+# SCALING: Pipeline processes 1.35M rows/day (4,700 compressors x 288
+#          readings/day at 5-min intervals). Each stage reduces volume:
+#          Bronze 1.35M -> Silver ~1.28M (5% rejection) -> Gold ~112,800
+#          hourly aggregates -> ML 18,800 predictions (4 models x 4,700).
+# ALTERNATIVE: Could use a DAG orchestrator (Airflow, Prefect) for stage
+#              dependencies, but a linear pipeline is simpler when stages
+#              are strictly sequential. The skip flags provide flexibility
+#              without DAG complexity.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Idempotent Stage Execution (Error Recovery)
+# WHY: Each stage can be re-run independently without creating duplicates
+#      or corrupting data. Bronze uses append-only writes. Silver uses
+#      Delta MERGE for upserts. Gold overwrites partitions. This means
+#      if the pipeline fails at the Gold stage, you can re-run with
+#      --skip-bronze --skip-silver to resume from where it left off.
+# SCALING: At 4,700 compressors, re-running the full pipeline takes
+#          15-30 minutes. Being able to skip completed stages saves
+#          significant time during incident recovery.
+# ALTERNATIVE: Checkpointing within stages (more complex, Spark handles
+#              this natively for streaming via checkpoint directories).
+# ===========================================================================
+
 import sys
 import logging
 from datetime import datetime
@@ -39,6 +70,25 @@ from pyspark.sql import functions as F
 logger = logging.getLogger(__name__)
 
 
+# ===========================================================================
+# PATTERN: Late-Arriving Data Reconciliation (Batch Catch-Up)
+# WHY: Streaming uses a 4-hour watermark to bound state size, which means
+#      any reading arriving >4 hours after its event timestamp gets dropped
+#      by Spark Structured Streaming. But remote compressors (especially in
+#      the Bakken or San Juan basins) may lose satellite connectivity for
+#      hours or days, buffering readings locally and transmitting them in
+#      bulk when connectivity returns. This batch reconciliation process
+#      catches those late records that the streaming watermark dropped.
+# SCALING: At 4,700 compressors, typically <1% of readings arrive late
+#          (mostly from remote basins). That is ~13,500 records/day that
+#          need reconciliation — trivial for a batch job but critical for
+#          data completeness (EPA requires 7-year retention of ALL readings).
+# ALTERNATIVE: Could increase the watermark to 7 days, but that would
+#              force Spark to maintain state for all 4,700 compressors over
+#              7 days (~9.5M records in memory), which is prohibitively
+#              expensive. The hybrid approach (short watermark + batch
+#              reconciliation) balances latency vs. completeness.
+# ===========================================================================
 def reconcile_late_arrivals(
     spark: SparkSession,
     onelake,
@@ -76,7 +126,11 @@ def reconcile_late_arrivals(
         logger.info("Reconciliation skipped: missing timestamp columns in Bronze")
         return 0
 
-    # Find records where ingestion lag exceeds the streaming watermark
+    # Find records where ingestion lag exceeds the streaming watermark.
+    # We compare bronze_ingested_at (when the pipeline received the data)
+    # against timestamp (when the sensor actually produced the reading).
+    # If the difference exceeds the watermark, the streaming job would
+    # have dropped this record — so we need to re-process it here.
     lag_seconds = watermark_hours * 3600
     late_df = bronze_df.filter(
         (F.col("bronze_ingested_at").cast("long") - F.col("timestamp").cast("long"))
@@ -90,12 +144,18 @@ def reconcile_late_arrivals(
 
     logger.info(f"Found {late_count:,} late-arriving records — running through Silver cleansing")
 
-    # Clean the late data through the same Silver pipeline
+    # Clean the late data through the SAME Silver pipeline as normal data.
+    # This ensures late-arriving data gets identical cleaning (dedup,
+    # outlier removal, range validation) — no special treatment.
     silver_late = create_silver_layer(late_df)
     reconciled = silver_late.count()
 
     if reconciled > 0:
-        # Upsert into Silver using Delta MERGE (idempotent)
+        # Upsert into Silver using Delta MERGE (idempotent).
+        # MERGE matches on (compressor_id, timestamp) — if the record
+        # already exists (e.g., from a previous reconciliation run),
+        # it updates in place. If it is new, it inserts. This makes
+        # the entire reconciliation process safe to re-run at any time.
         onelake.upsert_table(
             silver_late,
             layer="silver",
@@ -142,7 +202,11 @@ def run_production_pipeline(
     logger.info("=" * 80)
 
     try:
-        # Create Spark session if not provided (Fabric provides one)
+        # Create Spark session if not provided.
+        # In Azure Fabric notebooks, the notebook environment provides a
+        # pre-configured SparkSession with OneLake credentials already set.
+        # For local development or CLI usage, we create our own session
+        # with Delta Lake extensions and local filesystem paths.
         if spark is None:
             from src.etl.utils import create_spark_session
             spark = create_spark_session()
@@ -150,7 +214,12 @@ def run_production_pipeline(
         onelake = OneLakeClient(spark)
 
         # ================================================================
-        # BRONZE LAYER
+        # BRONZE LAYER — Immutable Raw Data Landing Zone
+        # Bronze receives raw sensor data with ZERO transformations.
+        # Only ingestion metadata (timestamp, source) is added.
+        # This preserves the original data for audit, replay, and
+        # debugging. If a bug is found in Silver/Gold logic, we can
+        # always re-derive from Bronze without data loss.
         # ================================================================
         with monitor.stage("bronze"):
             if not skip_bronze:
@@ -177,7 +246,12 @@ def run_production_pipeline(
                 monitor.record_rows("bronze", bronze_df.count())
 
         # ================================================================
-        # SILVER LAYER
+        # SILVER LAYER — Cleaned and Validated Data
+        # Silver applies the 5-step cleaning pipeline: deduplication,
+        # null handling, timestamp validation, range validation, and
+        # statistical outlier removal. This is where data quality is
+        # enforced. The rejection rate (~5%) is tracked by the monitor
+        # and triggers alerts if it exceeds historical norms.
         # ================================================================
         with monitor.stage("silver"):
             if not skip_silver:
@@ -205,7 +279,12 @@ def run_production_pipeline(
                 monitor.record_rows("silver", silver_df.count())
 
         # ================================================================
-        # DATA QUALITY CHECKS
+        # DATA QUALITY CHECKS — Guard Rails Before Gold
+        # Quality checks run AFTER Silver but BEFORE Gold to catch
+        # problems before they propagate to dashboards and ML models.
+        # If checks fail, the pipeline continues (Gold still runs)
+        # but a warning is recorded. This is intentional — a partial
+        # update is better than no update for operational dashboards.
         # ================================================================
         if not skip_quality:
             from src.etl.silver.quality import run_quality_checks
@@ -218,7 +297,13 @@ def run_production_pipeline(
                 )
 
         # ================================================================
-        # GOLD LAYER
+        # GOLD LAYER — Business-Ready Aggregations and Features
+        # Gold creates rolling window features (1hr, 4hr, 24hr),
+        # derived metrics (pressure differential, temp rate of change),
+        # and threshold status flags (normal/warning/critical). This is
+        # the layer consumed by dashboards, BI tools, and ML models.
+        # Partitioned by date + region and Z-ordered by compressor_id
+        # to optimize the most common query patterns.
         # ================================================================
         with monitor.stage("gold"):
             if not skip_gold:
@@ -252,7 +337,12 @@ def run_production_pipeline(
                 monitor.record_rows("gold", hourly_df.count())
 
         # ================================================================
-        # ML INFERENCE
+        # ML INFERENCE — Batch Predictions on Gold Layer
+        # Runs all 4 ML models (anomaly detection, temp drift, emissions,
+        # RUL) on the hourly aggregates. At 4,700 compressors, this
+        # produces ~18,800 predictions per run (4 models x 4,700 units).
+        # Models are loaded from MLflow Model Registry and predictions
+        # are written to the ML serving lakehouse for agent consumption.
         # ================================================================
         with monitor.stage("ml"):
             if not skip_ml:
@@ -277,7 +367,10 @@ def run_production_pipeline(
                 logger.info("Skipping ML inference")
 
         # ================================================================
-        # LATE DATA RECONCILIATION
+        # LATE DATA RECONCILIATION — Catch Dropped Streaming Records
+        # Runs AFTER the main pipeline to pick up any records that
+        # arrived after the streaming watermark expired. This is the
+        # "safety net" that ensures data completeness for EPA compliance.
         # ================================================================
         with monitor.stage("reconciliation"):
             late_rows = reconcile_late_arrivals(

@@ -15,6 +15,39 @@ Authentication:
 Author: David Fernandez
 """
 
+# ===========================================================================
+# PATTERN: ABFS Protocol for OneLake Access
+# WHY: Azure Blob File System (ABFS) protocol provides a Hadoop-compatible
+#      filesystem interface to OneLake/ADLS Gen2. The format is:
+#      abfss://<workspace>@onelake.dfs.fabric.microsoft.com/<lakehouse>/
+#      The 's' in 'abfss' means SSL (always encrypted in transit).
+#      This lets Spark read/write OneLake exactly like HDFS — no custom
+#      connectors needed. Delta Lake operations (MERGE, OPTIMIZE, VACUUM)
+#      work natively because Delta just needs a filesystem abstraction.
+# SCALING: ABFS supports parallel reads across partitions, so reading
+#          1.35M rows/day from Bronze is distributed across Spark executors
+#          automatically. No single-node bottleneck.
+# ALTERNATIVE: Could use the OneLake REST API directly, but ABFS gives us
+#              native Spark integration, partition pruning, and predicate
+#              pushdown for free.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Environment-Adaptive Client (Fabric vs Local)
+# WHY: The same codebase must run in Azure Fabric notebooks (production)
+#      and on developer laptops (local). The OneLakeClient auto-detects
+#      which environment it is in by checking for Fabric-specific Spark
+#      configs (spark.fabric.workspace.id). In Fabric, it uses ABFS paths
+#      with workspace identity auth. Locally, it falls back to the local
+#      filesystem (data/processed/delta/...) so developers can test the
+#      full pipeline without Azure credentials.
+# SCALING: In Fabric, reads/writes go through the distributed OneLake
+#          storage layer (built on ADLS Gen2). Locally, everything is
+#          single-node — adequate for 10-100 compressor test runs.
+# ALTERNATIVE: Could use environment variables to toggle mode, but
+#              auto-detection is less error-prone (no forgotten config).
+# ===========================================================================
+
 import os
 import logging
 from typing import Optional, List
@@ -57,7 +90,14 @@ class OneLakeClient:
             return {}
 
     def _detect_fabric_environment(self) -> bool:
-        """Detect if running inside Fabric Spark runtime."""
+        """Detect if running inside Fabric Spark runtime.
+
+        Fabric's managed Spark runtime automatically sets
+        spark.fabric.workspace.id in the SparkContext configuration.
+        If this config exists and is non-empty, we know we are running
+        inside a Fabric notebook or Fabric Spark job — so we use ABFS
+        paths and workspace identity authentication.
+        """
         try:
             sc = self.spark.sparkContext
             # Fabric sets specific Spark configs
@@ -81,7 +121,9 @@ class OneLakeClient:
             lh = lakehouses.get(layer, {})
             return lh.get('path', f'Tables/{layer}')
 
-        # Local filesystem fallback
+        # Local filesystem fallback for development without Azure.
+        # Mirrors the OneLake lakehouse structure using local directories
+        # so the same Delta read/write code works in both environments.
         local_paths = {
             'bronze': 'data/processed/delta/sensors_bronze',
             'silver': 'data/processed/delta/sensors_silver',
@@ -216,7 +258,13 @@ class OneLakeClient:
         if partition_by:
             writer = writer.partitionBy(*partition_by)
 
-        # Enable optimized writes in Fabric
+        # Enable optimized writes in Fabric.
+        # optimizeWrite: Fabric-specific optimization that automatically
+        #   coalesces small partitions during writes to reduce small files.
+        # mergeSchema: Allows adding new columns without breaking existing
+        #   reads. This supports schema evolution (add fields, never remove)
+        #   — critical when IoT devices get firmware updates that add new
+        #   sensor types. Old data gets nulls for new columns automatically.
         writer = writer.option("optimizeWrite", "true")
         writer = writer.option("mergeSchema", "true")
 
@@ -230,6 +278,21 @@ class OneLakeClient:
 
         return row_count
 
+    # ===========================================================================
+    # PATTERN: Delta MERGE for Idempotent Upserts
+    # WHY: MERGE (also called "upsert") atomically matches source rows
+    #      against target rows on a composite key, then updates existing
+    #      rows and inserts new ones — all in a single transaction. This
+    #      makes writes idempotent: running the same data through MERGE
+    #      twice produces the same result (no duplicates). This is critical
+    #      for late-data reconciliation and pipeline re-runs after failures.
+    # SCALING: Delta MERGE on 4,700 compressors is efficient because the
+    #          merge_keys (compressor_id + timestamp) match the Z-order
+    #          columns, so Delta can skip most files during the match phase.
+    # ALTERNATIVE: Could use overwrite-by-partition (replaceWhere), but
+    #              that risks data loss if the source DataFrame is incomplete.
+    #              MERGE is safer because it only touches matched rows.
+    # ===========================================================================
     def upsert_table(
         self,
         df: DataFrame,
@@ -281,6 +344,24 @@ class OneLakeClient:
     # TABLE MAINTENANCE
     # ========================================================================
 
+    # ===========================================================================
+    # PATTERN: OPTIMIZE + ZORDER for Query Performance
+    # WHY: Streaming micro-batches (every 5 minutes) create many small
+    #      Parquet files. OPTIMIZE compacts them into larger files (~1GB
+    #      target size), which dramatically improves read performance by
+    #      reducing file listing overhead and enabling better compression.
+    #      Z-ORDER physically co-locates data by compressor_id within
+    #      each file, so queries filtering by compressor_id skip most
+    #      files entirely (data skipping via min/max statistics).
+    # SCALING: Without OPTIMIZE, after 1 day of streaming we would have
+    #          ~288 small files per partition (one per 5-min trigger).
+    #          With OPTIMIZE, these compact into 1-2 files per partition.
+    #          Z-ordering by compressor_id means a query for a single
+    #          compressor scans ~0.02% of data instead of 100%.
+    # ALTERNATIVE: Could use auto-compaction (Delta Lake feature), but
+    #              explicit OPTIMIZE gives us control over timing (run
+    #              after batch writes, not during streaming hot path).
+    # ===========================================================================
     def optimize_table(self, path: str = None, layer: str = None, table: str = None):
         """
         Run OPTIMIZE on a Delta table (compacts small files).
@@ -304,6 +385,24 @@ class OneLakeClient:
             self.spark.sql(f"OPTIMIZE delta.`{path}` ZORDER BY ({z_order_str})")
             logger.info(f"Z-ordered by: {z_order_str}")
 
+    # ===========================================================================
+    # PATTERN: VACUUM with 168-Hour Retention (7 Days)
+    # WHY: Delta Lake keeps old versions of data files for time travel
+    #      (querying historical snapshots). VACUUM removes files that
+    #      are no longer referenced by any version within the retention
+    #      period. 168 hours (7 days) balances two concerns:
+    #      1. Time travel: lets us query data as it was up to 7 days ago
+    #         (useful for debugging and auditing pipeline issues).
+    #      2. Storage cost: without VACUUM, old files accumulate forever.
+    #         At 270 MB/day Bronze, that is ~100 GB/year of dead files.
+    # SCALING: VACUUM scans the Delta log to find unreferenced files,
+    #          then deletes them. For a table with 1.35M rows/day, this
+    #          takes seconds because it operates on file metadata, not
+    #          row-level data.
+    # ALTERNATIVE: Could set retention to 0 hours (no time travel) to
+    #              save more storage, but that removes the ability to
+    #              roll back corrupted writes — too risky in production.
+    # ===========================================================================
     def vacuum_table(self, path: str = None, layer: str = None, table: str = None, hours: int = 168):
         """
         Run VACUUM to remove old Delta log files.

@@ -16,6 +16,42 @@ Why explicit schemas matter:
 Author: David Fernandez
 """
 
+# ===========================================================================
+# PATTERN: Explicit StructType Schemas (Never Use inferSchema)
+# WHY: When Spark infers schema, it reads the entire file (or a sample)
+#      to guess column types. This is 10-100x slower than providing an
+#      explicit schema, and it can produce wrong types (e.g., inferring
+#      a compressor_id "COMP-0001" as StringType is correct, but a
+#      column of "0"/"1" values might be inferred as IntegerType when
+#      it should be StringType). Explicit schemas guarantee:
+#      1. Consistent types across all pipeline runs (no surprise casts)
+#      2. Immediate failure if source data is missing required columns
+#      3. Fast loading (Spark skips the inference scan entirely)
+# SCALING: At 1.35M rows/day, inferSchema would add 30-60 seconds per
+#          read just for type detection. With explicit schemas, reads
+#          start immediately — the schema is known at compile time.
+# ALTERNATIVE: Could use schema-on-read (Parquet self-describing format),
+#              but that still requires Spark to read file footers. Explicit
+#              schemas are even faster and catch mismatches at load time.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Schema Evolution Strategy (Add Fields, Never Remove)
+# WHY: IoT devices get firmware updates over time that add new sensor
+#      types. When a new sensor is added, we add a new field to the
+#      schema with nullable=True. Old data (before the firmware update)
+#      will have null values for the new field. We NEVER remove fields
+#      because downstream consumers (dashboards, ML models, agents)
+#      may still reference them. This append-only approach to schema
+#      changes prevents breaking changes across the pipeline.
+# SCALING: Delta Lake's mergeSchema option handles this automatically —
+#          new columns are added to the table metadata without rewriting
+#          existing data files.
+# ALTERNATIVE: Versioned schemas (v1, v2, etc.) with migration scripts.
+#              More complex but provides stronger guarantees. Overkill
+#              for sensor telemetry where all changes are additive.
+# ===========================================================================
+
 from pyspark.sql.types import (
     StructType,
     StructField,
@@ -35,44 +71,68 @@ from pyspark.sql.types import (
 
 SENSOR_SCHEMA = StructType([
     # === IDENTIFIERS ===
-    # Compressor ID: Format "COMP-001" through "COMP-010"
+    # Compressor ID: Format "COMP-0001" through "COMP-4700"
+    # nullable=False: Every reading MUST have a compressor_id. Without it,
+    # we cannot attribute the data to any unit and it is useless. Records
+    # with null compressor_id are rejected at the ingestion boundary
+    # (schema_registry.py) before reaching Bronze.
     StructField("compressor_id", StringType(), nullable=False),
 
-    # Timestamp: 10-minute intervals (144 readings per day)
+    # Timestamp: 5-minute intervals (288 readings per compressor per day)
+    # nullable=False: Timestamp is part of the composite deduplication key
+    # (compressor_id + timestamp) in the Silver layer. Without it, we
+    # cannot deduplicate or order readings chronologically.
     StructField("timestamp", TimestampType(), nullable=False),
 
     # === VIBRATION SENSOR ===
     # Vibration level in millimeters per second (mm/s)
-    # Key indicator of mechanical health
+    # Key indicator of mechanical health — bearing wear causes exponential
+    # vibration increase (see failure_scenarios.py BEARING_WEAR mode).
     # Normal: 1.5-4.5, Warning: >6.0, Critical: >8.0
+    # nullable=True: Sensor may be offline due to intermittent connectivity,
+    # maintenance, or sensor failure. A reading with null vibration but
+    # valid temperature is still valuable for temp drift detection.
     StructField("vibration_mms", DoubleType(), nullable=True),
 
     # === TEMPERATURE SENSOR ===
     # Discharge temperature in Fahrenheit
-    # Indicates compression efficiency and cooling health
-    # Normal: 180-220°F, Warning: >240°F, Critical: >260°F
+    # Indicates compression efficiency and cooling system health.
+    # Cooling degradation causes linear temperature rise over days
+    # (see failure_scenarios.py COOLING_DEGRADATION mode).
+    # Normal: 180-220F, Warning: >240F, Critical: >260F
+    # nullable=True: Same intermittent connectivity rationale as vibration.
     StructField("discharge_temp_f", DoubleType(), nullable=True),
 
     # === PRESSURE SENSORS ===
-    # Suction (inlet) pressure in PSI
+    # Suction (inlet) pressure in PSI — gas entering the compressor
     # Normal: 40-80 PSI, Warning: <30 PSI, Critical: <20 PSI
+    # Low suction pressure indicates upstream supply issues or leaks.
+    # nullable=True: Sensor connectivity may be intermittent.
     StructField("suction_pressure_psi", DoubleType(), nullable=True),
 
-    # Discharge (outlet) pressure in PSI
+    # Discharge (outlet) pressure in PSI — gas leaving the compressor
     # Normal: 900-1200 PSI, Warning: >1300 PSI, Critical: >1400 PSI
+    # Physical law: discharge MUST exceed suction (quality.py validates this).
+    # Valve failure causes pressure oscillations (VALVE_FAILURE mode).
+    # nullable=True: Sensor connectivity may be intermittent.
     StructField("discharge_pressure_psi", DoubleType(), nullable=True),
 
     # === PERFORMANCE METRICS ===
     # Power consumption in horsepower
-    # Normal: 1200-1600 HP
+    # Normal: 1200-1600 HP (varies by compressor model, see profiles.py)
+    # nullable=True: HP sensor is often calculated, not directly measured.
     StructField("horsepower_consumption", DoubleType(), nullable=True),
 
     # Gas flow rate in thousand cubic feet per day (Mcf/day)
-    # Normal: 8000-12000 Mcf/day
+    # Normal: 8000-12000 Mcf/day (varies by compressor size)
+    # Ring wear causes gradual efficiency loss (RING_WEAR mode).
+    # nullable=True: Flow meters require periodic recalibration.
     StructField("gas_flow_mcf", DoubleType(), nullable=True),
 
     # === OPERATIONAL METRICS ===
-    # Cumulative operating hours since last reset
+    # Cumulative operating hours since last maintenance reset
+    # Used by RUL predictor to estimate remaining useful life.
+    # nullable=True: Some legacy SCADA systems do not track hours.
     StructField("operating_hours", DoubleType(), nullable=True),
 ])
 
@@ -136,8 +196,13 @@ MAINTENANCE_SCHEMA = StructType([
 # ============================================================================
 # GOLD LAYER SCHEMA (with Features)
 # ============================================================================
-# Extended schema including engineered features
-# This is what the gold layer output will look like
+# Extended schema including engineered features from rolling window
+# aggregations and derived metrics. This is the ML-ready feature set
+# that gets consumed by all 4 ML models (anomaly detection, temp drift,
+# emissions, RUL). The schema documents the full feature engineering
+# output so downstream consumers know exactly what columns to expect.
+# SCALING: At 4,700 compressors, the Gold schema produces ~112,800 hourly
+# aggregate rows per day with all these features computed.
 
 GOLD_SCHEMA = StructType([
     # === BASE FIELDS (from sensor schema) ===
@@ -206,7 +271,12 @@ GOLD_SCHEMA = StructType([
 # ============================================================================
 # EMISSIONS ESTIMATES SCHEMA
 # ============================================================================
-# Schema for EPA-based emissions estimates written to emissions_estimates table
+# Schema for EPA Subpart W / OOOOb emissions estimates.
+# Required for regulatory compliance — Archrock must report methane
+# and CO2-equivalent emissions per compressor. The estimation_method
+# field tracks which EPA emission factor was used (allows auditing).
+# SCALING: One emissions estimate per compressor per pipeline run =
+# 4,700 rows per run, trivial volume but high regulatory importance.
 
 EMISSIONS_SCHEMA = StructType([
     StructField("compressor_id", StringType(), False),
@@ -222,6 +292,13 @@ EMISSIONS_SCHEMA = StructType([
 # ============================================================================
 # SCHEMA VALIDATION FUNCTIONS
 # ============================================================================
+# These functions provide runtime validation that a DataFrame conforms to
+# the expected schema. Used at pipeline boundaries (e.g., after loading
+# data from an external source) to catch schema mismatches early rather
+# than failing deep in the pipeline with cryptic AnalysisExceptions.
+# SCALING: Schema validation is metadata-only (checks column names and
+# types, not row values), so it completes in milliseconds regardless
+# of DataFrame size.
 
 def validate_sensor_schema(df):
     """

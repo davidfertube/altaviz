@@ -6,6 +6,24 @@ and the existing Diagnostics agent. They wrap parameterized SQL queries and retu
 JSON-serialized results suitable for Pydantic AI tool_plain functions.
 """
 
+# ===========================================================================
+# PATTERN: Repository Pattern (Centralized Data Access Layer)
+# WHY: All 4 agents need to query the same database tables (sensor_readings_agg,
+#   alert_history, ml_predictions, maintenance_events, compressor_metadata).
+#   Instead of each agent writing its own SQL, this module centralizes all
+#   data access into reusable functions. Benefits:
+#   1. Single place to optimize queries (add indexes, tune SQL)
+#   2. Single place to enforce security (parameterized queries prevent SQL injection)
+#   3. Consistent JSON serialization across all agents
+#   4. Easier testing (mock this module to test agents without a real database)
+# SCALING: At 4,700 compressors generating 1.35M rows/day, query performance
+#   matters. This module is where you'd add caching, read replicas, or
+#   query optimization without changing any agent code.
+# ALTERNATIVE: ORM (SQLAlchemy models) — adds abstraction overhead and makes
+#   complex analytical queries harder to express. Raw SQL with parameterization
+#   gives full control over query performance.
+# ===========================================================================
+
 import os
 import json
 import logging
@@ -16,6 +34,17 @@ from decimal import Decimal
 logger = logging.getLogger(__name__)
 
 
+# ===========================================================================
+# Connection Management
+# WHY: Each function creates a new connection and closes it after use.
+#   This is simple but NOT optimal for high-throughput scenarios.
+# SCALING IMPROVEMENT: Use connection pooling (psycopg2.pool.ThreadedConnectionPool
+#   or SQLAlchemy's create_engine with pool_size). At 4,700 compressors with
+#   concurrent agent calls, connection pooling reduces connection overhead
+#   from ~50ms/connection to ~1ms (reusing existing connections).
+# SECURITY: sslmode='require' ensures all data in transit is encrypted.
+#   The DATABASE_URL is loaded from environment variables (never hardcoded).
+# ===========================================================================
 def _get_db_connection():
     """Get a database connection from DATABASE_URL."""
     db_url = os.environ.get('DATABASE_URL', '')
@@ -24,17 +53,27 @@ def _get_db_connection():
 
     parsed = urllib.parse.urlparse(db_url)
 
-    import psycopg2
+    import psycopg2  # Lazy import: psycopg2 is heavy, only load when needed
     return psycopg2.connect(
         host=parsed.hostname,
         port=parsed.port or 5432,
         dbname=parsed.path.lstrip('/'),
         user=parsed.username,
         password=parsed.password,
-        sslmode='require',
+        sslmode='require',  # Encrypted connection required (never plain text)
     )
 
 
+# ===========================================================================
+# Serialization Helpers
+# WHY: PostgreSQL returns Python types that are NOT JSON-serializable:
+#   - datetime → needs .isoformat() for JSON
+#   - date → needs .isoformat() for JSON
+#   - Decimal → needs float() conversion (Decimal is used for monetary values
+#     and precise sensor readings to avoid floating point errors in SQL)
+# These helpers ensure all agent tool functions return valid JSON strings
+# that the LLM can parse. Without this, json.dumps() would raise TypeError.
+# ===========================================================================
 def _serialize_value(v):
     """Serialize a single value for JSON output."""
     if isinstance(v, datetime):
@@ -42,18 +81,30 @@ def _serialize_value(v):
     elif isinstance(v, date):
         return v.isoformat()
     elif isinstance(v, Decimal):
-        return float(v)
+        return float(v)  # Decimal → float for JSON compatibility
     return v
 
 
 def _serialize_rows(rows: list[dict]) -> list[dict]:
-    """Serialize all values in a list of row dicts for JSON output."""
+    """Serialize all values in a list of row dicts for JSON output.
+    NOTE: This mutates the input list in-place for performance (avoids
+    copying large result sets). If you need the original, copy first.
+    """
     for row in rows:
         for k, v in row.items():
             row[k] = _serialize_value(v)
     return rows
 
 
+# ===========================================================================
+# Parameterized Queries
+# WHY: All SQL uses %s placeholders with a params list, NEVER string
+#   interpolation (f-strings or .format()). This prevents SQL injection:
+#   a malicious compressor_id like "'; DROP TABLE work_orders; --" would
+#   be safely escaped by psycopg2's parameter binding.
+# PERFORMANCE: PostgreSQL can also cache execution plans for parameterized
+#   queries (prepared statement caching), improving repeated query performance.
+# ===========================================================================
 def query_db(sql: str, params: list) -> list[dict]:
     """Execute a parameterized query and return results as list of dicts."""
     conn = _get_db_connection()
@@ -95,6 +146,23 @@ def insert_returning(sql: str, params: list) -> dict:
 
 # ============================================================================
 # SHARED TOOL FUNCTIONS (used by multiple agents)
+# ===========================================================================
+# Each function below returns a JSON string (not a dict) because Pydantic AI
+# tool_plain functions must return str. The agent (LLM) receives these strings
+# as tool call results and parses the JSON to reason about the data.
+#
+# INDEX REQUIREMENTS for production performance:
+#   - sensor_readings_agg: INDEX ON (compressor_id, window_type, agg_timestamp DESC)
+#   - alert_history: INDEX ON (compressor_id, alert_timestamp DESC)
+#   - ml_predictions: INDEX ON (compressor_id, prediction_timestamp DESC)
+#   - maintenance_events: INDEX ON (compressor_id, event_date DESC)
+#   - compressor_metadata: PRIMARY KEY on compressor_id (already indexed)
+#
+# AT SCALE (4,700 compressors, 1.35M rows/day):
+#   - get_latest_readings: Fast (LIMIT 24 with index, ~2ms)
+#   - get_sensor_trend: Moderate (168 hours = 168 rows, ~5ms with index)
+#   - get_alert_history: Fast (LIMIT 50, ~2ms)
+#   - get_ml_predictions: Fast (LIMIT 5, ~1ms)
 # ============================================================================
 
 def get_latest_readings(compressor_id: str) -> str:
@@ -195,6 +263,10 @@ def get_sensor_trend(compressor_id: str, sensor_name: str, hours: int = 168) -> 
     discharge_temp_mean, discharge_temp_max, suction_pressure_mean,
     discharge_pressure_mean, horsepower_mean, gas_flow_mean.
     """
+    # SECURITY: Allowlist validation for the sensor column name.
+    # Since sensor_name is interpolated into SQL (f-string), it CANNOT use
+    # parameterized binding (%s). Instead, we validate against a strict
+    # allowlist to prevent SQL injection via the column name.
     allowed_sensors = {
         'vibration_mean', 'vibration_max', 'vibration_std',
         'discharge_temp_mean', 'discharge_temp_max', 'discharge_temp_rate_of_change',

@@ -14,6 +14,22 @@ Agentic patterns demonstrated:
 - Guardrails (cost caps, confidence thresholds)
 """
 
+# ===========================================================================
+# PATTERN: Multi-Agent Orchestration (Consumer Agent)
+# WHY: The work order agent CONSUMES outputs from the investigation agent
+#   rather than re-doing the investigation. This is the "agent chain" pattern:
+#   Investigation Agent → InvestigationReport → Work Order Agent → WorkOrderPlan
+#   Each agent is specialized: investigation finds the root cause, work order
+#   plans the fix. Separation of concerns prevents a single massive agent
+#   with 22+ tools that would be slow, expensive, and error-prone.
+# SCALING: At fleet scale, investigations and work orders can run independently.
+#   One investigation can trigger multiple work orders (e.g., bearing replacement
+#   + inspection of adjacent compressors).
+# ALTERNATIVE: Single "super agent" with all tools — worse tool selection
+#   accuracy (LLMs get confused with 20+ tools), higher token cost, and
+#   impossible to test investigation and planning logic independently.
+# ===========================================================================
+
 import os
 import json
 import time
@@ -25,6 +41,8 @@ from pydantic_ai import Agent
 from .shared.models import WorkOrderPlan
 from .shared import db_tools
 from .shared.id_generator import generate_work_order_id
+# Guardrails are imported and applied in Python code, NOT in the LLM prompt.
+# See guardrails.py for detailed rationale on why Python-level enforcement.
 from .shared.guardrails import (
     check_confidence_threshold, check_work_order_rate_limit,
     requires_human_approval,
@@ -118,6 +136,14 @@ def get_compressor_metadata(compressor_id: str) -> str:
     return db_tools.get_compressor_metadata(compressor_id)
 
 
+# ===========================================================================
+# Multi-Agent Data Flow: Investigation → Work Order
+# WHY: This tool fetches the investigation report that likely triggered this
+#   work order. The agent uses the root cause, failure mode, and recommended
+#   actions from the investigation to create a well-informed work order plan.
+#   Without this, the work order agent would need to re-diagnose the issue
+#   from scratch (duplicating work and potentially reaching a different conclusion).
+# ===========================================================================
 @work_order_agent.tool_plain
 def get_investigation_report(compressor_id: str) -> str:
     """Fetch the latest investigation report for context on root cause."""
@@ -157,6 +183,16 @@ def get_open_work_orders(compressor_id: str) -> str:
         return json.dumps({"error": str(e)})
 
 
+# ===========================================================================
+# Mock Tools (Acknowledged Limitations)
+# WHY: check_technician_availability and check_parts_inventory return mock data.
+#   In production, these would integrate with:
+#   - Technician scheduling: SAP PM, Maximo, or a custom scheduling system
+#   - Parts inventory: ERP system (SAP MM, Oracle, NetSuite)
+#   The mock implementations demonstrate the INTERFACE the agent expects.
+#   Swapping in real integrations requires only changing the function body,
+#   not the agent's system prompt or tool registration.
+# ===========================================================================
 @work_order_agent.tool_plain
 def check_technician_availability(station_id: str, date_range: str = "this_week") -> str:
     """Check technician availability at a station for scheduling.
@@ -229,9 +265,18 @@ async def create_work_order(
         )
         organization_id = str(rows[0]['id']) if rows else None
 
-    # Guardrails
+    # ===========================================================================
+    # Guardrail Enforcement Order: Rate Limit → Confidence → HITL Approval
+    # WHY: Guardrails are checked in a specific order:
+    #   1. Rate limit (FIRST) — prevents runaway agents before spending LLM tokens
+    #   2. Confidence threshold (AFTER agent runs) — rejects low-confidence plans
+    #   3. HITL approval check (AFTER agent runs) — routes high-risk plans to humans
+    #   The rate limit is checked BEFORE the agent runs because it's cheap (one DB
+    #   query) and prevents wasting expensive LLM calls. Confidence and HITL checks
+    #   happen AFTER because they need the agent's output to evaluate.
+    # ===========================================================================
     if organization_id:
-        check_work_order_rate_limit(organization_id)
+        check_work_order_rate_limit(organization_id)  # Step 1: Prevent runaway creation
 
     # Create session
     session_id = None
@@ -268,10 +313,23 @@ async def create_work_order(
         plan = result.data
         duration = time.time() - start_time
 
-        # Apply confidence guardrail
+        # Step 2: Reject if agent confidence is below 60% (see guardrails.py)
         check_confidence_threshold(plan.confidence, "create work order")
 
-        # Determine initial status based on HITL rules
+        # ===========================================================================
+        # PATTERN: Human-in-the-Loop (HITL) Approval Gates
+        # WHY: Not all work orders should be auto-approved. The thresholds are:
+        #   - Emergency/urgent priority: always needs human approval (safety risk)
+        #   - Cost > $10,000: significant OpEx that needs budget authority sign-off
+        #   - Shutdown > 4 hours: half a work shift, impacts station throughput
+        # These thresholds were derived from industry standards:
+        #   $10K = typical approval authority limit for field supervisors
+        #   4 hours = half-shift, triggers crew scheduling changes
+        #   emergency = any safety risk requires human judgment
+        # The agent creates the plan, but Python code enforces whether a human
+        # must approve it. The LLM cannot bypass this check.
+        # ===========================================================================
+        # Step 3: Determine if human approval is required
         needs_approval = requires_human_approval(
             priority=plan.priority,
             estimated_cost=plan.estimated_cost,
@@ -280,10 +338,12 @@ async def create_work_order(
         )
         initial_status = 'pending_approval' if needs_approval else 'approved'
 
-        # Persist the work order
+        # Persist the work order to the database
         _save_work_order(plan, organization_id, source_type, source_id, initial_status)
 
-        # Record initial transition
+        # Record the initial state transition in the audit trail.
+        # The state machine (work_order_state_machine.py) validates and records
+        # every transition. The agent creates the plan; Python enforces the workflow.
         transition_work_order(
             work_order_id=plan.work_order_id,
             to_status=initial_status,
@@ -387,6 +447,9 @@ def list_work_orders(
     params.append(limit)
     where = " AND ".join(conditions)
 
+    # Priority-based ordering: emergency work orders appear first, then urgent, etc.
+    # Within the same priority, newer work orders appear first (most recent context).
+    # The CASE expression converts priority strings to sortable integers.
     rows = db_tools.query_db(
         f"""SELECT wo.work_order_id, wo.compressor_id, wo.title, wo.priority,
                    wo.category, wo.status, wo.estimated_hours, wo.estimated_cost,

@@ -1,7 +1,7 @@
 """
 Gold Layer — Business-Ready Aggregations at Production Scale
 
-Transforms Silver → Gold with:
+Transforms Silver -> Gold with:
 1. Rolling window aggregations (1hr, 4hr, 24hr)
 2. Derived metrics (pressure differential, rate of change)
 3. Threshold status flags (normal/warning/critical)
@@ -9,13 +9,85 @@ Transforms Silver → Gold with:
 5. Daily fleet health summary
 
 Scale considerations for 4,700 compressors:
-- Silver: ~1.28M rows/day → Gold: ~305K hourly aggregates/day
+- Silver: ~1.28M rows/day -> Gold: ~305K hourly aggregates/day
 - Gold uses Z-ordering on compressor_id for fast per-unit queries
 - Partitioned by date AND region for geographic query patterns
 - Continuous aggregates auto-maintained in OneLake
 
 Author: David Fernandez
 """
+
+# ===========================================================================
+# PATTERN: Multi-Window Rolling Aggregations (1hr, 4hr, 24hr)
+# WHY: Three window sizes serve different operational needs:
+#      - 1-HOUR (3600s): Matches operational shift granularity. Operators
+#        check dashboards every hour. This window catches fast-moving
+#        anomalies (bearing seizure, valve failure) within one shift.
+#        6 readings per window (5-min intervals).
+#      - 4-HOUR (14400s): Captures gradual trends (temperature drift,
+#        pressure decay) that develop over a partial shift. Used by the
+#        temp_drift_predictor ML model to estimate time-to-warning.
+#        48 readings per window.
+#      - 24-HOUR (86400s): Baseline for daily reports and fleet health
+#        summaries. Smooths out diurnal patterns (ambient temperature
+#        affects compressor performance -- hotter at midday, cooler at
+#        night). 288 readings per window.
+# SCALING: Window aggregations are computed per-compressor, requiring a
+#          shuffle by compressor_id. At 4,700 compressors x 288 readings
+#          /day, each window function processes ~288 rows per partition --
+#          lightweight. Total Gold output: 4,700 x 288 = 1,353,600 rows
+#          with all features, reducing to 4,700 x 24 = 112,800 hourly
+#          aggregates after the aggregate_hourly() step.
+# ALTERNATIVE: Could use Spark SQL window functions instead of DataFrame
+#              API. Equivalent performance but DataFrame API is more
+#              composable and type-safe in Python.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Derived Metrics with Physical Meaning
+# WHY: Raw sensor values alone do not tell the full story. Derived metrics
+#      combine multiple sensors to reveal compressor health:
+#      - pressure_differential (discharge - suction): The "work" the
+#        compressor is doing. A declining differential with constant HP
+#        means efficiency is dropping (ring wear, valve failure).
+#      - temp_1hr_delta (current temp - temp 1hr ago): Rate of change
+#        is more important than absolute value. A steady 200F is fine.
+#        A temperature climbing 5F/hour signals cooling degradation and
+#        triggers the temp_drift_predictor ML model.
+#      These derived metrics are the primary features for ML models
+#      because they capture CHANGES, not just STATES.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Threshold Status Flags from Config (Never Hardcoded)
+# WHY: Warning and critical thresholds are loaded from config/thresholds.yaml,
+#      never hardcoded in application code. This is critical because:
+#      1. Thresholds may be tuned by domain experts (field engineers)
+#         who should not need to modify Python code.
+#      2. Different compressor models may need different thresholds
+#         (future enhancement).
+#      3. Regulatory changes (EPA OOOOb) may require threshold updates.
+#      The status flags (normal/warning/critical) are written to Gold
+#      so that dashboards can color-code compressor health without
+#      re-computing thresholds at query time.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Partition by date + region, Z-order by compressor_id
+# WHY: Gold layer queries fall into two patterns:
+#      1. "Show me today's data for a specific compressor" -- Z-order by
+#         compressor_id enables data skipping (Delta reads min/max stats
+#         from file footers to skip irrelevant files).
+#      2. "Show me all compressors in the Permian Basin this week" --
+#         partitioning by date prunes old data, and region partitioning
+#         isolates geographic queries.
+#      Together, these optimizations mean a query for one compressor
+#      on one day touches ~1 file instead of scanning the entire table.
+# SCALING: At 112,800 hourly aggregates/day partitioned across 10 regions,
+#          each region-date partition has ~11,280 rows (~2 MB). This is
+#          a comfortable partition size -- not too many small files, not
+#          too large for memory.
+# ===========================================================================
 
 import logging
 from typing import Optional, List
@@ -28,7 +100,9 @@ from src.etl.utils import load_config
 
 logger = logging.getLogger(__name__)
 
-# Load thresholds from config/thresholds.yaml (never hardcode per CLAUDE.md)
+# Load thresholds from config/thresholds.yaml (never hardcode per CLAUDE.md).
+# These are loaded at module import time (not per-call) because thresholds
+# are static during a pipeline run. Reloading per-row would be wasteful.
 _thresholds = load_config('thresholds.yaml')
 _sensor = _thresholds['sensor_thresholds']
 
@@ -88,6 +162,10 @@ def create_gold_layer(
     # Lag window for rate of change
     w_lag = Window.partitionBy("compressor_id").orderBy("timestamp")
 
+    # Single .select() call with ALL derived columns.
+    # PySpark best practice: avoid chaining .withColumn() calls because
+    # each one creates a new logical plan node, leading to O(n^2) plan
+    # analysis time. A single .select() is O(1) regardless of column count.
     gold_df = silver_df.select(
         # === PASSTHROUGH COLUMNS ===
         F.col("compressor_id"),
@@ -121,9 +199,19 @@ def create_gold_layer(
         F.avg("suction_pressure_psi").over(w_24hr).alias("pressure_24hr_mean"),
 
         # === RATE OF CHANGE ===
+        # Lag by 6 readings = 1 hour (6 x 5-min intervals).
+        # This gives the temperature change over the last hour.
+        # A positive delta means temperature is rising -- if sustained,
+        # the temp_drift_predictor uses this to estimate hours-until-warning.
         (F.col("discharge_temp_f") - F.lag("discharge_temp_f", 6).over(w_lag)).alias("temp_1hr_delta"),
 
         # === DERIVED METRICS ===
+        # Pressure differential = discharge - suction. This represents the
+        # "compression ratio" -- how much work the compressor is doing. A
+        # healthy compressor maintains a consistent differential. A declining
+        # differential with constant horsepower indicates internal leaks
+        # (ring wear, packing leak) -- the compressor is working just as
+        # hard but producing less pressure rise.
         (F.col("discharge_pressure_psi") - F.col("suction_pressure_psi")).alias("pressure_differential"),
 
         # === THRESHOLD STATUS FLAGS ===
@@ -156,6 +244,22 @@ def create_gold_layer(
     return gold_df
 
 
+# ===========================================================================
+# PATTERN: Hourly Aggregation (12:1 Row Reduction)
+# WHY: Dashboards and ML models do not need 5-minute granularity. Hourly
+#      aggregates reduce data volume by 12x (12 readings/hour -> 1 row)
+#      while preserving the statistical summary (mean, std, min, max).
+#      The "worst status" per hour (F.max on status string -- "critical" >
+#      "warning" > "normal" lexicographically) ensures that a single
+#      critical reading in any 5-min window propagates to the hourly view.
+# SCALING: 4,700 compressors x 24 hours = 112,800 hourly rows/day.
+#          This is the primary table queried by Power BI dashboards and
+#          the agent API. At 112K rows/day, queries are sub-second even
+#          without caching.
+# ALTERNATIVE: Could also aggregate to 4-hour or daily granularity, but
+#              hourly is the sweet spot -- granular enough for trend
+#              detection, compact enough for fast queries.
+# ===========================================================================
 def aggregate_hourly(gold_df: DataFrame) -> DataFrame:
     """
     Create hourly aggregates from Gold layer.
@@ -216,6 +320,23 @@ def aggregate_hourly(gold_df: DataFrame) -> DataFrame:
     return hourly
 
 
+# ===========================================================================
+# PATTERN: Alert Generation with Severity Ranking
+# WHY: Alerts are generated from the LATEST reading per compressor (not
+#      every reading) to avoid alert flooding. At 4,700 compressors with
+#      ~5% in some degradation state, we expect ~235 active alerts.
+#      The severity is determined by the WORST status across all three
+#      sensor categories (vibration, temperature, pressure). A compressor
+#      with critical vibration but normal temperature gets a "critical"
+#      alert because it represents the most urgent maintenance need.
+# SCALING: generate_alerts processes only the latest reading per
+#          compressor (4,700 rows after dedup), not the full day's data.
+#          Alert generation is instantaneous at this scale.
+# ALTERNATIVE: Could implement stateful alerting (only alert on status
+#              TRANSITION). This requires comparing current vs previous
+#              run in a state table. Simpler to generate all current
+#              alerts and let downstream alert management handle dedup.
+# ===========================================================================
 def generate_alerts(gold_df: DataFrame) -> DataFrame:
     """
     Generate alerts from threshold violations in Gold layer.
@@ -276,6 +397,17 @@ def generate_alerts(gold_df: DataFrame) -> DataFrame:
     return alerts
 
 
+# ===========================================================================
+# PATTERN: Fleet Health Summary (Executive Dashboard View)
+# WHY: The fleet health summary aggregates per-basin health metrics into
+#      a single row per basin per day. This powers the executive dashboard
+#      where management sees fleet-wide trends without drilling into
+#      individual compressors. The healthy_count / total_compressors ratio
+#      is the single most important KPI for fleet operations.
+# SCALING: One row per basin per day = ~10 rows/day (10 basins). This is
+#          the most compact table in the pipeline, designed for fast
+#          rendering in Power BI executive dashboards.
+# ===========================================================================
 def build_fleet_health_summary(gold_df: DataFrame) -> DataFrame:
     """
     Build fleet-level health summary for executive dashboard.

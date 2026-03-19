@@ -15,6 +15,30 @@ At 4,700 compressors:
 Author: David Fernandez
 """
 
+# ===========================================================================
+# PATTERN: Data Quality Framework (5 Independent Checks)
+# WHY: Data quality is checked AFTER Silver cleaning but BEFORE Gold
+#      aggregation, acting as a guard rail that prevents bad data from
+#      reaching dashboards and ML models. The framework runs 5 independent
+#      checks, each producing a pass/fail result with a numeric metric:
+#      1. Fleet completeness: Are enough compressors reporting?
+#      2. Data freshness: Is the latest data within SLA?
+#      3. Sensor completeness: Are individual sensors populated?
+#      4. Volume consistency: Are per-compressor row counts balanced?
+#      5. Pressure consistency: Does discharge > suction (physics)?
+#      Each check is independent — a freshness failure does not affect
+#      the completeness check. This lets ops quickly identify the
+#      specific quality dimension that is degrading.
+# SCALING: Quality checks run on the Silver DataFrame (1.28M rows/day).
+#          Most checks use aggregations (distinct count, max timestamp)
+#          that Spark parallelizes across partitions. Total quality check
+#          time: ~5-10 seconds at fleet scale.
+# ALTERNATIVE: Could use Great Expectations or dbt tests for more
+#              sophisticated checks (e.g., column-level distribution
+#              drift, referential integrity). The built-in framework
+#              is simpler and has zero external dependencies.
+# ===========================================================================
+
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
@@ -26,6 +50,18 @@ from pyspark.sql import functions as F
 logger = logging.getLogger(__name__)
 
 
+# ===========================================================================
+# PATTERN: QualityReport Dataclass (Aggregatable Results)
+# WHY: Using dataclasses instead of plain dicts provides type safety and
+#      a to_dict() method for serialization. The QualityReport aggregates
+#      multiple QualityCheckResult instances and tracks overall_passed as
+#      a single boolean — if ANY check fails, the report fails. This
+#      makes it easy to use in pipeline logic:
+#        if not quality_report.overall_passed:
+#            monitor.add_warning(...)
+#      The severity field (warning vs critical) enables tiered alerting:
+#      warnings go to a dashboard, criticals trigger Teams notifications.
+# ===========================================================================
 @dataclass
 class QualityCheckResult:
     """Result of a single quality check."""
@@ -124,6 +160,23 @@ def run_quality_checks(
     return report
 
 
+# ===========================================================================
+# PATTERN: Fleet Completeness Threshold at 85% (Not 100%)
+# WHY: At any given time, ~10-15% of the fleet may legitimately not be
+#      reporting data because compressors are:
+#      - Down for scheduled maintenance (rotating maintenance windows)
+#      - Being relocated between stations (in transit for days)
+#      - In remote basins with intermittent satellite connectivity
+#      - Newly installed and not yet commissioned
+#      Setting the threshold at 100% would cause false alarms constantly.
+#      85% means we alert when more than ~700 units (out of 4,700) are
+#      missing — that indicates a systemic issue (Event Hubs outage,
+#      regional network failure), not normal operations.
+#      The severity escalates: <85% is a warning, <70% is critical
+#      (more than 1,400 units missing = major incident).
+# SCALING: distinct().count() on compressor_id is a single shuffle
+#          operation — efficient even at 1.35M rows.
+# ===========================================================================
 def check_fleet_completeness(df: DataFrame, expected: int) -> QualityCheckResult:
     """Check that at least 85% of fleet is reporting data."""
     threshold = 0.85
@@ -140,6 +193,18 @@ def check_fleet_completeness(df: DataFrame, expected: int) -> QualityCheckResult
     )
 
 
+# ===========================================================================
+# PATTERN: Data Freshness SLA at 15 Minutes
+# WHY: The streaming pipeline triggers every 5 minutes, so under normal
+#      conditions the latest data should be at most ~10 minutes old
+#      (5-min sensor interval + 5-min trigger). The 15-minute SLA
+#      provides a 5-minute buffer for processing time and minor delays.
+#      If the latest data is >15 minutes old, it means either:
+#      - The streaming consumer has stopped
+#      - Event Hubs is experiencing an outage
+#      - All compressors stopped reporting simultaneously (very unlikely)
+#      The severity escalates: >15 min is a warning, >30 min is critical.
+# ===========================================================================
 def check_data_freshness(df: DataFrame, sla_minutes: int) -> QualityCheckResult:
     """Check that the most recent data is within SLA."""
     max_ts = df.agg(F.max("timestamp")).collect()[0][0]
@@ -166,6 +231,15 @@ def check_data_freshness(df: DataFrame, sla_minutes: int) -> QualityCheckResult:
     )
 
 
+# ===========================================================================
+# PATTERN: Per-Sensor Completeness at 95%
+# WHY: Individual sensors can fail independently — a vibration sensor may
+#      go offline while temperature continues reporting. The 95% threshold
+#      means we allow up to 5% null values per sensor (accounting for
+#      intermittent connectivity and sensor maintenance windows). If a
+#      sensor drops below 95%, it may indicate a fleet-wide sensor
+#      firmware bug, a batch of faulty sensors, or a calibration issue.
+# ===========================================================================
 def check_sensor_completeness(df: DataFrame, sensor: str, min_ratio: float) -> QualityCheckResult:
     """Check that a sensor has sufficient non-null values."""
     total = df.count()
@@ -208,6 +282,19 @@ def check_volume_consistency(df: DataFrame, expected_compressors: int) -> Qualit
     )
 
 
+# ===========================================================================
+# PATTERN: Late Arrival Detection (Connectivity Health Indicator)
+# WHY: This check measures the gap between when a sensor produced a
+#      reading (timestamp) and when the pipeline received it
+#      (bronze_ingested_at). A high late arrival rate indicates
+#      connectivity issues — likely remote basins with satellite uplinks
+#      that buffer data during outages. The top-5 worst offenders are
+#      logged to help ops identify which specific compressors/basins
+#      need network infrastructure attention.
+# SCALING: At 4,700 compressors, typically <1% arrive late. The worst
+#          offenders are usually in the Bakken (North Dakota) or San Juan
+#          (New Mexico) basins where satellite connectivity is unreliable.
+# ===========================================================================
 def check_late_arrivals(
     df: DataFrame, threshold_minutes: int = 15, max_late_pct: float = 5.0,
 ) -> QualityCheckResult:
@@ -268,6 +355,18 @@ def check_late_arrivals(
     )
 
 
+# ===========================================================================
+# PATTERN: Cross-Sensor Physics Validation
+# WHY: A compressor works by taking low-pressure gas (suction) and
+#      compressing it to high-pressure gas (discharge). By the laws of
+#      thermodynamics, discharge pressure MUST be greater than suction
+#      pressure — otherwise the compressor is not compressing anything.
+#      If >1% of readings violate this, it is NOT a compressor failure
+#      (the compressor would shut down). It means the pressure sensors
+#      are swapped, miscalibrated, or the data columns were mapped
+#      incorrectly during ingestion. This is a data quality issue, not
+#      an equipment issue.
+# ===========================================================================
 def check_pressure_consistency(df: DataFrame) -> QualityCheckResult:
     """
     Check that discharge pressure > suction pressure (physical law).

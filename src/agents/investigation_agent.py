@@ -36,11 +36,49 @@ logger = logging.getLogger(__name__)
 # AGENT DEFINITION
 # ============================================================================
 
+# ===========================================================================
+# Shared Model String
+# WHY: All 4 agents use the same DIAGNOSTICS_MODEL env var. This ensures
+#   consistent behavior during testing (swap one env var to test with a
+#   different model) and simplifies deployment (one config to change).
+# DEFAULT: gpt-4o-mini — best cost/quality ratio for tool-calling agents.
+#   gpt-4o is 10x more expensive and only marginally better at structured
+#   output generation. For production, gpt-4o-mini at $0.15/1M input tokens
+#   keeps per-investigation cost under $0.05.
+# ===========================================================================
 _model = os.environ.get('DIAGNOSTICS_MODEL', 'openai:gpt-4o-mini')
 
+# ===========================================================================
+# PATTERN: Pydantic AI Agent with Structured Output
+# WHY: By setting result_type=InvestigationReport, Pydantic AI forces the LLM
+#   to return output that matches the InvestigationReport schema exactly.
+#   If the LLM outputs invalid JSON or missing fields, Pydantic AI automatically
+#   retries with the validation error message. This eliminates the need for
+#   manual output parsing or regex extraction.
+# ===========================================================================
+
+# ===========================================================================
+# System Prompt Engineering: 7-Step Methodology
+# WHY: The 7-step methodology (Hypothesize, Gather Evidence, Search Knowledge,
+#   Cross-Reference, Eliminate, Conclude, Recommend) is based on reliability
+#   engineering root cause analysis standards (specifically PROACT RCA and
+#   the Kepner-Tregoe method). By encoding the methodology in the system
+#   prompt, the agent follows a repeatable, auditable process rather than
+#   free-form reasoning. Each step maps to specific tools:
+#   Step 1 (Hypothesize): Uses get_failure_scenario_info
+#   Step 2 (Gather Evidence): Uses get_latest_readings, get_sensor_trend, get_alert_history
+#   Step 3 (Search Knowledge): Uses search_knowledge (RAG)
+#   Step 4 (Cross-Reference): Uses find_similar_incidents
+#   Step 5 (Eliminate): Agent reasoning (no tool)
+#   Step 6 (Conclude): Agent reasoning + compare_to_baseline
+#   Step 7 (Recommend): Agent reasoning based on all gathered evidence
+# SCALING: At 4,700 compressors with ~5% degrading at any time, investigations
+#   run ~235 times concurrently. The structured methodology ensures consistent
+#   quality regardless of which compressor is being investigated.
+# ===========================================================================
 investigation_agent = Agent(
     _model,
-    result_type=InvestigationReport,
+    result_type=InvestigationReport,  # Pydantic AI validates output against this schema
     system_prompt="""You are a senior reliability engineer conducting a root cause investigation
 on a reciprocating natural gas compressor. You follow a systematic 7-step methodology:
 
@@ -92,10 +130,30 @@ Key sensor thresholds (API 618 / ISO 10816 standards):
 
 
 # ============================================================================
-# TOOL REGISTRATIONS
+# TOOL REGISTRATIONS (12 tools)
+# ===========================================================================
+# WHY 12 tools? Each tool maps to a specific evidence-gathering step in the
+# 7-step methodology. The agent decides which tools to call and in what order
+# based on its hypothesis. More tools = more granular evidence = higher
+# confidence diagnoses. Fewer tools would force the agent to reason with
+# less data, reducing accuracy.
+#
+# Tool categories:
+#   5 shared tools (from db_tools.py) — same data access as diagnostics agent
+#   7 investigation-specific tools — deeper analysis capabilities
+#
+# PATTERN: tool_plain (not tool)
+# WHY: @agent.tool_plain means the tool function receives plain Python args
+#   and returns a plain string. The alternative @agent.tool receives a RunContext
+#   with dependency injection — useful when tools need access to shared state.
+#   Our tools are stateless (each call is a fresh DB query), so tool_plain
+#   is simpler and avoids RunContext boilerplate.
 # ============================================================================
 
 # --- Reused tools from shared db_tools ---
+# These 5 tools are identical to the diagnostics agent's tools.
+# They're re-registered here because Pydantic AI agents have their own
+# tool registries — tools are not inherited between agents.
 
 @investigation_agent.tool_plain
 def get_latest_readings(compressor_id: str) -> str:
@@ -127,7 +185,11 @@ def get_compressor_metadata(compressor_id: str) -> str:
     return db_tools.get_compressor_metadata(compressor_id)
 
 
-# --- New investigation-specific tools ---
+# --- Investigation-specific tools (7 additional tools beyond diagnostics) ---
+# These tools provide deeper analysis capabilities that the simpler
+# diagnostics agent doesn't need: sensor trends over time, emissions data,
+# knowledge base search (RAG), similar incident matching, baseline comparison,
+# and failure mode reference data.
 
 @investigation_agent.tool_plain
 def get_sensor_trend(compressor_id: str, sensor_name: str, hours: int = 168) -> str:
@@ -380,6 +442,16 @@ async def run_investigation(
     """
     start_time = time.time()
 
+    # ===========================================================================
+    # Session Tracking wraps the agent.run() call
+    # WHY: The session is created BEFORE the agent runs and completed AFTER.
+    #   This provides: (1) audit trail of all agent invocations, (2) duration
+    #   tracking for performance monitoring, (3) token usage accounting for
+    #   cost management, (4) failure tracking (session marked 'failed' in except).
+    #   The session_id links to the investigation report, enabling end-to-end
+    #   tracing from "who triggered this?" to "what did the agent produce?".
+    # ===========================================================================
+
     # Resolve org ID if not provided
     if not organization_id:
         rows = db_tools.query_db(
@@ -403,6 +475,9 @@ async def run_investigation(
     investigation_id = generate_investigation_id()
 
     try:
+        # The prompt includes the investigation_id so the agent can embed it
+        # in the structured output. The "Follow the 7-step methodology" instruction
+        # triggers the agent to call tools in the order defined by the system prompt.
         result = await investigation_agent.run(
             f"Conduct a root cause investigation for compressor {compressor_id}. "
             f"Investigation ID: {investigation_id}. "
@@ -411,7 +486,7 @@ async def run_investigation(
             f"Build a complete evidence chain with confidence scores for each finding."
         )
 
-        report = result.data
+        report = result.data  # Pydantic AI validates output against InvestigationReport schema
         duration = time.time() - start_time
 
         # Persist the investigation report to the database
@@ -473,6 +548,19 @@ def _save_report(report: InvestigationReport, organization_id: str,
         logger.error(f"Failed to save investigation report: {e}")
 
 
+# ===========================================================================
+# PATTERN: Feedback Loop (Technician → Knowledge Base → Future Investigations)
+# WHY: This is the "learning" step in the closed-loop architecture. When a
+#   technician says the diagnosis was wrong:
+#   1. The feedback is stored on the investigation report (for accuracy metrics)
+#   2. A "learned lesson" document is created in the knowledge base with the
+#      ACTUAL root cause
+#   3. Next time the agent investigates a similar issue, RAG will retrieve
+#      this learned lesson, and the agent will see "this was previously
+#      misdiagnosed as X, but the actual cause was Y"
+#   This creates a virtuous cycle: more feedback → better diagnoses → more trust
+#   from technicians → more feedback.
+# ===========================================================================
 async def submit_feedback(feedback: InvestigationFeedback) -> dict:
     """Submit technician feedback on an investigation report.
 
@@ -489,7 +577,9 @@ async def submit_feedback(feedback: InvestigationFeedback) -> dict:
              feedback.was_correct, feedback.investigation_id]
         )
 
-        # If diagnosis was wrong, create a learned lesson
+        # If diagnosis was wrong, create a learned lesson in the knowledge base.
+        # This is the key feedback loop: incorrect diagnoses become training data
+        # for future investigations via RAG retrieval.
         if not feedback.was_correct and feedback.actual_root_cause:
             rows = db_tools.query_db(
                 """SELECT compressor_id, organization_id, failure_mode

@@ -10,6 +10,44 @@ State diagram:
   Any state → cancelled (admin only)
 """
 
+# ===========================================================================
+# PATTERN: Finite State Machine (State Machine Pattern)
+# WHY: Work orders follow a strict lifecycle that must be enforced
+#   deterministically. The state machine ensures:
+#   1. No invalid transitions (can't go from "draft" to "completed")
+#   2. Audit trail (every transition is recorded with who/when/why)
+#   3. HITL gates (pending_approval requires human action)
+#
+# WHY PYTHON, NOT LLM:
+#   The LLM (agent) proposes state transitions, but this Python module
+#   VALIDATES them. The LLM cannot bypass this validation because:
+#   - The agent only calls create_work_order(), which always starts at "draft"
+#   - All subsequent transitions go through transition_work_order(), which
+#     checks VALID_TRANSITIONS before updating the database
+#   - Even if the LLM hallucinates "set status to completed", the Python
+#     code will reject it if the current status is "draft"
+#   This is the same principle as guardrails.py: deterministic Python code
+#   that cannot be prompt-injected, circumvented, or ignored.
+#
+# WHY 9 STATES:
+#   The 9 states map to a real maintenance workflow lifecycle:
+#   1. draft: Agent created the plan, needs review
+#   2. pending_approval: High-risk WO waiting for human sign-off
+#   3. approved: Approved for execution, needs technician assignment
+#   4. assigned: Technician identified, work not yet started
+#   5. in_progress: Technician is actively working
+#   6. completed: Work finished, awaiting quality verification
+#   7. verified: QA confirmed, work order closed (terminal)
+#   8. rejected: Approver rejected the plan, can be re-drafted
+#   9. cancelled: Work order abandoned (terminal)
+#   Each state represents a real-world checkpoint where different people
+#   or systems take action.
+#
+# SCALING: At 4,700 compressors with ~235 active alerts, the state machine
+#   handles concurrent transitions safely because each transition is an
+#   atomic database UPDATE (no in-memory state that could be lost).
+# ===========================================================================
+
 import json
 import logging
 from typing import Optional
@@ -20,6 +58,8 @@ logger = logging.getLogger(__name__)
 
 
 # Valid transitions: {from_status: [allowed_to_statuses]}
+# This dict IS the state machine. Adding a new transition requires only
+# adding an entry here — no code changes needed elsewhere.
 VALID_TRANSITIONS = {
     'draft': ['pending_approval', 'cancelled'],
     'pending_approval': ['approved', 'rejected', 'cancelled'],
@@ -27,15 +67,15 @@ VALID_TRANSITIONS = {
     'assigned': ['in_progress', 'cancelled'],
     'in_progress': ['completed', 'cancelled'],
     'completed': ['verified', 'cancelled'],
-    'verified': [],  # terminal state
-    'rejected': ['draft'],  # can re-draft a rejected WO
-    'cancelled': [],  # terminal state
+    'verified': [],  # Terminal state — no further transitions allowed
+    'rejected': ['draft'],  # Rejected WOs can be re-drafted with modifications
+    'cancelled': [],  # Terminal state — work order is permanently abandoned
 }
 
 # Statuses that are terminal (no further transitions)
 TERMINAL_STATUSES = {'verified', 'cancelled'}
 
-# Statuses that represent "open" work orders
+# Statuses that represent "open" work orders (used in duplicate detection)
 OPEN_STATUSES = {'draft', 'pending_approval', 'approved', 'assigned', 'in_progress'}
 
 
@@ -128,7 +168,21 @@ def transition_work_order(
         params
     )
 
-    # Record the transition in the audit trail
+    # ===========================================================================
+    # Transition Audit Trail
+    # WHY: Every state transition is recorded in work_order_transitions with:
+    #   - from_status / to_status: what changed
+    #   - transitioned_by: which human approved/rejected/completed
+    #   - agent_name: which AI agent triggered the transition
+    #   - reason: free-text explanation (required for every transition)
+    #   - metadata: optional JSON for transition-specific data
+    #   - created_at: timestamp (auto-set by PostgreSQL DEFAULT NOW())
+    # This audit trail is a COMPLIANCE REQUIREMENT: regulators and auditors
+    # need to see who approved what and when. It also enables:
+    #   - Timeline visualization in the frontend (WorkOrderTimeline component)
+    #   - Mean-time-to-repair (MTTR) analytics
+    #   - Agent performance analysis (how long does approval take?)
+    # ===========================================================================
     execute_db(
         """INSERT INTO work_order_transitions
            (work_order_id, from_status, to_status, transitioned_by, agent_name, reason, metadata)

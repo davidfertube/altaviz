@@ -4,7 +4,7 @@
 
 ## Overview
 
-Altaviz provides real-time integrity monitoring for compressor fleets, combining sensor data processing (PySpark ETL with Delta Lake), ML-powered anomaly detection, and automated EPA Subpart W compliance reporting. Four AI agents form a closed-loop autonomous maintenance system: Diagnostics (5 sensor tools), Investigation (RAG-powered root cause analysis with evidence chains), Work Order (HITL state machine with approval gates), and Fleet Optimization (proactive scanning with what-if simulation). Designed for Archrock-scale operations — 4,700+ compressors, 10 basins, 200+ stations — the platform delivers 48-hour advance failure warnings and reduces unplanned shutdowns by 40%.
+Altaviz provides real-time integrity monitoring for compressor fleets, combining sensor data processing (PySpark ETL with Delta Lake), ML-powered anomaly detection, and automated EPA Subpart W compliance reporting. Four AI agents form a closed-loop autonomous maintenance system orchestrated via LangGraph: Diagnostics (5 sensor tools), Investigation (RAG-powered root cause analysis with evidence chains), Work Order (HITL state machine with approval gates), and Fleet Optimization (proactive scanning with what-if simulation). Designed for Archrock-scale operations — 4,700+ compressors, 10 basins, 200+ stations — the platform delivers 48-hour advance failure warnings and targets ≥0.5% fleet operational efficiency improvement. Full Azure AI integration: Azure OpenAI, Azure AI Search, Azure ML, Langfuse observability, DeepEval quality gates.
 
 ### Key Features
 
@@ -18,8 +18,11 @@ Altaviz provides real-time integrity monitoring for compressor fleets, combining
 - **Work Order Orchestration**: 9-state machine with human-in-the-loop approval gates for high-risk operations (>$10K, emergency, shutdown)
 - **Fleet Optimization Copilot**: Proactive fleet scans, what-if simulation engine, conversational chat interface
 - **Agentic Workflows**: Automated alert escalation, auto-resolve, data freshness checks, stale alert cleanup
+- **LangGraph Orchestration**: Closed-loop workflow with durable execution, HITL approval gates, state persistence
+- **Langfuse Observability**: Token counting, cost tracking, trace visualization across all 4 agents
+- **DeepEval Quality Gates**: Faithfulness, hallucination detection, RAG precision/recall in CI pipeline
 - **Security Hardened**: Rate limiting, CSP headers, input validation, timing-safe auth, parameterized SQL, audit logging
-- **Azure Integration**: Terraform IaC, Container Apps, Key Vault, Application Insights, ACR
+- **Azure AI Integration**: Azure OpenAI, Azure AI Search (hybrid RAG), Azure ML, Azure Functions, Purview, Terraform IaC
 
 ## Architecture
 
@@ -45,8 +48,10 @@ Landing Page (/) ← Next.js 16 → Dashboard (/dashboard/*) → API Routes → 
 3. **ML Inference**: Anomaly detection, temperature drift, emissions estimation, RUL prediction
 4. **Database**: PostgreSQL (local) or OneLake (production) for dashboard-optimized aggregates
 5. **Dashboard**: Next.js 16 + React 19 multi-tenant SaaS with auth, billing, and workflows
-6. **AI Agents**: 4 Pydantic AI agents — Diagnostics, Investigation (RAG), Work Order (HITL), Fleet Optimization
-7. **Infrastructure**: Azure Container Apps, ACR, Key Vault, App Insights via Terraform
+6. **AI Agents**: 4 Pydantic AI agents orchestrated via LangGraph — Diagnostics, Investigation (RAG), Work Order (HITL), Fleet Optimization
+7. **Agent Observability**: Langfuse tracing with token counting, cost tracking, and trace visualization
+8. **Agent Evaluation**: DeepEval quality gates — faithfulness, hallucination detection, RAG quality metrics
+9. **Infrastructure**: Azure OpenAI, AI Search, ML, Functions, Purview, Container Apps, Key Vault via Terraform
 
 ## Quick Start
 

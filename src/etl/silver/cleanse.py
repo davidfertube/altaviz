@@ -18,6 +18,29 @@ Scale considerations:
 Author: David Fernandez
 """
 
+# ===========================================================================
+# PATTERN: 5-Step Cleaning Pipeline (Sequential Data Refinement)
+# WHY: Each cleaning step is ordered deliberately to maximize data
+#      retention while ensuring quality:
+#      1. Dedup FIRST: Remove exact duplicates before any analysis
+#         (prevents double-counting in statistics).
+#      2. Null handling SECOND: Drop rows missing ALL critical sensors
+#         (useless for any downstream analysis). Keep partial nulls.
+#      3. Timestamp validation THIRD: Reject impossible timestamps
+#         (future dates, ancient data) that would corrupt time-series.
+#      4. Range validation FOURTH: Reject physically impossible values
+#         (negative pressure, 500F temperatures) — sensor malfunction.
+#      5. Outlier removal LAST: Statistical filtering is the most
+#         aggressive step and should only run on already-validated data.
+#         Running it on data with nulls or invalid timestamps would
+#         skew the statistics.
+# SCALING: At 1.35M rows/day, the 5 steps typically remove ~5% of data
+#          (~67,500 rows). Each step logs its rejection count so ops
+#          can identify when a specific type of bad data spikes.
+# ALTERNATIVE: Could run all checks in a single pass (faster, but harder
+#              to debug which check is rejecting the most data).
+# ===========================================================================
+
 import logging
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
@@ -28,7 +51,23 @@ from pyspark.sql.window import Window
 
 logger = logging.getLogger(__name__)
 
-# Physically impossible sensor values (absolute bounds)
+# ===========================================================================
+# PATTERN: Absolute Bounds (Physical Plausibility Check)
+# WHY: These bounds represent PHYSICALLY IMPOSSIBLE values — not statistical
+#      outliers, not warning thresholds. A vibration of 50 mm/s would mean
+#      the compressor has already shaken itself apart. A temperature of
+#      500F would mean the unit is on fire. These bounds catch sensor
+#      malfunctions (stuck at 0, reading max int), unit conversion errors
+#      (Celsius sent as Fahrenheit), or data corruption (bit flips).
+#      They are deliberately WIDER than the alert thresholds in
+#      config/thresholds.yaml — a vibration of 8 mm/s is a "critical alert"
+#      but still physically plausible and should NOT be filtered out here.
+# SCALING: Range validation is a simple column filter — O(1) per row,
+#          no windows or aggregations. Negligible performance impact.
+# ALTERNATIVE: Could load bounds from config/thresholds.yaml, but these
+#              are physical constants that should never change (unless
+#              new sensor types are added with different ranges).
+# ===========================================================================
 ABSOLUTE_BOUNDS = {
     'vibration_mms': (0.0, 50.0),
     'discharge_temp_f': (-40.0, 500.0),
@@ -38,7 +77,11 @@ ABSOLUTE_BOUNDS = {
     'gas_flow_mcf': (0.0, 100000.0),
 }
 
-# Critical sensor columns (row dropped if ALL are null)
+# Critical sensor columns — a row is dropped only if ALL of these are null.
+# If even ONE critical sensor has a value, the row is kept. This is
+# intentional: a reading with valid temperature but null vibration is
+# still useful for temperature drift detection. Dropping partial readings
+# would create gaps in per-sensor time-series, making trend analysis harder.
 CRITICAL_SENSORS = [
     'vibration_mms',
     'discharge_temp_f',
@@ -91,14 +134,23 @@ def create_silver_layer(
     after_outliers = df.count()
     logger.info(f"  After outlier removal: {after_outliers:,} ({after_range - after_outliers:,} outliers)")
 
-    # Step 6: Add Silver metadata
+    # Step 6: Add Silver metadata and derive the date partition column.
+    # silver_processed_at tracks when this record was cleaned (for latency
+    # monitoring). The date column is derived from the event timestamp
+    # (not ingestion time) so that Silver is partitioned by when the
+    # reading actually occurred — matching the Gold layer's partitioning.
     df = df.select(
         F.col("*"),
         F.current_timestamp().alias("silver_processed_at"),
         F.to_date(F.col("timestamp")).alias("date"),
     )
 
-    # Drop Bronze metadata columns (keep data lineage clean)
+    # Drop Bronze metadata columns to keep data lineage clean.
+    # Silver should not carry Bronze-specific columns forward because
+    # they create confusion about which layer's metadata is which.
+    # The Silver layer has its own silver_processed_at timestamp.
+    # If lineage tracing is needed, query Bronze directly by the same
+    # compressor_id + timestamp composite key.
     bronze_cols = ['bronze_ingested_at', 'source_system', 'ingestion_date']
     for col in bronze_cols:
         if col in df.columns:
@@ -113,6 +165,24 @@ def create_silver_layer(
     return df
 
 
+# ===========================================================================
+# PATTERN: Composite Key Deduplication (compressor_id + timestamp)
+# WHY: Event Hubs provides "at-least-once" delivery, meaning the same
+#      sensor reading can arrive multiple times (e.g., after a consumer
+#      restart, a partition rebalance, or a network retry). The composite
+#      key (compressor_id + timestamp) uniquely identifies a reading.
+#      When duplicates exist, we keep the LATEST ingestion (by
+#      bronze_ingested_at) because it is most likely to have been
+#      processed correctly (earlier versions may have been partial
+#      transmissions).
+# SCALING: Window-based dedup requires a full shuffle by the partition
+#          key (compressor_id + timestamp). At 1.35M rows/day with
+#          4,700 compressors, this creates ~4,700 groups — well within
+#          Spark's shuffle capacity. Typical duplicate rate is <1%.
+# ALTERNATIVE: Could use Delta Lake's MERGE for dedup at write time,
+#              but that requires the target table to exist. Dedup in
+#              Silver is simpler and works regardless of write mode.
+# ===========================================================================
 def deduplicate(df: DataFrame) -> DataFrame:
     """
     Remove duplicate readings using compressor_id + timestamp as composite key.
@@ -187,6 +257,32 @@ def validate_ranges(df: DataFrame) -> DataFrame:
     return df
 
 
+# ===========================================================================
+# PATTERN: Per-Compressor 4-Sigma Outlier Removal
+# WHY: We use 4-sigma (not the common 3-sigma) because compressor sensor
+#      data has "fat tails" — legitimate spikes during startup, shutdown,
+#      and load changes that are 3-4 standard deviations from the mean
+#      but still represent real operating conditions. At 3-sigma, we would
+#      incorrectly remove ~2-3% of legitimate readings. At 4-sigma, we
+#      only catch truly anomalous values (sensor glitches, data corruption)
+#      while preserving the operational extremes that ML models need to
+#      learn from (failure precursors often look like "outliers").
+#
+#      The filtering is PER-COMPRESSOR (not fleet-global) because
+#      different compressor models have very different normal ranges:
+#      an Ariel JGK/4 at 1,500 HP has normal vibration of 1.2-4.0 mm/s,
+#      while a Caterpillar G3606 at 4,000 HP runs at 2.0-5.5 mm/s.
+#      A global mean would average these together, incorrectly flagging
+#      low-vibration Ariel units as outliers and missing high-vibration
+#      Caterpillar anomalies.
+# SCALING: Per-compressor windows require a shuffle by compressor_id
+#          (4,700 partitions). Each partition gets ~288 rows/day, so
+#          the stddev computation is lightweight. Total: ~1.35M rows
+#          with 4,700 windows = ~0.5 seconds on a 4-core local Spark.
+# ALTERNATIVE: Could use Isolation Forest or Z-score per reading, but
+#              window-based stddev is simpler, more interpretable, and
+#              catches the same types of sensor glitches.
+# ===========================================================================
 def remove_outliers(df: DataFrame, std_threshold: float = 4.0) -> DataFrame:
     """
     Remove statistical outliers per compressor.

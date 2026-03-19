@@ -13,6 +13,42 @@ Schemas defined here must match:
 Author: David Fernandez
 """
 
+# ===========================================================================
+# PATTERN: Avro Schema Validation at Ingestion Boundary
+# WHY: The schema registry validates messages BEFORE they enter the Bronze
+#      layer. This is the first line of defense against bad data:
+#      - Catches missing required fields (compressor_id, timestamp)
+#      - Catches wrong data types (string where number expected)
+#      - Catches physically impossible values (negative pressure)
+#      - Catches malformed compressor IDs (wrong format)
+#      By validating at the boundary, we prevent corrupt data from ever
+#      entering the lakehouse. Without this, bad data would flow through
+#      Bronze (immutable!) and only be caught at the Silver cleaning step,
+#      wasting storage and processing time.
+# SCALING: Validation is O(1) per message (fixed number of field checks).
+#          At ~16 messages/second, validation adds negligible latency.
+# ALTERNATIVE: Could use Azure Schema Registry (managed Avro schema
+#              service built into Event Hubs) for automatic validation.
+#              This implementation is a lightweight local alternative
+#              that works without Azure dependencies.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Dead Letter Queue (DLQ) for Invalid Messages
+# WHY: Invalid messages are NOT silently dropped — they are routed to a
+#      dead letter structure with the original message + validation errors
+#      + rejection timestamp. This serves three purposes:
+#      1. Debugging: Engineers can inspect the dead letter queue to
+#         understand WHY messages are being rejected.
+#      2. Recovery: If the schema is updated (new required field added
+#         prematurely), the DLQ allows re-processing after the fix.
+#      3. Monitoring: The DLQ size is a health metric. A spike in
+#         rejected messages indicates a producer-side issue (firmware
+#         bug, misconfigured IoT device, or schema mismatch).
+# ALTERNATIVE: Could use Azure Service Bus dead letter queues (built-in),
+#              but that adds another Azure service dependency.
+# ===========================================================================
+
 import json
 import logging
 from typing import Dict, List, Tuple, Optional
@@ -20,7 +56,15 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-# Avro schema for sensor telemetry messages
+# Avro schema for sensor telemetry messages.
+# This Avro schema definition serves as the "contract" between producers
+# (IoT devices / fleet simulator) and consumers (Event Hub consumer /
+# Bronze layer). In production with Azure Schema Registry, this would be
+# registered and versioned. Schema evolution rules:
+# - Adding a new optional field (with default) = BACKWARD COMPATIBLE
+# - Removing a field = BREAKING (never do this)
+# - Changing a field type = BREAKING (never do this)
+# - Adding a required field = BREAKING (add as optional with default first)
 SENSOR_TELEMETRY_SCHEMA = {
     "type": "record",
     "name": "SensorTelemetry",
@@ -44,7 +88,16 @@ SENSOR_TELEMETRY_SCHEMA = {
 # Required fields that must be non-null
 REQUIRED_FIELDS = {"compressor_id", "timestamp"}
 
-# Valid ranges for sensor values (reject obvious garbage)
+# Valid ranges for sensor values (reject obvious garbage).
+# These are a SECONDARY validation layer, distinct from the ABSOLUTE_BOUNDS
+# in silver/cleanse.py. The schema registry bounds are intentionally
+# identical or slightly wider because they serve the same purpose:
+# catch physically impossible values. The difference is WHERE they run:
+# - Schema registry: At ingestion, before Bronze (prevents bad data entry)
+# - Silver cleanse: After Bronze, during ETL (catches data corruption)
+# Having both layers provides defense-in-depth — if one layer is bypassed
+# (e.g., batch import that skips schema registry), the other still catches
+# the bad data.
 VALID_RANGES = {
     "vibration_mms": (0.0, 50.0),
     "discharge_temp_f": (-50.0, 500.0),
@@ -55,7 +108,12 @@ VALID_RANGES = {
     "operating_hours": (0.0, 1000000.0),
 }
 
-# Compressor ID format validation
+# Compressor ID format validation.
+# Format: COMP-XXXX where XXXX is a 4-digit zero-padded number.
+# This regex rejects IDs like "PIPE-0001" (old prefix), "COMP-1" (missing
+# zero-padding), or "COMP-00001" (5 digits). Strict format validation
+# prevents join failures downstream — if a compressor_id does not match
+# the format, it cannot be joined with metadata or historical data.
 COMPRESSOR_ID_PATTERN = r'^COMP-\d{4}$'
 
 

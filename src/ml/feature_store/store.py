@@ -4,17 +4,44 @@ Feature Store — Centralized Feature Management for ML Models
 Provides a single source of truth for ML features computed from
 the Gold layer. Ensures consistency between training and serving.
 
-Feature sets:
-1. vibration_features — Rolling stats on vibration sensor
-2. thermal_features — Temperature trends and rates
-3. pressure_features — Pressure differential metrics
-4. operational_features — HP, flow, operating hours
-5. temporal_features — Time-of-day, weekday patterns
-
-At 4,700 compressors:
-- Feature table: ~112K rows (hourly, last 24 hours)
-- Latest features: ~4,700 rows (one per compressor)
-- Storage: OneLake ML lakehouse feature_store table
+# ===========================================================================
+# PATTERN: Feature Store Pattern
+# WHY: ML models need the SAME features at training time and inference time.
+#   Without a feature store, it's common to compute features one way during
+#   training (e.g., in a Jupyter notebook) and a different way in production
+#   (e.g., in a Spark pipeline), causing training-serving skew.
+#   The Feature Store computes features once and serves them consistently.
+#
+# ARCHITECTURE:
+#   Gold layer (aggregated sensor data)
+#       → Feature computation (this module)
+#           → Feature table (materialized in OneLake/PostgreSQL)
+#               → Training: read historical features for model fitting
+#               → Inference: read latest features for batch prediction
+#
+# FEATURE SETS (5 groups, chosen based on domain knowledge):
+#   1. vibration — Primary indicator of bearing wear (most predictive)
+#   2. thermal — Cooling degradation and fouling detection
+#   3. pressure — Valve failure and packing leak detection
+#   4. operational — HP utilization and gas flow efficiency
+#   5. temporal — Time patterns (maintenance often correlates with shifts)
+#
+# SCALING: At Archrock scale (4,700 compressors × 24hr window):
+#   - Feature table: ~112K rows per computation cycle
+#   - Latest features: ~4,700 rows (one per compressor)
+#   - Computation is the bottleneck — partition by compressor_id for parallel
+#   - Storage: ~50 MB/day in OneLake ML lakehouse
+#
+# DRIFT MONITORING:
+#   Feature drift = statistical shift in feature distributions over time.
+#   If vibration_mean distribution shifts (e.g., fleet-wide increase),
+#   it signals either a data quality issue or a real fleet degradation trend.
+#   Monitor via population stability index (PSI) or KS test.
+#
+# ALTERNATIVE: Could use Feast, Tecton, or Azure ML Feature Store.
+#   Custom implementation chosen for simplicity and tight integration
+#   with the existing PySpark pipeline and OneLake storage.
+# ===========================================================================
 
 Author: David Fernandez
 """

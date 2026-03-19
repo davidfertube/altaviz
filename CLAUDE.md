@@ -3,8 +3,18 @@
 Production-grade data engineering platform for compressor fleet integrity management.
 Designed for Archrock-scale operations: 4,700+ compressors, 10 basins, 200+ stations.
 
-Stack: PySpark 3.5 + Delta Lake 3.0 | Azure Fabric / OneLake | Azure Event Hubs | MLflow | Pydantic AI | pgvector | Terraform
-Status: Production architecture — Streaming + batch ETL, 4 ML models, 4 AI agents (closed-loop autonomous maintenance), fleet simulator, pipeline observability, data quality framework, infrastructure as code.
+Stack: PySpark 3.5 + Delta Lake 3.0 | Azure Fabric / OneLake | Azure Event Hubs | Azure OpenAI | Azure AI Search | Azure ML | MLflow | Pydantic AI + LangGraph | Langfuse | DeepEval | pgvector | Terraform
+Status: Production architecture — Streaming + batch ETL, 4 ML models, 4 AI agents (closed-loop autonomous maintenance via LangGraph), fleet simulator, pipeline observability, data quality framework, agent evaluation, LLM tracing, infrastructure as code.
+
+## Archrock Context
+
+Altaviz is built for Archrock — the largest U.S. provider of outsourced natural gas compression services.
+- **Fleet:** ~4.7M operating HP, 95-96% utilization target, Permian Basin (~2.5M HP) is the largest region
+- **Revenue model:** Fixed monthly compression fee per HP deployed. Uptime = revenue.
+- **KPIs that matter:** Fleet Utilization Rate, MTBF, MTTR, Adjusted EBITDA, Emissions Intensity
+- **Team:** Data Engineering & Analytics, reporting to Kunal Sharma (Head of Data Eng)
+- **Tech stack:** Microsoft Fabric, Azure Synapse, ADLS Gen2, Azure DevOps, Power BI, Azure ML, Azure Functions
+- **IIoT platform:** Detechtion/Enbase edge devices on compressors stream telemetry to Azure
 
 ## Critical Rules
 
@@ -37,11 +47,17 @@ python -m src.etl.pipeline --skip-quality           # Skip data quality checks
 python -m src.agents.run_diagnosis COMP-0003        # Run diagnostics CLI
 uvicorn src.agents.api:app --port 8001              # Start agent API (all 4 agents)
 
+# Closed-Loop Workflow (LangGraph)
+curl -X POST http://localhost:8001/workflows/closed-loop \
+  -H "Content-Type: application/json" \
+  -d '{"compressor_id": "COMP-0003", "trigger": "alert"}'
+
 # Tests
 pytest tests/ -v                                    # All Python tests
 pytest tests/load/ -v                               # Fleet scale tests
 pytest tests/integration/ -v                        # Integration tests (requires Spark)
 pytest tests/unit/ -v                               # Unit tests (guardrails, state machine, models, IDs)
+pytest tests/eval/ -v                               # Agent evaluation tests (DeepEval)
 
 # Infrastructure
 cd infrastructure/terraform && terraform plan       # Preview Azure changes
@@ -125,7 +141,7 @@ ML Lifecycle: Feature Store → MLflow Training → Model Registry → Batch Pre
 
 ## AI Agents (4 total — closed-loop autonomous maintenance)
 
-**Framework:** Pydantic AI (type-safe structured outputs) | **API:** FastAPI sidecar (port 8001) | **Storage:** pgvector for RAG embeddings
+**Framework:** Pydantic AI (type-safe structured outputs) + LangGraph (orchestration) | **API:** FastAPI sidecar (port 8001) | **Storage:** pgvector or Azure AI Search for RAG | **Observability:** Langfuse | **Evaluation:** DeepEval
 
 | Agent | File | Tools | Output | Purpose |
 |-------|------|-------|--------|---------|
@@ -145,6 +161,17 @@ ML Lifecycle: Feature Store → MLflow Training → Model Registry → Batch Pre
 | `guardrails.py` | Tier limits (free/pro/enterprise), cost caps ($10K), confidence thresholds (0.6), rate limits (10 WO/hr) |
 | `memory.py` | Agent session CRUD — tracks token usage, costs, durations |
 | `id_generator.py` | Sequential IDs: `WO-2026-00001`, `INV-2026-00001`, `OPT-2026-00001`, `SNAP-2026-02-26-daily` |
+| `tracing.py` | Langfuse observability — trace decorator, token counting, cost tracking |
+
+### Agentic Framework
+
+| Layer | Tool | Purpose |
+|-------|------|---------|
+| Agent Logic | Pydantic AI | Type-safe structured outputs, tool calling |
+| Orchestration | LangGraph | Closed-loop workflow with durable execution, HITL, checkpointing |
+| Observability | Langfuse | Token counting, cost tracking, trace visualization, prompt versioning |
+| Evaluation | DeepEval | Faithfulness, hallucination detection, RAG quality, CI quality gates |
+| Search | pgvector / Azure AI Search | Pluggable backend — pgvector default, Azure AI Search for hybrid (vector + BM25) |
 
 ### Work Order State Machine
 
@@ -183,6 +210,21 @@ Human approval required for: emergency/urgent priority, cost > $10K, shutdown > 
 
 At any time: ~5% of fleet degrading, ~1% critical.
 
+## Azure AI Services
+
+| Service | Purpose | Terraform | Status |
+|---------|---------|-----------|--------|
+| Azure OpenAI | LLM for 4 agents + embeddings for RAG | `ai_services.tf` | Integrated |
+| Azure AI Search | Hybrid RAG (vector + BM25 + semantic) | `ai_services.tf` | Integrated |
+| Azure ML | Model registry, MLOps, managed endpoints | `ml_workspace.tf` | Integrated |
+| Azure Functions | Serverless model scoring (anomaly, emissions) | `functions.tf` | Integrated |
+| Microsoft Purview | Data catalog, lineage, governance | `purview.tf` | Integrated |
+| Azure Fabric / OneLake | Lakehouse storage (Bronze/Silver/Gold/ML) | `main.tf` | Integrated |
+| Azure Event Hubs | IoT telemetry streaming (16 partitions) | `main.tf` | Integrated |
+| Azure Key Vault | Secrets management | `keyvault.tf` | Integrated |
+| Azure Container Apps | Frontend deployment | `container_app.tf` | Integrated |
+| Azure Monitor / App Insights | Pipeline + agent observability | `monitoring.tf` | Integrated |
+
 ## Environment Variables
 
 ```bash
@@ -208,8 +250,31 @@ MLFLOW_TRACKING_URI=               # MLflow server (default: file:./mlruns)
 
 # AI Agents
 OPENAI_API_KEY=sk-...                    # Required for RAG embeddings (text-embedding-3-small)
-DIAGNOSTICS_MODEL=openai:gpt-4o-mini     # LLM model for all 4 agents
+DIAGNOSTICS_MODEL=openai:gpt-4o-mini     # LLM model for all 4 agents (or azure-openai:gpt-4o-mini)
 AGENT_API_URL=http://localhost:8001      # Agent FastAPI sidecar URL
+
+# Azure OpenAI (alternative to direct OpenAI)
+AZURE_OPENAI_ENDPOINT=                   # https://<resource>.openai.azure.com/
+AZURE_OPENAI_API_KEY=
+AZURE_OPENAI_API_VERSION=2024-08-01-preview
+AZURE_OPENAI_DEPLOYMENT=gpt-4o-mini
+AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-small
+
+# Azure AI Search (hybrid RAG backend)
+AZURE_SEARCH_ENDPOINT=                   # https://<service>.search.windows.net
+AZURE_SEARCH_API_KEY=
+AZURE_SEARCH_INDEX=altaviz-knowledge-base
+SEARCH_BACKEND=pgvector                  # or "azure" for Azure AI Search
+
+# Azure ML (model registry)
+AZURE_ML_WORKSPACE_NAME=
+AZURE_ML_RESOURCE_GROUP=
+AZURE_ML_SUBSCRIPTION_ID=
+
+# LLM Observability (Langfuse)
+LANGFUSE_PUBLIC_KEY=                     # pk-lf-...
+LANGFUSE_SECRET_KEY=                     # sk-lf-...
+LANGFUSE_HOST=https://cloud.langfuse.com
 
 # Legacy (PostgreSQL)
 DATABASE_URL=postgresql://...
@@ -289,6 +354,11 @@ ETL_ORGANIZATION_ID=
 | `src/agents/shared/guardrails.py` | Tier limits, cost caps, confidence thresholds, rate limits |
 | `src/agents/shared/memory.py` | Agent session CRUD (token/cost tracking) |
 | `src/agents/shared/id_generator.py` | Sequential ID generation (WO-, INV-, OPT-, SNAP-) |
+| `src/agents/shared/tracing.py` | Langfuse LLM observability (trace decorator, token counting) |
+| `src/agents/search_backend.py` | Pluggable search backend (pgvector / Azure AI Search) |
+| `src/agents/graph/workflow.py` | LangGraph closed-loop workflow orchestration |
+| `src/agents/graph/nodes.py` | LangGraph node wrappers for Pydantic AI agents |
+| `src/agents/graph/state.py` | LangGraph TypedDict state schema |
 | **Frontend — Marketing Animations** | |
 | `frontend/src/components/marketing/AgentFlowDemo.tsx` | 4-tab auto-cycling agent walkthrough (Fleet Monitoring, Investigation, Work Orders, Optimization) |
 | `frontend/src/components/marketing/ClosedLoopDiagram.tsx` | Orbital diagram: 4 agents in continuous feedback loop with traveling dots |
@@ -311,6 +381,10 @@ ETL_ORGANIZATION_ID=
 | `frontend/src/app/api/agent/` | 11 proxy routes: investigations (CRUD + feedback), work-orders (CRUD + transition), optimization (scan, what-if, recommendations, chat), sessions |
 | **Infrastructure** | |
 | `infrastructure/terraform/main.tf` | Azure resources (Event Hubs, Key Vault, monitoring) |
+| `infrastructure/terraform/ai_services.tf` | Azure OpenAI + Azure AI Search |
+| `infrastructure/terraform/ml_workspace.tf` | Azure ML workspace |
+| `infrastructure/terraform/functions.tf` | Azure Functions (serverless scoring) |
+| `infrastructure/terraform/purview.tf` | Microsoft Purview (data governance) |
 | `infrastructure/sql/schema.sql` | PostgreSQL DDL (20 tables, 5 views, triggers, seed data) |
 | **Tests** | |
 | `tests/test_schemas.py` | Schema validation tests |
@@ -324,3 +398,10 @@ ETL_ORGANIZATION_ID=
 | `tests/unit/test_state_machine.py` | Work order state machine transition tests |
 | `tests/unit/test_models.py` | Pydantic model validation tests |
 | `tests/unit/test_id_generator.py` | Sequential ID generation tests |
+| `tests/eval/test_investigation_quality.py` | DeepEval: investigation agent faithfulness + hallucination |
+| `tests/eval/test_work_order_quality.py` | DeepEval: work order HITL triggers + cost estimates |
+| `tests/eval/test_rag_quality.py` | DeepEval: RAG context precision, recall, faithfulness |
+| **Documentation** | |
+| `docs/prepare.md` | Archrock AI Engineer onboarding playbook |
+| `docs/integration.md` | Azure AI + agentic tools step-by-step integration guide |
+| `config/azure_ai.yaml` | Azure AI services configuration |

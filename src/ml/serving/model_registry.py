@@ -5,12 +5,35 @@ Tracks model training experiments, versions, and deployment state.
 In production (Fabric), this uses the built-in MLflow tracking server.
 For local development, uses a file-based MLflow backend.
 
-Model lifecycle:
-1. Train on historical data (weekly/monthly)
-2. Evaluate on holdout set
-3. Register in MLflow (staging → production)
-4. Serve via batch predictor
-5. Monitor drift → retrain
+# ===========================================================================
+# PATTERN: Registry Pattern + Factory Pattern
+# WHY: MLflow is the industry standard for ML lifecycle management.
+#   It provides experiment tracking, model versioning, and stage transitions
+#   (Staging → Production) with full audit trails. The Factory pattern in
+#   _get_tracking_uri() selects the right backend:
+#     1. Azure ML workspace (production at Archrock)
+#     2. Remote MLflow server (team shared development)
+#     3. Local file-based (individual development)
+#
+# SCALING: At Archrock scale (4 models × weekly retraining), MLflow stores
+#   ~200 runs/year. Azure ML adds managed compute for distributed training
+#   and managed endpoints for real-time inference.
+#
+# ALTERNATIVE: Could use Weights & Biases, Neptune.ai, or plain S3 artifact
+#   storage. MLflow chosen because it's open-source, Azure ML includes it
+#   natively, and Fabric has built-in MLflow tracking.
+#
+# MODEL LIFECYCLE:
+#   1. Train on historical sensor data (weekly for anomaly, monthly for others)
+#   2. Evaluate on holdout set (recent 7 days, not seen during training)
+#   3. Register in MLflow as "Staging" (automated)
+#   4. Promote to "Production" after manual review or automated quality gate
+#   5. Serve via batch_predictor.py (daily batch inference on fleet)
+#   6. Monitor for drift → trigger retraining when performance degrades
+#
+# ROLLBACK: To revert a bad model, transition the previous version back to
+#   "Production" stage via MLflow UI or client.transition_model_version_stage()
+# ===========================================================================
 
 Author: David Fernandez
 """
@@ -23,8 +46,40 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+# Local fallback directory for model artifacts when MLflow is unavailable.
+# In production, models are stored in Azure ML's managed blob storage.
 MODEL_REGISTRY_DIR = Path("models/registry")
-MLFLOW_TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI", "file:./mlruns")
+
+
+# ===========================================================================
+# PATTERN: Factory Pattern — select MLflow backend based on environment
+# Priority: explicit URI > Azure ML workspace > local file
+# WHY: Different environments need different tracking backends.
+#   Local dev uses file:./mlruns (zero infra needed).
+#   Azure ML provides managed MLflow with model registry, endpoints, and
+#   automated retraining pipelines — required for production at Archrock.
+# ===========================================================================
+def _get_tracking_uri() -> str:
+    """Get MLflow tracking URI — supports Azure ML, remote MLflow, or local."""
+    uri = os.environ.get("MLFLOW_TRACKING_URI")
+    if uri:
+        return uri
+
+    # Check for Azure ML workspace
+    workspace = os.environ.get("AZURE_ML_WORKSPACE_NAME")
+    if workspace:
+        subscription = os.environ.get("AZURE_ML_SUBSCRIPTION_ID", "")
+        resource_group = os.environ.get("AZURE_ML_RESOURCE_GROUP", "")
+        return (
+            f"azureml://{resource_group}.api.azureml.ms/mlflow/v1.0/"
+            f"subscriptions/{subscription}/resourceGroups/{resource_group}/"
+            f"providers/Microsoft.MachineLearningServices/workspaces/{workspace}"
+        )
+
+    return "file:./mlruns"
+
+
+MLFLOW_TRACKING_URI = _get_tracking_uri()
 
 
 def get_mlflow_client():

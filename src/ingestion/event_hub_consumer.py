@@ -24,6 +24,66 @@ Usage:
 Author: David Fernandez
 """
 
+# ===========================================================================
+# PATTERN: Spark Structured Streaming from Event Hubs
+# WHY: Spark Structured Streaming provides a unified batch + streaming API
+#      so the same DataFrame transformations work on both historical data
+#      and live streams. The Event Hubs connector maps each Event Hub
+#      partition to a Spark partition, enabling parallel consumption.
+#      We use micro-batch mode (trigger every 5 minutes) rather than
+#      continuous processing because:
+#      1. Micro-batch is more resource-efficient (Spark can release
+#         executor memory between batches).
+#      2. 5-minute latency is acceptable for compressor monitoring
+#         (failures develop over hours/days, not seconds).
+#      3. Exactly-once semantics are simpler in micro-batch mode
+#         (checkpoint-based, no complex offset management).
+# SCALING: At 4,700 compressors with 5-min intervals, each micro-batch
+#          processes ~4,700 messages (one per compressor). This takes
+#          ~10 seconds to process, leaving ~290 seconds idle per trigger
+#          interval — plenty of headroom for fleet growth.
+# ALTERNATIVE: Kafka Connect + Delta Lake connector for lower latency,
+#              but that requires managing a separate Kafka cluster.
+#              Event Hubs is fully managed and Archrock already uses Azure.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Watermark for Late Data Handling (4 Hours)
+# WHY: The watermark tells Spark how long to keep state for late-arriving
+#      data. A 4-hour watermark means any reading that arrives more than
+#      4 hours after its event timestamp is dropped from the streaming
+#      query (to prevent unbounded state growth). We chose 4 hours because:
+#      1. Most compressors transmit in real-time (<1 min latency)
+#      2. Remote compressors with satellite uplinks may buffer for
+#         1-2 hours during connectivity outages
+#      3. 4 hours covers 99%+ of late arrivals
+#      4. The remaining <1% of very late arrivals (days-late from
+#         extended outages) are caught by the batch reconciliation
+#         process in pipeline.py
+# SCALING: At 4,700 compressors, 4-hour watermark state = 4,700 x
+#          48 readings (4hr x 12/hr) = ~225,600 records in Spark state.
+#          This is ~50 MB of state — well within executor memory limits.
+#          A 24-hour watermark would be ~1.35M records (~300 MB) — still
+#          feasible but wasteful for the marginal late arrivals it catches.
+# ALTERNATIVE: Could use a 15-minute watermark (matching the freshness
+#              SLA) for minimal state, but that would drop 2-3% of
+#              legitimate late arrivals from remote basins.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Checkpoint for Exactly-Once Semantics
+# WHY: The checkpoint directory stores the offset of the last successfully
+#      processed message per Event Hub partition. On restart, Spark reads
+#      the checkpoint to resume from where it left off — no duplicate
+#      processing, no missed messages. This is critical for data integrity:
+#      without checkpointing, a Spark restart would either re-process
+#      old data (duplicates) or skip data (data loss). The checkpoint
+#      must be on durable storage (OneLake/ADLS, not local disk) so
+#      that it survives pod/container restarts in Fabric.
+# SCALING: Checkpoint files are tiny (~1 KB per partition x 16 partitions
+#          = ~16 KB total). The overhead is negligible.
+# ===========================================================================
+
 import json
 import logging
 import os
@@ -38,7 +98,11 @@ from pyspark.sql.types import (
 
 logger = logging.getLogger(__name__)
 
-# Schema for Event Hub message body (JSON)
+# Schema for Event Hub message body (JSON).
+# This must exactly match the JSON structure produced by the event_hub_producer.
+# Note: timestamp is StringType here (not TimestampType) because JSON does
+# not have a native timestamp type — it arrives as an ISO 8601 string and
+# is cast to TimestampType during parsing with F.to_timestamp().
 EVENT_SCHEMA = StructType([
     StructField("compressor_id", StringType(), False),
     StructField("timestamp", StringType(), False),
@@ -105,8 +169,11 @@ def parse_event_hub_messages(raw_df: DataFrame) -> DataFrame:
     Returns:
         DataFrame with parsed sensor reading columns + metadata
     """
+    # Two-stage select: first parse JSON + extract metadata, then flatten.
+    # This pattern avoids deeply nested column references (data.field)
+    # in downstream code — consumers see flat column names.
     parsed = raw_df.select(
-        # Parse JSON body
+        # Parse JSON body from binary to struct using explicit schema
         F.from_json(
             F.col("body").cast("string"),
             EVENT_SCHEMA
@@ -136,7 +203,13 @@ def parse_event_hub_messages(raw_df: DataFrame) -> DataFrame:
         F.to_date(F.col("data.timestamp")).alias("ingestion_date"),
     )
 
-    # Filter out malformed records (null compressor_id or timestamp)
+    # Filter out malformed records (null compressor_id or timestamp).
+    # This is the "dead letter" filter for the streaming path: records
+    # that cannot be parsed (corrupt JSON, missing required fields) get
+    # null values from from_json() and are silently dropped here. A more
+    # robust approach would route these to a dead letter table for
+    # investigation, but for now the schema_registry.py handles
+    # pre-validation on the producer side.
     valid = parsed.filter(
         F.col("compressor_id").isNotNull() &
         F.col("timestamp").isNotNull()
@@ -197,17 +270,28 @@ def start_streaming_ingestion(
     # Parse messages
     parsed_stream = parse_event_hub_messages(raw_stream)
 
-    # Add watermark for late data handling
-    # Remote compressors may buffer data for hours during connectivity outages.
-    # The watermark_delay controls how long Spark keeps state for late arrivals
-    # before dropping them. Default: 4 hours (configurable in fabric_config.yaml).
+    # Add watermark for late data handling.
+    # The watermark is set on the EVENT timestamp (when the sensor produced
+    # the reading), not the ingestion timestamp. This is intentional:
+    # we want to handle late-arriving data based on how old the READING is,
+    # not when it arrived at the pipeline. A reading from 3 hours ago that
+    # arrives now is within the 4-hour watermark and gets processed.
+    # A reading from yesterday that arrives now exceeds the watermark and
+    # gets dropped (caught later by batch reconciliation in pipeline.py).
     watermark_delay = fabric_config.get('schedule', {}).get('streaming', {}).get(
         'watermark_delay', '4 hours'
     )
     watermarked = parsed_stream.withWatermark("timestamp", watermark_delay)
     logger.info(f"Watermark delay set to: {watermark_delay}")
 
-    # Write to OneLake Bronze (Delta format, partitioned by date)
+    # Write to OneLake Bronze (Delta format, partitioned by date).
+    # Key options:
+    # - format("delta"): ACID transactions, schema enforcement, time travel
+    # - outputMode("append"): Only write new rows (Bronze is append-only)
+    # - partitionBy("ingestion_date"): Time-based partitions for pruning
+    # - checkpointLocation: Exactly-once semantics (see pattern comment above)
+    # - mergeSchema: Allow new columns from schema evolution
+    # - trigger(processingTime): 5-minute micro-batches (not continuous)
     query = (
         watermarked.writeStream
         .format("delta")

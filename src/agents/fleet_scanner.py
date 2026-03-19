@@ -6,6 +6,19 @@ at-risk compressors and optimization opportunities. Runs on schedule
 (hourly/daily/weekly) or on-demand.
 """
 
+# ===========================================================================
+# PATTERN: Autonomous Fleet Scanner (Proactive Agent Infrastructure)
+# WHY: Traditional monitoring is reactive — alerts fire AFTER a threshold is
+#   breached. The fleet scanner is PROACTIVE: it combines multiple data sources
+#   (health status, ML predictions, alert history) into a composite risk score
+#   that identifies at-risk compressors BEFORE they reach critical thresholds.
+# SCALING: At 4,700 compressors, the scanner processes the entire fleet in
+#   a single SQL query (using the v_fleet_health_summary view) rather than
+#   iterating per-compressor. The view is pre-computed by PostgreSQL.
+# ALTERNATIVE: Per-compressor polling (query each compressor individually) —
+#   would require 4,700 queries per scan vs. 2 queries for the full fleet.
+# ===========================================================================
+
 import json
 import logging
 from datetime import datetime
@@ -52,36 +65,67 @@ def scan_fleet_health(organization_id: str) -> str:
         warning = sum(1 for f in fleet if f.get('health_status') == 'warning')
         critical = sum(1 for f in fleet if f.get('health_status') == 'critical')
 
-        # Score each compressor: higher score = higher risk
+        # ===========================================================================
+        # Risk Scoring Formula
+        # WHY: Each compressor gets a composite risk score from 3 signal sources:
+        #
+        #   1. Active alerts (alerts * 20 points each):
+        #      Alerts are LAGGING indicators — they fire after a threshold is
+        #      already breached. Each alert adds 20 points because multiple
+        #      concurrent alerts indicate a compound problem.
+        #
+        #   2. Health status (critical=50, warning=25 points):
+        #      Status is derived from current sensor readings vs. thresholds.
+        #      Critical gets more weight because it means at least one sensor
+        #      is in the danger zone right now.
+        #
+        #   3. ML predictions (failure_probability * 100 + RUL tiers):
+        #      ML predictions are LEADING indicators — they predict future
+        #      failure before thresholds are breached. This is why they get
+        #      the highest weight (up to 100 points for probability + 40 for
+        #      low RUL). A compressor with 80% failure probability but no
+        #      current alerts is MORE urgent than one with 2 alerts but 5%
+        #      failure probability.
+        #
+        # WEIGHT RATIONALE:
+        #   - ML * 100: Highest signal, catches issues days before alerts fire
+        #   - Alerts * 20: Lagging but concrete (something is already wrong)
+        #   - Status * 25/50: Current snapshot, corroborates other signals
+        #
+        # EXAMPLE SCORES:
+        #   - Healthy compressor: 0 (no alerts, no predictions)
+        #   - Warning with 1 alert: 45 (25 status + 20 alert)
+        #   - Critical with ML prediction: 150+ (50 + 100 + RUL bonus)
+        # ===========================================================================
         scored = []
         for comp in fleet:
             cid = comp['compressor_id']
             pred = pred_map.get(cid, {})
             score = 0
 
-            # Alert-based scoring
+            # Signal 1: Active alert count (lagging indicator, 20 pts each)
             alerts = comp.get('active_alert_count', 0) or 0
             score += alerts * 20
 
-            # Status-based scoring
+            # Signal 2: Current health status (snapshot indicator)
             if comp.get('health_status') == 'critical':
-                score += 50
+                score += 50  # At least one sensor in critical range
             elif comp.get('health_status') == 'warning':
-                score += 25
+                score += 25  # At least one sensor in warning range
 
-            # ML prediction scoring
+            # Signal 3: ML predictions (leading indicator, highest weight)
             fp = float(pred.get('failure_probability', 0) or 0)
-            score += fp * 100
+            score += fp * 100  # 0-100 points based on failure probability
 
             rul = pred.get('rul_days')
             if rul is not None:
                 rul_val = float(rul)
                 if rul_val < 3:
-                    score += 40
+                    score += 40  # Critical: less than 3 days remaining
                 elif rul_val < 7:
-                    score += 20
+                    score += 20  # Urgent: less than a week
                 elif rul_val < 14:
-                    score += 10
+                    score += 10  # Watch: less than two weeks
 
             scored.append({
                 **comp,
@@ -93,7 +137,16 @@ def scan_fleet_health(organization_id: str) -> str:
         # Sort by risk score descending
         scored.sort(key=lambda x: x['risk_score'], reverse=True)
 
-        # Health score: 0-100 (100 = all healthy)
+        # ===========================================================================
+        # Fleet Health Score: 0-100 (100 = all healthy, 0 = all critical)
+        # METHODOLOGY: Simple ratio of healthy compressors to total fleet.
+        #   This is intentionally naive — a more sophisticated score would
+        #   weight critical compressors more heavily (one critical unit at
+        #   a key station matters more than three warning units at low-priority
+        #   stations). The simple ratio is easy to explain to executives.
+        # IMPROVEMENT: Weighted health score factoring in station importance,
+        #   throughput commitments, and regulatory exposure.
+        # ===========================================================================
         health_score = (healthy / total * 100) if total > 0 else 100
 
         result = {
@@ -115,6 +168,13 @@ def scan_fleet_health(organization_id: str) -> str:
         return json.dumps({"error": str(e)})
 
 
+# ===========================================================================
+# Basin Aggregation for Fleet-Level View
+# WHY: Archrock operates across 10 basins (Permian, Eagle Ford, Marcellus, etc.).
+#   Basin-level aggregation answers: "Which basin has the most critical
+#   compressors?" — enabling regional resource allocation decisions
+#   (e.g., deploy more technicians to the Permian basin this week).
+# ===========================================================================
 def get_basin_summary(organization_id: str, basin: Optional[str] = None) -> str:
     """Get aggregated health metrics per basin."""
     try:

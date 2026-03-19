@@ -8,6 +8,25 @@ and produce structured diagnostic reports with root cause analysis.
 Framework: Pydantic AI (chosen over LangGraph for type-safety and simplicity)
 """
 
+# ===========================================================================
+# PATTERN: Simple Triage Agent (Diagnostics vs. Investigation)
+# WHY: This agent is the "first responder" — it provides a quick triage
+#   assessment with 5 tools in ~5 seconds. The investigation agent (12 tools,
+#   ~15-30 seconds) does deep root cause analysis with RAG and evidence chains.
+#
+# WHEN TO USE WHICH:
+#   - Diagnostics agent: "What's wrong with COMP-003 right now?" (quick answer)
+#   - Investigation agent: "WHY is COMP-003 failing and what should we do?" (deep dive)
+#
+# The diagnostics agent answers: current status, likely issue, urgency level.
+# The investigation agent answers: root cause, evidence chain, repair plan, cost estimate.
+#
+# DESIGN DECISION: These are separate agents (not one agent with a "mode" flag)
+#   because they have different system prompts, different tool sets, and different
+#   output schemas. A single agent with 12 tools would often call unnecessary
+#   tools for simple triage questions, wasting tokens and time.
+# ===========================================================================
+
 import os
 import logging
 
@@ -23,11 +42,14 @@ logger = logging.getLogger(__name__)
 # AGENT DEFINITION
 # ============================================================================
 
+# All 4 agents share the same model via DIAGNOSTICS_MODEL env var.
+# This ensures consistent behavior and simplifies deployment configuration.
+# See investigation_agent.py for detailed rationale on model selection.
 _model = os.environ.get('DIAGNOSTICS_MODEL', 'openai:gpt-4o-mini')
 
 diagnostics_agent = Agent(
     _model,
-    result_type=DiagnosticReport,
+    result_type=DiagnosticReport,  # Simpler schema than InvestigationReport — no evidence chain
     system_prompt="""You are an expert compressor diagnostics engineer specializing in
 reciprocating natural gas compressors used in oil and gas pipeline operations.
 
@@ -58,7 +80,15 @@ Always use the tools provided to fetch real data. Do not make up sensor readings
 
 
 # ============================================================================
-# TOOL REGISTRATIONS (delegate to shared db_tools)
+# TOOL REGISTRATIONS (5 tools — delegate to shared db_tools)
+# ===========================================================================
+# WHY only 5 tools (vs. 12 for investigation)?
+#   The diagnostics agent needs: current readings, alerts, ML predictions,
+#   maintenance history, and metadata. That's enough for triage.
+#   It does NOT need: sensor trends, RAG search, similar incidents,
+#   baseline comparison, failure scenario details, or emissions data.
+#   Fewer tools = faster execution + lower token usage + less chance of
+#   the LLM calling irrelevant tools.
 # ============================================================================
 
 @diagnostics_agent.tool_plain
@@ -112,8 +142,11 @@ async def diagnose_compressor(compressor_id: str) -> DiagnosticReport:
     Returns:
         DiagnosticReport: Structured diagnosis with root cause and recommendations
     """
+    # Simple prompt — no 7-step methodology needed for triage.
+    # The system prompt already tells the agent to use all tools and
+    # produce a structured DiagnosticReport.
     result = await diagnostics_agent.run(
         f"Diagnose compressor {compressor_id}. "
         f"Fetch all available data using the provided tools, then produce a comprehensive diagnostic report."
     )
-    return result.data
+    return result.data  # Pydantic AI validates output against DiagnosticReport schema

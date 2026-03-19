@@ -14,6 +14,77 @@ state at any given time, with ~1% in critical condition.
 Author: David Fernandez
 """
 
+# ===========================================================================
+# PATTERN: 6 Failure Modes Based on Real Compressor Physics
+# WHY: Each failure mode models a real mechanical degradation process
+#      observed in natural gas compressors. The modes are:
+#
+#      1. BEARING_WEAR (2.5%/month): Bearing cage deterioration causes
+#         EXPONENTIAL vibration increase. This is the fastest-progressing
+#         failure — goes from early warning to failure in 5 days. The
+#         exponential curve (baseline * (1 + (days/3)^1.8)) mimics real
+#         bearing degradation where vibration doubles every 2-3 days.
+#
+#      2. COOLING_DEGRADATION (2.0%/month): Coolant loss or fouled heat
+#         exchanger causes LINEAR temperature rise (+4.5F/day). This is
+#         the most gradual failure — takes 6+ days to reach critical.
+#         Linear progression matches real coolant leak behavior.
+#
+#      3. VALVE_FAILURE (1.5%/month): Cracked valve plates cause
+#         OSCILLATING pressure (sinusoidal pattern). The distinctive
+#         oscillation is key for ML detection — no other failure mode
+#         produces periodic pressure swings.
+#
+#      4. RING_WEAR (2.0%/month): Piston ring wear causes gradual
+#         efficiency loss — flow rate drops 3%/day while pressure
+#         decreases 8 PSI/day. The compressor works harder (same HP)
+#         but produces less output. Longest progression (9 days to failure).
+#
+#      5. PACKING_LEAK (1.5%/month): Rod packing wear allows gas to
+#         leak around the piston rod, causing pressure loss AND methane
+#         emissions. This is the EPA-regulated failure mode — OOOOb
+#         requires detection and repair within specified timeframes.
+#
+#      6. FOULING (3.0%/month): Dirty gas deposits reduce heat transfer,
+#         causing slow temperature rise with periodic spikes (every 3 days
+#         when deposits partially dislodge). Most common failure mode
+#         but also the slowest — usually caught by routine inspections.
+#
+# SCALING: At 4,700 compressors, the combined failure rates (~12.5%
+#          annualized) mean ~5% of fleet is in some degradation state
+#          at any time (~235 units), and ~1% is critical (~47 units).
+#          This matches Archrock's reported maintenance statistics.
+# ALTERNATIVE: Could use a generic "degradation" curve for all failures,
+#              but different physics produce different sensor signatures.
+#              The ML models need to see these distinct patterns to learn
+#              root cause classification (not just anomaly detection).
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Severity Progression Timeline
+# WHY: Each failure mode has a defined progression from healthy to failed:
+#      - 0-30% of progression: EARLY_WARNING (subtle signal, only ML catches it)
+#      - 30-60%: WARNING (visible on dashboards, schedule maintenance)
+#      - 60-90%: CRITICAL (imminent failure, prioritize work order)
+#      - 90-100%: FAILED (compressor shut down, emergency repair)
+#      These thresholds (0.3, 0.6, 0.9) are calibrated so that early
+#      warning gives 2-3 days of lead time before critical — enough
+#      for the AI agents to investigate, create a work order, and
+#      dispatch a technician before unplanned shutdown.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Fleet Probability Derivation
+# WHY: The fleet_probability field represents the chance of a specific
+#      failure mode starting in any given 30-day period PER COMPRESSOR.
+#      The total combined probability across all 6 modes is:
+#      0.025 + 0.020 + 0.015 + 0.020 + 0.015 + 0.030 = 0.125 (12.5%)
+#      This means ~12.5% of compressors per month will enter some
+#      degradation state. Since degradation takes 5-14 days to resolve,
+#      at any snapshot ~5% of fleet is actively degrading — consistent
+#      with industry benchmarks for natural gas compression.
+# ===========================================================================
+
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, Callable
@@ -67,7 +138,15 @@ class FailureScenario:
             return Severity.FAILED
 
     def apply_vibration(self, baseline: float, day: int) -> float:
-        """Apply failure-mode-specific vibration degradation."""
+        """Apply failure-mode-specific vibration degradation.
+
+        Each failure mode affects vibration differently:
+        - Bearing wear: Exponential increase (most distinctive signature)
+        - Valve failure: Step increase with oscillation (valve bouncing)
+        - Ring wear: Gradual linear increase (subtle, hard to detect)
+        - Fouling: Slow increase with periodic spikes (deposit dislodging)
+        Other modes return baseline (no vibration effect).
+        """
         if day < self.onset_day:
             return baseline
 
@@ -144,7 +223,13 @@ class FailureScenario:
         return baseline
 
 
-# Pre-defined scenarios for fleet simulation
+# Pre-defined scenarios for fleet simulation.
+# Each scenario defines:
+# - onset_day: When degradation begins (day 2-6 depending on mode)
+# - failure_day: When full failure occurs (None = gradual, caught early)
+# - primary_sensor: Which sensor shows the strongest signal (used for
+#   ML model feature importance and investigation agent root cause analysis)
+# - fleet_probability: Monthly probability per compressor (see derivation above)
 FLEET_SCENARIOS = {
     FailureMode.BEARING_WEAR: FailureScenario(
         mode=FailureMode.BEARING_WEAR,
@@ -197,6 +282,20 @@ FLEET_SCENARIOS = {
 }
 
 
+# ===========================================================================
+# PATTERN: Fleet Failure Assignment (Deterministic Degradation)
+# WHY: Rather than randomly triggering failures during simulation,
+#      we pre-assign which compressors will degrade and at what onset
+#      offset. This makes the simulation fully deterministic (same seed
+#      = same failures every time), which is critical for:
+#      1. Reproducible tests (unit tests assert specific compressor states)
+#      2. Demo consistency (presentations always show the same failures)
+#      3. ML model evaluation (compare model versions on identical data)
+#      The onset_offset introduces timing variation: some compressors
+#      start degrading on day 1, others on day 4. Critical compressors
+#      get a negative offset (-2) so they are further along in their
+#      degradation curve — appearing already in critical state.
+# ===========================================================================
 def assign_fleet_failures(
     n_compressors: int,
     failure_rate: float = 0.05,

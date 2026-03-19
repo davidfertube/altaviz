@@ -1,0 +1,100 @@
+# ===========================================================================
+# Azure AI Services Configuration
+# ===========================================================================
+# WHY YAML instead of .env: YAML supports nesting, grouping, inline docs,
+#   and typed values (lists, maps). .env files are flat key=value pairs
+#   that can't express the hierarchical structure of Azure service configs.
+#   YAML is also version-controlled (unlike .env which is gitignored),
+#   so the config STRUCTURE is shared across the team while the VALUES
+#   come from environment variables.
+#
+# PATTERN: Environment Variable Substitution — ${VAR_NAME}
+#   Values like "${AZURE_OPENAI_ENDPOINT}" are resolved at runtime by the
+#   config loader (src/etl/utils.py). The actual secrets live in:
+#   - Local dev: .env file (gitignored)
+#   - Production: Azure Key Vault (referenced via Managed Identity)
+#   This separation means you can commit this YAML to git safely —
+#   it contains no secrets, only references to secrets.
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# Azure OpenAI — LLM and Embedding Service
+# ---------------------------------------------------------------------------
+# The endpoint and deployment names are set per-environment. In production,
+# these come from Terraform outputs (see infrastructure/terraform/ai_services.tf).
+azure_openai:
+  endpoint: "${AZURE_OPENAI_ENDPOINT}"
+  # API version pinned to a specific preview to avoid breaking changes.
+  # Azure OpenAI GA versions lag behind preview features (e.g., structured outputs).
+  api_version: "2024-08-01-preview"
+  # ---------------------------------------------------------------------------
+  # Model Deployment Naming Convention:
+  #   Deployment names match the model name (e.g., "gpt-4o-mini") for clarity.
+  #   Azure requires deployment names to be unique within an account, so if you
+  #   need multiple versions of the same model, suffix with a version
+  #   (e.g., "gpt-4o-mini-v2").
+  # ---------------------------------------------------------------------------
+  deployments:
+    chat: "${AZURE_OPENAI_DEPLOYMENT}"           # gpt-4o-mini
+    embedding: "${AZURE_OPENAI_EMBEDDING_DEPLOYMENT}"  # text-embedding-3-small
+
+# ---------------------------------------------------------------------------
+# Azure AI Search — Knowledge Base Retrieval (RAG)
+# ---------------------------------------------------------------------------
+# Used by the investigation agent to find similar past incidents.
+# vector_dimensions: 1536 matches text-embedding-3-small output size.
+# semantic_config: enables hybrid search (keyword + vector) for better recall.
+azure_search:
+  endpoint: "${AZURE_SEARCH_ENDPOINT}"
+  index_name: "altaviz-knowledge-base"
+  semantic_config: "altaviz-semantic"
+  vector_dimensions: 1536
+
+# ---------------------------------------------------------------------------
+# Azure Machine Learning — MLflow Model Registry
+# ---------------------------------------------------------------------------
+# The ML workspace hosts the MLflow tracking server and model registry.
+# All 4 ML models (anomaly, temp drift, emissions, RUL) are registered here.
+azure_ml:
+  workspace_name: "${AZURE_ML_WORKSPACE_NAME}"
+  resource_group: "${AZURE_ML_RESOURCE_GROUP}"
+  subscription_id: "${AZURE_ML_SUBSCRIPTION_ID}"
+  tracking_uri: "${MLFLOW_TRACKING_URI}"
+
+# ---------------------------------------------------------------------------
+# Model Deployment Configuration
+# ---------------------------------------------------------------------------
+# Maps each ML model to its MLflow registry entry. The "stage" field
+# controls which version is served (Production vs Staging). MLflow's
+# model registry handles version promotion and rollback.
+models:
+  anomaly_detector:
+    name: "altaviz-anomaly-detector"
+    description: "Isolation Forest for vibration pattern anomalies"
+    stage: "Production"
+  temp_drift:
+    name: "altaviz-temp-drift"
+    description: "Linear regression for temperature drift prediction"
+    stage: "Production"
+  emissions:
+    name: "altaviz-emissions"
+    description: "EPA Subpart W emissions estimation"
+    stage: "Production"
+  rul:
+    name: "altaviz-rul"
+    description: "Remaining Useful Life heuristic predictor"
+    stage: "Production"
+
+# ---------------------------------------------------------------------------
+# Agent Configuration
+# ---------------------------------------------------------------------------
+# Centralizes the AI agent stack choices:
+#   model: Which LLM to use (supports azure-openai:*, openai:*, anthropic:*)
+#   observability: Tracing backend (langfuse for LLM-specific metrics)
+#   evaluation: Test framework for agent output quality (deepeval)
+#   orchestration: Multi-agent workflow engine (langgraph for closed-loop)
+agents:
+  model: "${DIAGNOSTICS_MODEL}"  # azure-openai:gpt-4o-mini
+  observability: "langfuse"
+  evaluation: "deepeval"
+  orchestration: "langgraph"

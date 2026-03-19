@@ -21,6 +21,44 @@ Usage:
 Author: David Fernandez
 """
 
+# ===========================================================================
+# PATTERN: Fleet Simulator for Development Without Azure
+# WHY: The simulator exists because you cannot develop a compressor
+#      monitoring pipeline without compressor data. Real telemetry from
+#      Archrock's fleet is proprietary, requires Azure credentials, and
+#      is not available during local development. The simulator provides:
+#      1. Deterministic test data (seed=42 always produces the same output)
+#      2. Failure scenario injection (control which compressors degrade)
+#      3. Scalable volume (10 compressors for unit tests, 4,700 for
+#         production-scale load tests)
+#      4. Realistic statistical properties (per-model baselines, noise,
+#         sensor glitches) that exercise the full cleaning pipeline
+# SCALING: At 4,700 compressors x 288 readings/day x 10 days =
+#          13,536,000 readings (~2.5 GB Parquet). This exercises the
+#          same code paths as production, including memory management,
+#          batch processing, and partition strategies.
+# ALTERNATIVE: Could use synthetic data generators (Faker, SDV) but
+#              they do not model the physics of compressor degradation.
+#              Our simulator uses real failure mode equations.
+# ===========================================================================
+
+# ===========================================================================
+# PATTERN: Batch Processing for Memory Management
+# WHY: Generating 13.5M readings (4,700 x 2,880) at once would require
+#      ~3 GB of RAM, which exceeds typical developer laptop memory limits.
+#      Instead, we generate data in batches of 500 compressors at a time
+#      (~1.44M readings per batch, ~250 MB). Each batch is independently
+#      processable: it can be written to Parquet immediately, freeing
+#      memory for the next batch. The generate_all_readings() generator
+#      yields batches lazily, so only one batch is in memory at a time.
+# SCALING: Batch size of 500 means 4,700 compressors = ~10 batches.
+#          Each batch takes ~30 seconds to generate. Total: ~5 minutes
+#          for a full fleet simulation.
+# ALTERNATIVE: Could use Spark to generate data in parallel (faster),
+#              but that requires a Spark session — the simulator is
+#              designed to work with pure Python for portability.
+# ===========================================================================
+
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -75,6 +113,10 @@ class FleetSimulator:
 
         # Generate fleet definition
         self.fleet = self._build_fleet()
+        # Assign failure scenarios to ~5% of fleet.
+        # This determines WHICH compressors will degrade and WHAT failure
+        # mode they will experience. The assignment is deterministic
+        # (seeded RNG) so the same fleet always has the same failures.
         self.failure_assignments = assign_fleet_failures(
             n_compressors, failure_rate=failure_rate, seed=seed
         )
@@ -299,10 +341,23 @@ class FleetSimulator:
                     else:
                         value = baseline
 
-                    # Add sensor noise (3% Gaussian)
+                    # Add sensor noise (3% Gaussian).
+                    # Real sensors have measurement uncertainty — typically
+                    # 1-5% of the reading. 3% is a realistic middle ground
+                    # that creates visible noise in time-series plots without
+                    # overwhelming the underlying signal. The noise is
+                    # proportional to the absolute value (heteroscedastic)
+                    # because a vibration sensor at 5 mm/s has more absolute
+                    # noise than one at 1 mm/s.
                     value += self.np_rng.normal(0, 0.03 * abs(value))
 
-                    # 0.5% chance of random spike (sensor glitch)
+                    # 0.5% chance of random spike (sensor glitch).
+                    # Real sensors occasionally produce single-reading spikes
+                    # due to electrical interference, A/D converter errors,
+                    # or brief mechanical events. These spikes exercise the
+                    # outlier removal logic in silver/cleanse.py — the 4-sigma
+                    # filter should catch most of these while preserving
+                    # legitimate failure-mode signals.
                     if self.np_rng.random() < 0.005:
                         value *= self.rng.choice([0.85, 1.15])
 
@@ -329,6 +384,17 @@ class FleetSimulator:
                         f"(compressors {start+1}-{min(start+batch_size, n)})")
             yield self.generate_readings_batch(start, batch_size)
 
+    # ===========================================================================
+    # PATTERN: Parquet Output with Date Partitioning
+    # WHY: Output is partitioned by date to match the Bronze layer's
+    #      ingestion_date partitioning. This means the simulator output
+    #      can be loaded directly into Bronze without repartitioning.
+    #      Metadata and stations are single files (not partitioned)
+    #      because they are small (~4,700 rows and ~200 rows respectively).
+    # SCALING: 10 days of data at 4,700 compressors creates ~10 date
+    #          partitions x ~10 batch files per partition = ~100 Parquet
+    #          files totaling ~2.5 GB.
+    # ===========================================================================
     def save_to_parquet(self, output_dir: str = 'data/raw/fleet', batch_size: int = 500):
         """
         Save fleet data to partitioned Parquet files.

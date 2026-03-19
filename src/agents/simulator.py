@@ -6,6 +6,24 @@ emissions reduction scenarios. Returns baseline vs. projected
 comparisons with risk assessments.
 """
 
+# ===========================================================================
+# PATTERN: What-If Simulation Engine (Decision Support)
+# WHY: Fleet operators need to evaluate decisions BEFORE committing:
+#   "What happens if we defer maintenance on COMP-0042 by 14 days?"
+#   "What if we rebalance load across Station X?"
+#   The simulator provides quantified projections (failure probability,
+#   cost impact, risk assessment) so operators can make data-driven decisions
+#   rather than relying on gut feeling.
+# DESIGN: All simulations are DETERMINISTIC — given the same inputs, they
+#   produce the same outputs. This is critical for decision support because:
+#   1. Reproducible: "I ran this simulation yesterday and got X" holds true today
+#   2. Auditable: regulatory or legal review can verify the simulation logic
+#   3. Testable: unit tests can assert exact outputs
+# ALTERNATIVE: Monte Carlo simulation with random sampling — more realistic
+#   but harder to reproduce and explain. For decision support (not risk
+#   modeling), deterministic projections are more useful.
+# ===========================================================================
+
 import json
 import logging
 from typing import Optional
@@ -49,23 +67,46 @@ def run_maintenance_deferral(compressor_id: str, defer_days: int) -> str:
         current_rul = float(pred.get('rul_days', 30) or 30)
         current_fp = float(pred.get('failure_probability', 0.05) or 0.05)
 
-        # Simple projection: failure probability increases as we defer past RUL
+        # ===========================================================================
+        # RUL Exponential Decay Projection
+        # WHY: Failure probability does not increase linearly as maintenance is
+        #   deferred. It follows an exponential curve: deferring 50% of RUL is
+        #   manageable, but deferring 100% of RUL (past the predicted failure point)
+        #   is catastrophic.
+        # FORMULA: risk_multiplier = 1 + (defer_days / current_rul)^2
+        #   - Defer 25% of RUL: multiplier = 1.0625 (6% increase)
+        #   - Defer 50% of RUL: multiplier = 1.25 (25% increase)
+        #   - Defer 100% of RUL: multiplier = 2.0 (100% increase)
+        #   - Defer 200% of RUL: multiplier = 5.0 (400% increase)
+        # This is a simplified Weibull-like hazard function. A full Weibull
+        # analysis would require historical failure data per compressor model.
+        # ===========================================================================
         remaining_after_defer = max(0, current_rul - defer_days)
         if current_rul > 0:
-            # Exponential risk increase as we approach RUL
             risk_multiplier = 1 + (defer_days / current_rul) ** 2
         else:
-            risk_multiplier = 10.0
+            risk_multiplier = 10.0  # Already past RUL: extreme risk
 
-        projected_fp = min(0.99, current_fp * risk_multiplier)
+        projected_fp = min(0.99, current_fp * risk_multiplier)  # Cap at 99%
 
-        # Estimated cost of failure: $15K-50K/day downtime
-        daily_downtime_cost = 25_000  # average
-        avg_repair_duration_days = 1.5
+        # ===========================================================================
+        # Downtime Cost Assumption: $25,000/day
+        # SOURCE: Industry average for a ~1,100 HP reciprocating compressor.
+        #   Includes: lost gas throughput revenue ($15K-20K/day), emergency
+        #   repair premium (2-3x planned repair cost), contractual penalties
+        #   for missed throughput commitments, and environmental remediation
+        #   if failure causes a release.
+        # Range: $15K/day (small unit, non-critical station) to $50K/day
+        #   (large unit, high-throughput station). $25K is the fleet average.
+        # IMPROVEMENT: Look up actual throughput commitment for this specific
+        #   compressor's station to calculate a per-unit cost.
+        # ===========================================================================
+        daily_downtime_cost = 25_000
+        avg_repair_duration_days = 1.5  # Average unplanned repair takes 1.5 days
         expected_failure_cost = projected_fp * daily_downtime_cost * avg_repair_duration_days
 
-        # Planned repair cost (much cheaper)
-        planned_repair_cost = 8_000  # average planned repair
+        # Planned repair cost is much cheaper than unplanned failure
+        planned_repair_cost = 8_000  # Average planned repair with parts pre-ordered
 
         result = WhatIfResult(
             scenario_type="maintenance_defer",
@@ -102,6 +143,19 @@ def run_maintenance_deferral(compressor_id: str, defer_days: int) -> str:
         return json.dumps({"error": str(e)})
 
 
+# ===========================================================================
+# Load Balancing Simulation
+# WHY: Compressors at the same station often run at different utilization
+#   levels (some overloaded, some underloaded). Rebalancing load across
+#   units reduces wear on overloaded compressors, extending their RUL
+#   and reducing maintenance frequency.
+# METHODOLOGY: Compare each compressor's HP to the station average.
+#   Units > 120% of average are "overloaded", < 80% are "underloaded".
+#   The simulation projects the impact of equalizing load.
+# LIMITATION: Real load balancing requires understanding gas flow
+#   contracts, pipeline pressure requirements, and compressor operating
+#   envelopes. This simulation provides a directional estimate.
+# ===========================================================================
 def run_load_balance_simulation(station_id: str, organization_id: str) -> str:
     """Simulate load redistribution across compressors at a station.
 
@@ -176,6 +230,17 @@ def run_load_balance_simulation(station_id: str, organization_id: str) -> str:
         return json.dumps({"error": str(e)})
 
 
+# ===========================================================================
+# EPA OOOOb Compliance Check
+# WHY: EPA's OOOOb rule (effective 2024) requires oil & gas facilities to
+#   monitor and report methane emissions. The 25,000 tonnes CO2e/year
+#   threshold triggers enhanced monitoring and repair requirements.
+#   This function annualizes daily emissions (daily * 365) to estimate
+#   whether the fleet is on track to exceed the threshold.
+# SCALING: At 4,700 compressors, even small per-unit leaks add up.
+#   A packing leak on 2% of the fleet could push total emissions over
+#   the compliance threshold.
+# ===========================================================================
 def get_emissions_fleet_summary(organization_id: str) -> str:
     """Get fleet-wide emissions summary."""
     try:
