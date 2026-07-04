@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { anthropicTools, runTool } from "@/lib/tools";
 import { checkRateLimit, clientIp } from "@/lib/ratelimit";
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 const MODEL = process.env.ALTAVIZ_MODEL ?? "claude-sonnet-5";
 const MAX_AGENT_TURNS = 6;
