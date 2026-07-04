@@ -1,6 +1,6 @@
 # Altaviz — AI Media Buying Copilot
 
-**Live demo:** [altaviz.app](https://altaviz.app) · **MCP server:** `https://altaviz.app/api/mcp`
+**Live demo:** [altaviz.vercel.app](https://altaviz.vercel.app) · **MCP server:** `https://altaviz.vercel.app/api/mcp`
 
 Built by [David Fernandez](https://www.davidfernandez.dev) for the It's Today Media Build Challenge, July 2026.
 
@@ -30,7 +30,7 @@ Altaviz watches a multi-platform media buying account (Meta, Google, Taboola, Ti
 Claude Code (one line):
 
 ```bash
-claude mcp add --transport http altaviz https://altaviz.app/api/mcp
+claude mcp add --transport http altaviz https://altaviz.vercel.app/api/mcp
 ```
 
 Claude Desktop / Cursor (`claude_desktop_config.json` / `.cursor/mcp.json`):
@@ -40,7 +40,7 @@ Claude Desktop / Cursor (`claude_desktop_config.json` / `.cursor/mcp.json`):
   "mcpServers": {
     "altaviz": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://altaviz.app/api/mcp"]
+      "args": ["-y", "mcp-remote", "https://altaviz.vercel.app/api/mcp"]
     }
   }
 }

@@ -384,6 +384,9 @@ function build(): Account {
   const rand = mulberry32(1337_2026);
   const anchor = new Date();
   anchor.setUTCHours(0, 0, 0, 0);
+  // End the series on the last COMPLETE day, like real ad-platform reporting —
+  // also avoids "tomorrow" dates for US-evening viewers (server runs in UTC).
+  anchor.setUTCDate(anchor.getUTCDate() - 1);
 
   const campaigns: Campaign[] = SPECS.map((spec) => {
     const adSets: AdSet[] = spec.adSets.map((s, si) => {

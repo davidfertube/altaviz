@@ -30,7 +30,7 @@ const MCP_CONFIG = `{
   "mcpServers": {
     "altaviz": {
       "command": "npx",
-      "args": ["-y", "mcp-remote", "https://altaviz.app/api/mcp"]
+      "args": ["-y", "mcp-remote", "https://altaviz.vercel.app/api/mcp"]
     }
   }
 }`;
@@ -167,7 +167,7 @@ export default function LandingPage() {
               <p className="mt-3 text-sm leading-relaxed text-stone-500">
                 Claude Code:{" "}
                 <code className="rounded bg-stone-100 px-1.5 py-0.5 text-xs">
-                  claude mcp add --transport http altaviz https://altaviz.app/api/mcp
+                  claude mcp add --transport http altaviz https://altaviz.vercel.app/api/mcp
                 </code>
               </p>
             </div>

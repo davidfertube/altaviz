@@ -2,7 +2,6 @@ import { getAccount } from "@/lib/data/generate";
 import {
   Account,
   Campaign,
-  DailyMetric,
   Platform,
   campaignDaily,
   lastNDays,
@@ -142,8 +141,17 @@ function detectCpaDrift(c: Campaign): Anomaly[] {
   const recent = lastNDays(daily, 7);
   const baseline = daily.slice(-35, -14);
   if (baseline.length < 14) return [];
-  const recentKpi = summarize(recent);
   const baseKpi = summarize(baseline);
+  // Exclude outage-like days (CVR collapsed below 25% of baseline — the same
+  // signature detectTrackingOutage flags) so a one-day pixel outage inside the
+  // recent window can't masquerade as CPA drift.
+  const cleanRecent =
+    baseKpi.cvr != null
+      ? recent.filter(
+          (m) => m.clicks === 0 || m.conversions / m.clicks > baseKpi.cvr! * 0.25,
+        )
+      : recent;
+  const recentKpi = summarize(cleanRecent);
   if (
     recentKpi.cpa == null ||
     baseKpi.cpa == null ||
@@ -187,7 +195,6 @@ function detectCpaDrift(c: Campaign): Anomaly[] {
 function detectSpendSpike(c: Campaign): Anomaly[] {
   const daily = campaignDaily(c);
   const recent = lastNDays(daily, 14);
-  const spends = recent.map((m) => m.spend);
   const med = median(daily.slice(-45, -1).map((m) => m.spend));
   const out: Anomaly[] = [];
   for (const day of recent) {

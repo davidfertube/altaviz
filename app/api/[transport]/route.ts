@@ -30,4 +30,37 @@ const handler = createMcpHandler(
   },
 );
 
-export { handler as GET, handler as POST, handler as DELETE };
+/**
+ * Guard: only the stateless Streamable HTTP transport at /api/mcp is served.
+ * Without this, a probe of /api/sse reaches mcp-handler's SSE path, which
+ * requires Redis and would hang the invocation; malformed JSON bodies would
+ * likewise hang instead of returning a parse error.
+ */
+function guarded(req: Request, ctx: { params: Promise<{ transport: string }> }) {
+  return (async () => {
+    const { transport } = await ctx.params;
+    if (transport !== "mcp") {
+      return Response.json(
+        { error: "Not found. The MCP endpoint is /api/mcp (Streamable HTTP)." },
+        { status: 404 },
+      );
+    }
+    if (req.method === "POST") {
+      try {
+        await req.clone().json();
+      } catch {
+        return Response.json(
+          {
+            jsonrpc: "2.0",
+            id: null,
+            error: { code: -32700, message: "Parse error: request body is not valid JSON" },
+          },
+          { status: 400 },
+        );
+      }
+    }
+    return handler(req);
+  })();
+}
+
+export { guarded as GET, guarded as POST, guarded as DELETE };

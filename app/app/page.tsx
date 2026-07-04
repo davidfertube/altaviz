@@ -220,7 +220,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Chat */}
-          <div className="lg:sticky lg:top-6 lg:h-[calc(100vh-6rem)]">
+          <div className="h-[75vh] lg:sticky lg:top-6 lg:h-[calc(100vh-6rem)]">
             <ChatPanel />
           </div>
         </div>

@@ -6,7 +6,7 @@ export const maxDuration = 60;
 
 const MODEL = process.env.ALTAVIZ_MODEL ?? "claude-sonnet-5";
 const MAX_AGENT_TURNS = 6;
-const MAX_TOKENS_PER_TURN = 1400;
+const MAX_TOKENS_PER_TURN = 2000;
 const MAX_HISTORY_MESSAGES = 24;
 
 const SYSTEM = `You are Altaviz, an AI media-buying copilot embedded in a performance-marketing dashboard. The user is a media buyer at an affiliate marketing company that buys ads on Meta, Google, Taboola, and TikTok to generate leads (email/SMS signups) paid out per lead. ROI is the only metric that matters: profit = revenue (leads x payout) - spend.
@@ -46,14 +46,23 @@ export async function POST(req: Request) {
   let history: ChatMessage[];
   try {
     const body = await req.json();
-    history = (body.messages as ChatMessage[]) ?? [];
-    if (!Array.isArray(history) || history.length === 0) throw new Error("empty");
-    for (const m of history) {
-      if ((m.role !== "user" && m.role !== "assistant") || typeof m.text !== "string")
+    const raw = (body.messages as Array<ChatMessage & { content?: string }>) ?? [];
+    if (!Array.isArray(raw) || raw.length === 0) throw new Error("empty");
+    history = raw.map((m) => {
+      // accept `content` as an alias for `text` for hand-rolled API callers
+      const text = typeof m.text === "string" ? m.text : m.content;
+      if ((m.role !== "user" && m.role !== "assistant") || typeof text !== "string")
         throw new Error("bad message");
-    }
+      return { role: m.role, text };
+    });
   } catch {
-    return Response.json({ error: "Invalid request body." }, { status: 400 });
+    return Response.json(
+      {
+        error:
+          "Invalid request body. Expected { messages: [{ role: 'user' | 'assistant', text: string }] }.",
+      },
+      { status: 400 },
+    );
   }
 
   // Cap history so a long session can't run up token costs; tool-use blocks
@@ -84,6 +93,12 @@ export async function POST(req: Request) {
           const final = await s.finalMessage();
 
           if (final.stop_reason !== "tool_use") {
+            if (final.stop_reason === "max_tokens") {
+              emit({
+                t: "text",
+                v: "\n\n_(Cut off at the demo's per-response length cap — say “continue” for the rest.)_",
+              });
+            }
             emit({ t: "done" });
             break;
           }
@@ -119,9 +134,11 @@ export async function POST(req: Request) {
         const msg =
           err instanceof Anthropic.RateLimitError
             ? "The model is rate-limited right now — try again in a minute."
-            : err instanceof Anthropic.APIError
-              ? `Model error (${err.status}): ${err.message}`
-              : "Something went wrong generating the response.";
+            : err instanceof Anthropic.APIConnectionError
+              ? "Connection issue reaching the model — try again."
+              : err instanceof Anthropic.APIError
+                ? `Model error (${err.status}): ${err.message}`
+                : "Something went wrong generating the response.";
         emit({ t: "error", v: msg });
       } finally {
         controller.close();
