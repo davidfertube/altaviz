@@ -13,9 +13,25 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://altaviz.vercel.app"),
   title: "Altaviz — AI Media Buying Copilot",
   description:
     "Anomaly detection, a Claude-powered copilot, and an MCP server for cross-platform media buying teams.",
+  openGraph: {
+    title: "Altaviz — AI Media Buying Copilot",
+    description:
+      "Catch the anomaly before it eats your margin. Statistical detection, a Claude copilot, and an MCP server for media buying teams.",
+    url: "/",
+    siteName: "Altaviz",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Altaviz — AI Media Buying Copilot",
+    description: "Catch the anomaly before it eats your margin.",
+    images: ["/og.png"],
+  },
 };
 
 export default function RootLayout({

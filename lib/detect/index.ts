@@ -181,11 +181,14 @@ function detectCpaDrift(c: Campaign): Anomaly[] {
         evidence:
           `7-day CPA is ${fmtUsd(recentKpi.cpa)} vs ${fmtUsd(baseKpi.cpa)} three weeks ago ` +
           `(+${pct(ratio - 1)}), with a consistent upward daily trend. Payout is ${fmtUsd(c.payoutPerLead)}/lead, ` +
-          `so margin per lead has compressed from ${fmtUsd(c.payoutPerLead - baseKpi.cpa)} to ${fmtUsd(c.payoutPerLead - recentKpi.cpa)}.`,
+          `so front-end margin has compressed from ${fmtUsd(c.payoutPerLead - baseKpi.cpa)} to ${fmtUsd(c.payoutPerLead - recentKpi.cpa)}/lead ` +
+          `(backend email/SMS value adds ~${fmtUsd(c.backendValuePerLead)}/lead on top).`,
         window: { start: recent[0].date, end: recent[recent.length - 1].date },
         estDailyImpactUsd: Math.round(dailyConvs * extraCostPerLead),
         recommendation:
-          "Audit placements and audience overlap, refresh the top creative, and test a bid cap near breakeven. If CPA crosses payout, pause and rebuild.",
+          `Audit placements and audience overlap, refresh the top creative, and test a bid cap near front-end breakeven. ` +
+          `Past payout you are still list-building at ~${fmtUsd(c.backendValuePerLead)}/lead backend value — tighten and watch; ` +
+          `pause only if CPA clears total lead value (${fmtUsd(c.payoutPerLead + c.backendValuePerLead)}).`,
       },
     ];
   }

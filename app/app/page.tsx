@@ -125,7 +125,7 @@ export default function DashboardPage() {
                       k.d.startsWith("+") !== k.invert ? "text-emerald-400" : "text-red-400"
                     }`}
                   >
-                    {k.d} <span className="text-slate-600">vs prior 7d</span>
+                    {k.d} <span className="text-slate-500">vs prior 7d</span>
                   </div>
                 )}
               </Spotlight>

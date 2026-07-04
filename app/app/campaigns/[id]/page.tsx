@@ -13,6 +13,16 @@ import { CpaChart, SpendLeadsChart } from "@/components/campaign-charts";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const campaign = getAccount().campaigns.find((c) => c.id === id);
+  return { title: campaign ? `${campaign.name} — Altaviz` : "Altaviz" };
+}
+
 export default async function CampaignPage({
   params,
 }: {

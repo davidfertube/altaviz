@@ -1,10 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import dynamic from "next/dynamic";
+import GemPlaceholder from "@/components/gem-placeholder";
+import { detectAnomalies } from "@/lib/detect";
 import { CountUp, Reveal, Spotlight } from "@/components/motion";
 
 const HeroGlass = dynamic(() => import("@/components/hero-glass"), {
-  loading: () => null,
+  loading: () => <GemPlaceholder />,
 });
 
 export const metadata: Metadata = {
@@ -42,6 +44,9 @@ const MCP_CONFIG = `{
 }`;
 
 export default function LandingPage() {
+  const dailyImpact = Math.round(
+    detectAnomalies().reduce((a, x) => a + x.estDailyImpactUsd, 0),
+  );
   return (
     <div className="min-h-screen w-full overflow-x-clip">
       {/* floating pill nav */}
@@ -101,16 +106,16 @@ export default function LandingPage() {
           </p>
         </Reveal>
         <Reveal delay={240}>
-          <div className="mt-7 flex items-center justify-center gap-3">
+          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/app"
-              className="arrow-btn rounded-full bg-[#2e4dff] px-6 py-3 text-sm font-medium text-white shadow-[0_8px_24px_rgba(46,77,255,0.28)] transition-colors hover:bg-[#2440e0]"
+              className="arrow-btn whitespace-nowrap rounded-full bg-[#2e4dff] px-6 py-3 text-sm font-medium text-white shadow-[0_8px_24px_rgba(46,77,255,0.28)] transition-colors hover:bg-[#2440e0]"
             >
               Open the live demo <span className="arrow">→</span>
             </Link>
             <a
               href="#mcp"
-              className="rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-medium text-neutral-700 transition hover:border-neutral-400"
+              className="whitespace-nowrap rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-medium text-neutral-700 transition hover:border-neutral-400"
             >
               Use it from Claude
             </a>
@@ -130,15 +135,36 @@ export default function LandingPage() {
             {[
               { v: 5, suffix: "", label: "anomaly detectors" },
               { v: 7, suffix: "", label: "agent + MCP tools" },
-              { v: 6300, suffix: "", prefix: "$", label: "per day surfaced in the demo" },
+              { v: dailyImpact, suffix: "", prefix: "$", label: "per day surfaced in the demo" },
             ].map((s) => (
-              <div key={s.label} className="px-3">
-                <div className="text-2xl font-semibold tabular-nums tracking-tight sm:text-3xl">
+              <div key={s.label} className="px-2 sm:px-3">
+                <div className="text-lg font-semibold tabular-nums tracking-tight sm:text-3xl">
                   <CountUp value={s.v} prefix={s.prefix ?? ""} suffix={s.suffix} />
                 </div>
                 <div className="mt-1 text-[11px] uppercase tracking-wide text-neutral-500 sm:text-xs">
                   {s.label}
                 </div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+
+        {/* 60-second tour */}
+        <Reveal delay={140}>
+          <div className="mx-auto mt-4 grid max-w-3xl gap-3 text-left sm:grid-cols-3">
+            {[
+              { n: "1", t: "Open the demo", d: "The engine has already found every problem in the account \u2014 priced per day." },
+              { n: "2", t: "Expand a finding", d: "Statistical evidence, no LLM guesses: the Google outage, the fatigued solar ad." },
+              { n: "3", t: "Ask, then approve", d: "\u201CWhat should I kill today?\u201D \u2014 approve the copilot\u2019s actions in the queue." },
+            ].map((x) => (
+              <div key={x.n} className="rounded-2xl border border-[#e7e7ea] bg-white p-4">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#2e4dff]/10 text-[11px] font-semibold text-[#2e4dff]">
+                    {x.n}
+                  </span>
+                  <span className="text-[13px] font-semibold">{x.t}</span>
+                </div>
+                <p className="mt-1.5 text-[12.5px] leading-relaxed text-neutral-500">{x.d}</p>
               </div>
             ))}
           </div>
@@ -176,10 +202,10 @@ export default function LandingPage() {
       </section>
 
       {/* product cards */}
-      <section id="product" className="border-y border-[#e7e7ea] bg-white">
+      <section id="product" className="scroll-mt-24 border-y border-[#e7e7ea] bg-white">
         <div className="mx-auto max-w-5xl px-6 py-20">
           <Reveal>
-            <h2 className="text-[13px] font-medium uppercase tracking-[0.18em] text-neutral-400">
+            <h2 className="text-[13px] font-medium uppercase tracking-[0.18em] text-neutral-500">
               What it does
             </h2>
           </Reveal>
@@ -202,7 +228,7 @@ export default function LandingPage() {
       </section>
 
       {/* MCP */}
-      <section id="mcp" className="mx-auto max-w-5xl px-6 py-20 sm:py-24">
+      <section id="mcp" className="mx-auto max-w-5xl scroll-mt-24 px-6 py-20 sm:py-24">
         <div className="grid items-center gap-10 md:grid-cols-2">
           <div>
             <Reveal>

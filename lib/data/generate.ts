@@ -55,6 +55,7 @@ interface CampaignSpec {
   vertical: string;
   dailyBudget: number;
   payoutPerLead: number;
+  backendValuePerLead: number;
   baseCtr: number;
   baseCvr: number;
   baseCpm: number;
@@ -72,6 +73,7 @@ const SPECS: CampaignSpec[] = [
     vertical: "Solar",
     dailyBudget: 2500,
     payoutPerLead: 42,
+    backendValuePerLead: 6,
     baseCtr: 0.021,
     baseCvr: 0.023,
     baseCpm: 14,
@@ -122,6 +124,7 @@ const SPECS: CampaignSpec[] = [
     vertical: "Debt Relief",
     dailyBudget: 1800,
     payoutPerLead: 35,
+    backendValuePerLead: 8,
     baseCtr: 0.018,
     baseCvr: 0.032,
     baseCpm: 16,
@@ -156,6 +159,7 @@ const SPECS: CampaignSpec[] = [
     vertical: "Home Insurance",
     dailyBudget: 2200,
     payoutPerLead: 28,
+    backendValuePerLead: 5,
     baseCtr: 0.045,
     baseCvr: 0.040,
     baseCpm: 38,
@@ -198,6 +202,7 @@ const SPECS: CampaignSpec[] = [
     vertical: "Solar",
     dailyBudget: 900,
     payoutPerLead: 42,
+    backendValuePerLead: 6,
     baseCtr: 0.052,
     baseCvr: 0.025,
     baseCpm: 42,
@@ -225,6 +230,7 @@ const SPECS: CampaignSpec[] = [
     vertical: "Medicare",
     dailyBudget: 3000,
     payoutPerLead: 22,
+    backendValuePerLead: 9,
     baseCtr: 0.0032,
     baseCvr: 0.077,
     baseCpm: 4.2,
@@ -274,6 +280,7 @@ const SPECS: CampaignSpec[] = [
     vertical: "Auto Warranty",
     dailyBudget: 1200,
     payoutPerLead: 18,
+    backendValuePerLead: 4,
     baseCtr: 0.011,
     baseCvr: 0.058,
     baseCpm: 9,
@@ -422,6 +429,7 @@ function build(): Account {
       status: "active" as const,
       dailyBudget: spec.dailyBudget,
       payoutPerLead: spec.payoutPerLead,
+      backendValuePerLead: spec.backendValuePerLead,
       adSets,
     };
   });

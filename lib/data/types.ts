@@ -58,6 +58,8 @@ export interface Campaign {
   dailyBudget: number;
   /** Payout received per qualified lead */
   payoutPerLead: number;
+  /** Estimated backend email/SMS revenue per lead (configurable per offer) */
+  backendValuePerLead: number;
   adSets: AdSet[];
 }
 

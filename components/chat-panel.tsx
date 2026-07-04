@@ -255,7 +255,7 @@ export default function ChatPanel() {
             onChange={(e) => setInput(e.target.value)}
             placeholder={busy ? "Working…" : "Ask your copilot…"}
             disabled={busy}
-            className="flex-1 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors focus:border-[#5b76ff]/60 focus:bg-white/[0.05] disabled:opacity-60"
+            className="flex-1 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2.5 text-base text-slate-100 sm:text-sm placeholder-slate-500 outline-none transition-colors focus:border-[#5b76ff]/60 focus:bg-white/[0.05] disabled:opacity-60"
           />
           <button
             type="submit"

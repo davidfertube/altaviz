@@ -185,6 +185,7 @@ export const TOOLS: ToolDef[] = [
           vertical: c.vertical,
           dailyBudget: c.dailyBudget,
           payoutPerLead: c.payoutPerLead,
+          backendValuePerLead: c.backendValuePerLead,
           ...kpiRow(c.name, summarize(lastNDays(campaignDaily(c), d))),
         }));
     },
@@ -208,6 +209,7 @@ export const TOOLS: ToolDef[] = [
         vertical: c.vertical,
         dailyBudget: c.dailyBudget,
         payoutPerLead: c.payoutPerLead,
+        backendValuePerLead: c.backendValuePerLead,
         daily: lastNDays(campaignDaily(c), d),
         adSets: c.adSets.map((s) => ({
           id: s.id,
@@ -234,7 +236,7 @@ export const TOOLS: ToolDef[] = [
   {
     name: "detect_anomalies",
     description:
-      "Run statistical anomaly detection across the account: creative fatigue (frequency up + CTR decay), CPA drift, spend spikes, conversion-tracking outages, and underfunded winners worth scaling. Each finding includes evidence and an estimated $/day impact. This is the tool to call for 'what's wrong', 'what should I look at', or 'what should I kill/scale'.",
+      "Run statistical anomaly detection across the account: creative fatigue (frequency up + CTR decay), CPA drift, spend spikes, conversion-tracking outages, and underfunded winners worth scaling. Each finding includes evidence and an estimated $/day impact. This is the tool to call for 'what's wrong', 'what should I look at', or 'what should I kill/scale'. Call it WITHOUT filters unless the user explicitly asks for a subset — filtering by severity hides critical findings.",
     schema: z.object({
       platform: platformEnum.optional(),
       severity: z.enum(["critical", "warning", "opportunity"]).optional(),
@@ -270,6 +272,7 @@ export const TOOLS: ToolDef[] = [
         platform: c.platform,
         vertical: c.vertical,
         payoutPerLead: c.payoutPerLead,
+        backendValuePerLead: c.backendValuePerLead,
         audiences: c.adSets.map((s) => s.audience),
         liveCreatives: c.adSets.flatMap((s) =>
           s.ads.map((a) => {

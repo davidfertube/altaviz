@@ -4,6 +4,8 @@
 
 Built by [David Fernandez](https://www.davidfernandez.dev) for the It's Today Media Build Challenge.
 
+**60-second tour:** open the [demo](https://altaviz.vercel.app/app) → expand the Google tracking-outage finding → ask the copilot *"What should I kill today?"* → approve its actions in the queue.
+
 ## What it does
 
 Watches a multi-platform ad account (Meta, Google, Taboola, TikTok) and closes the gap between *when something breaks* and *when a human notices*.
@@ -41,6 +43,7 @@ Your business buys media to build email/SMS lists; ROI is the metric. The expens
 Design decisions:
 
 - **Statistics, not prompts.** z-scores, trend slopes, significance gates in [`lib/detect`](lib/detect/index.ts). LLMs narrate and decide; they never invent numbers. Findings are reproducible and auditable.
+- **List economics built in.** Pause/scale calls are priced on payout **plus a configurable backend $/lead** — list-building campaigns often run at front-end breakeven on purpose, and the detectors know that.
 - **One tool registry, two consumers.** [`lib/tools`](lib/tools/index.ts) defines each tool once (zod schema + executor); the chat agent and MCP server both consume it.
 - **Hard approval boundary.** The agent can propose `raise_budget`; it cannot call it. Product decision, not a gap.
 - **Public-demo hardening:** per-IP rate limiting, capped agent turns/tokens/history.
