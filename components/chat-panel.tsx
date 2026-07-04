@@ -120,8 +120,8 @@ export default function ChatPanel() {
     );
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-slate-800 bg-[#0d1420]">
-      <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+    <div className="dash-card flex h-full flex-col rounded-2xl">
+      <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
         <div>
           <span className="text-sm font-semibold text-slate-100">Copilot</span>
           <span className="ml-2 text-xs text-slate-500">Claude + live account tools</span>
@@ -147,7 +147,7 @@ export default function ChatPanel() {
                   key={s}
                   onClick={() => send(s)}
                   disabled={busy}
-                  className="rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-300 transition hover:border-slate-500 hover:text-slate-100 disabled:opacity-50"
+                  className="rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-xs text-slate-300 transition-all duration-300 hover:border-[#5b76ff]/50 hover:bg-[#5b76ff]/10 hover:text-slate-100 disabled:opacity-50"
                 >
                   {s}
                 </button>
@@ -159,7 +159,7 @@ export default function ChatPanel() {
         {messages.map((m, i) => (
           <div key={i}>
             {m.role === "user" ? (
-              <div className="ml-8 rounded-lg bg-slate-800/70 px-3 py-2 text-sm text-slate-100">
+              <div className="ml-8 rounded-2xl rounded-br-md bg-[#1c2739] px-3.5 py-2.5 text-sm leading-relaxed text-slate-100">
                 {m.text}
               </div>
             ) : (
@@ -167,8 +167,8 @@ export default function ChatPanel() {
                 {(m.toolCalls?.length ?? 0) > 0 && (
                   <div className="space-y-1">
                     {m.toolCalls!.map((t, j) => (
-                      <div key={j} className="flex items-center gap-1.5 text-xs text-sky-500/80">
-                        <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500/80" />
+                      <div key={j} className="flex items-center gap-1.5 text-xs text-[#7d93ff]">
+                        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[#7d93ff]" />
                         {t}
                       </div>
                     ))}
@@ -190,7 +190,7 @@ export default function ChatPanel() {
                       return (
                         <div
                           key={a.id}
-                          className="rounded-lg border border-slate-700 bg-slate-900/60 p-2.5"
+                          className="rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:border-white/20"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div>
@@ -204,8 +204,8 @@ export default function ChatPanel() {
                               disabled={queued}
                               className={
                                 queued
-                                  ? "rounded-md bg-emerald-950 px-2.5 py-1 text-xs text-emerald-400"
-                                  : "rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-medium text-white transition hover:bg-emerald-500"
+                                  ? "rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-400 ring-1 ring-inset ring-emerald-500/20"
+                                  : "rounded-full bg-emerald-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-emerald-500"
                               }
                             >
                               {queued ? "✓ Queued" : "Approve"}
@@ -222,7 +222,7 @@ export default function ChatPanel() {
         ))}
 
         {queue.length > 0 && (
-          <div className="rounded-lg border border-emerald-900/60 bg-emerald-950/30 p-3">
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3.5">
             <div className="text-xs font-semibold text-emerald-400">
               Execution queue (simulated)
             </div>
@@ -247,7 +247,7 @@ export default function ChatPanel() {
           e.preventDefault();
           send(input);
         }}
-        className="border-t border-slate-800 p-3"
+        className="border-t border-white/[0.06] p-3"
       >
         <div className="flex gap-2">
           <input
@@ -255,12 +255,12 @@ export default function ChatPanel() {
             onChange={(e) => setInput(e.target.value)}
             placeholder={busy ? "Working…" : "Ask your copilot…"}
             disabled={busy}
-            className="flex-1 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-sky-600 disabled:opacity-60"
+            className="flex-1 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors focus:border-[#5b76ff]/60 focus:bg-white/[0.05] disabled:opacity-60"
           />
           <button
             type="submit"
             disabled={busy || !input.trim()}
-            className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-500 disabled:opacity-40"
+            className="rounded-full bg-[#2e4dff] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#2440e0] disabled:opacity-40"
           >
             Send
           </button>

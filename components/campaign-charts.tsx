@@ -44,7 +44,7 @@ export function SpendLeadsChart({ daily }: { daily: DailyMetric[] }) {
               : [Number(value).toLocaleString(), "Leads"]
           }
         />
-        <Bar yAxisId="spend" dataKey="spend" fill="#0ea5e9" opacity={0.55} radius={[2, 2, 0, 0]} />
+        <Bar yAxisId="spend" dataKey="spend" fill="#5b76ff" opacity={0.55} radius={[2, 2, 0, 0]} />
         <Line
           yAxisId="leads"
           type="monotone"
